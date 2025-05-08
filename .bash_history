@@ -16,3 +16,4 @@ mkdir -p src/services
 npm install react-native-reanimated@latest react-native-gesture-handler@latest react-native-screens@latest react-native-safe-area-context@latest @react-navigation/native@latest @react-navigation/drawer@latest
 npx expo start -c
 npx expo start
+npx expo start --clear

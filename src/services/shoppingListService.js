@@ -1,5 +1,13 @@
 import { database } from "../firebase/config";
-import { ref, set, onValue, push, remove, update } from "firebase/database";
+import {
+  ref,
+  set,
+  onValue,
+  push,
+  remove,
+  update,
+  get,
+} from "firebase/database";
 import { getCurrentUser, getDataSource } from "./userService";
 
 /**
@@ -83,8 +91,43 @@ export const addShoppingItem = async (item) => {
     }
 
     const shoppingListRef = ref(database, `${dataSource.path}/shoppingList`);
-    const newItemRef = push(shoppingListRef);
 
+    // בדיקה האם כבר קיים פריט עם אותו שם
+    const snapshot = await get(shoppingListRef);
+    const existingItems = snapshot.val() || {};
+
+    // חיפוש פריט עם אותו שם
+    let existingItemId = null;
+    Object.entries(existingItems).forEach(([id, existingItem]) => {
+      if (
+        existingItem.name.trim().toLowerCase() ===
+        item.name.trim().toLowerCase()
+      ) {
+        existingItemId = id;
+      }
+    });
+
+    // אם נמצא פריט קיים, נעדכן את הכמות שלו
+    if (existingItemId) {
+      const existingItem = existingItems[existingItemId];
+      const newQuantity = (existingItem.quantity || 1) + (item.quantity || 1);
+
+      const itemRef = ref(
+        database,
+        `${dataSource.path}/shoppingList/${existingItemId}`
+      );
+      await update(itemRef, {
+        quantity: newQuantity,
+        updatedAt: new Date().toISOString(),
+        updatedBy: user.uid,
+      });
+
+      console.log("Updated existing item quantity, ID:", existingItemId);
+      return { success: true, id: existingItemId, isUpdate: true };
+    }
+
+    // אם לא נמצא פריט קיים, ניצור פריט חדש
+    const newItemRef = push(shoppingListRef);
     await set(newItemRef, {
       name: item.name,
       quantity: item.quantity || 1,
@@ -94,7 +137,7 @@ export const addShoppingItem = async (item) => {
     });
 
     console.log("Shopping item added with ID:", newItemRef.key);
-    return { success: true, id: newItemRef.key };
+    return { success: true, id: newItemRef.key, isUpdate: false };
   } catch (error) {
     console.error("שגיאה בהוספת פריט לרשימת קניות:", error);
     return { success: false, error: error.message };
