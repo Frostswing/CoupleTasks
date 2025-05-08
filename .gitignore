@@ -1,7 +1,7 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-node_modules/
+/node_modules
 
 # Expo
 .expo/
@@ -38,3 +38,8 @@ yarn-error.*
 
 # firebase
 src/firebase/config.js
+
+# Firebase rules
+database.rules.json
+firebase.rules
+firebase-rules.json
