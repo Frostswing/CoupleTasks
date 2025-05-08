@@ -419,15 +419,35 @@ export const checkIfSharing = async (userId) => {
  */
 export const getDataSource = async (userId) => {
   try {
-    const sharingStatus = await checkIfSharing(userId);
+    // הוספת לוגים לאיתור בעיות
+    console.log("getDataSource נקרא עבור userId:", userId);
 
-    if (sharingStatus.success && sharingStatus.isSharing) {
+    if (!userId) {
+      console.error("getDataSource: לא התקבל מזהה משתמש");
+      return { success: false, error: "לא התקבל מזהה משתמש" };
+    }
+
+    // קריאה לפונקציה המקורית שבודקת שיתוף
+    const sharingStatus = await checkIfSharing(userId);
+    console.log("getDataSource: תוצאת בדיקת שיתוף:", sharingStatus);
+
+    // בדיקה אם המשתמש משתף ויש לו מזהה למרחב משותף
+    if (
+      sharingStatus.success &&
+      sharingStatus.isSharing &&
+      sharingStatus.sharedSpaceId
+    ) {
+      console.log(
+        "getDataSource: משתמש עם מרחב משותף:",
+        sharingStatus.sharedSpaceId
+      );
       return {
         success: true,
         path: `shared/${sharingStatus.sharedSpaceId}`,
         isShared: true,
       };
     } else {
+      console.log("getDataSource: משתמש ללא מרחב משותף, משתמש בנתונים אישיים");
       return {
         success: true,
         path: `users/${userId}`,
@@ -435,7 +455,7 @@ export const getDataSource = async (userId) => {
       };
     }
   } catch (error) {
-    console.error("שגיאה בקבלת מקור נתונים:", error);
-    return { success: false, error };
+    console.error("getDataSource שגיאה:", error);
+    return { success: false, error: error.message };
   }
 };
