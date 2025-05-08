@@ -15,6 +15,8 @@ import {
   deleteTask,
   toggleTaskCompletion,
 } from "../services/taskService";
+import { getCurrentUser } from "../services/userService";
+import { useNavigation } from "@react-navigation/native";
 
 const TasksScreen = () => {
   const [tasks, setTasks] = useState([]);
@@ -22,13 +24,23 @@ const TasksScreen = () => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [dataSource, setDataSource] = useState({ isShared: false });
+  const navigation = useNavigation();
 
   useEffect(() => {
+    // בדיקת מצב התחברות של המשתמש
+    const user = getCurrentUser();
+    setCurrentUser(user);
+
     // האזנה לשינויים ברשימת המטלות
-    const unsubscribe = subscribeTasks((tasksList) => {
+    const unsubscribe = subscribeTasks((tasksList, source) => {
       console.log("Received tasks in component:", tasksList);
       setTasks(tasksList);
       setLoading(false);
+      if (source) {
+        setDataSource(source);
+      }
     });
 
     // Set a timeout to handle case where Firebase doesn't respond
@@ -47,6 +59,22 @@ const TasksScreen = () => {
   }, []);
 
   const handleAddTask = async () => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert("נדרשת התחברות", "עליך להתחבר לחשבון לפני הוספת מטלות", [
+        {
+          text: "ביטול",
+          style: "cancel",
+        },
+        {
+          text: "מעבר להתחברות",
+          onPress: () => navigation.navigate("Auth"),
+        },
+      ]);
+      return;
+    }
+
     if (newTaskTitle.trim() === "") {
       Alert.alert("שגיאה", "יש להזין כותרת למטלה");
       return;
@@ -63,12 +91,19 @@ const TasksScreen = () => {
       setNewTaskDescription("");
       setModalVisible(false);
     } else {
-      Alert.alert("שגיאה", "לא ניתן להוסיף את המטלה");
+      Alert.alert("שגיאה", result.error || "לא ניתן להוסיף את המטלה");
     }
     setLoading(false);
   };
 
   const handleDeleteTask = async (taskId) => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert("שגיאה", "עליך להתחבר לחשבון לפני מחיקת מטלות");
+      return;
+    }
+
     Alert.alert("מחיקת מטלה", "האם אתה בטוח שברצונך למחוק את המטלה?", [
       { text: "ביטול", style: "cancel" },
       {
@@ -84,6 +119,13 @@ const TasksScreen = () => {
   };
 
   const handleToggleComplete = async (taskId, currentStatus) => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert("שגיאה", "עליך להתחבר לחשבון לפני עדכון מטלות");
+      return;
+    }
+
     await toggleTaskCompletion(taskId, !currentStatus);
   };
 
@@ -120,10 +162,30 @@ const TasksScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>מטלות</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>מטלות</Text>
+        {!currentUser ? (
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => navigation.navigate("Auth")}
+          >
+            <Text style={styles.loginButtonText}>
+              התחבר כדי לראות את המטלות שלך
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.dataSourceText}>
+            {dataSource.isShared ? "רשימה משותפת" : "רשימה אישית"}
+          </Text>
+        )}
+      </View>
 
       {loading ? (
         <Text style={styles.loadingText}>טוען...</Text>
+      ) : !currentUser ? (
+        <Text style={styles.emptyText}>
+          עליך להתחבר כדי לראות את המטלות שלך
+        </Text>
       ) : tasks.length === 0 ? (
         <Text style={styles.emptyText}>אין מטלות עדיין. הוסף מטלה חדשה!</Text>
       ) : (
@@ -137,7 +199,26 @@ const TasksScreen = () => {
 
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          if (!currentUser) {
+            Alert.alert(
+              "נדרשת התחברות",
+              "עליך להתחבר לחשבון לפני הוספת מטלות",
+              [
+                {
+                  text: "ביטול",
+                  style: "cancel",
+                },
+                {
+                  text: "מעבר להתחברות",
+                  onPress: () => navigation.navigate("Auth"),
+                },
+              ]
+            );
+          } else {
+            setModalVisible(true);
+          }
+        }}
       >
         <Text style={styles.addButtonText}>+ הוסף מטלה</Text>
       </TouchableOpacity>
@@ -199,10 +280,31 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  headerContainer: {
+    marginBottom: 20,
+    alignItems: "center",
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  dataSourceText: {
+    fontSize: 14,
+    color: "#666",
+    fontStyle: "italic",
+    textAlign: "center",
+  },
+  loginButton: {
+    backgroundColor: "#f4511e",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 5,
+  },
+  loginButtonText: {
+    color: "white",
+    fontWeight: "bold",
     textAlign: "center",
   },
   loadingText: {

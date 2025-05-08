@@ -16,6 +16,8 @@ import {
   toggleItemPurchased,
   updateShoppingItem,
 } from "../services/shoppingListService";
+import { getCurrentUser } from "../services/userService";
+import { useNavigation } from "@react-navigation/native";
 
 const ShoppingListScreen = () => {
   const [shoppingItems, setShoppingItems] = useState([]);
@@ -23,13 +25,23 @@ const ShoppingListScreen = () => {
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("1");
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [dataSource, setDataSource] = useState({ isShared: false });
+  const navigation = useNavigation();
 
   useEffect(() => {
+    // בדיקת מצב התחברות של המשתמש
+    const user = getCurrentUser();
+    setCurrentUser(user);
+
     // האזנה לשינויים ברשימת הקניות
-    const unsubscribe = subscribeShoppingList((itemsList) => {
+    const unsubscribe = subscribeShoppingList((itemsList, source) => {
       console.log("Received shopping items in component:", itemsList);
       setShoppingItems(itemsList);
       setLoading(false);
+      if (source) {
+        setDataSource(source);
+      }
     });
 
     // Set a timeout to handle case where Firebase doesn't respond
@@ -48,6 +60,26 @@ const ShoppingListScreen = () => {
   }, []);
 
   const handleAddItem = async () => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert(
+        "נדרשת התחברות",
+        "עליך להתחבר לחשבון לפני הוספת פריטים לרשימה",
+        [
+          {
+            text: "ביטול",
+            style: "cancel",
+          },
+          {
+            text: "מעבר להתחברות",
+            onPress: () => navigation.navigate("Auth"),
+          },
+        ]
+      );
+      return;
+    }
+
     if (newItemName.trim() === "") {
       Alert.alert("שגיאה", "יש להזין שם לפריט");
       return;
@@ -66,12 +98,19 @@ const ShoppingListScreen = () => {
       setNewItemQuantity("1");
       setModalVisible(false);
     } else {
-      Alert.alert("שגיאה", "לא ניתן להוסיף את הפריט");
+      Alert.alert("שגיאה", result.error || "לא ניתן להוסיף את הפריט");
     }
     setLoading(false);
   };
 
   const handleDeleteItem = async (itemId) => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert("שגיאה", "עליך להתחבר לחשבון לפני מחיקת פריטים מהרשימה");
+      return;
+    }
+
     Alert.alert("מחיקת פריט", "האם אתה בטוח שברצונך למחוק את הפריט מהרשימה?", [
       { text: "ביטול", style: "cancel" },
       {
@@ -87,10 +126,24 @@ const ShoppingListScreen = () => {
   };
 
   const handleTogglePurchased = async (itemId, currentStatus) => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert("שגיאה", "עליך להתחבר לחשבון לפני עדכון פריטים ברשימה");
+      return;
+    }
+
     await toggleItemPurchased(itemId, !currentStatus);
   };
 
   const updateQuantity = async (itemId, currentQuantity, change) => {
+    // בדיקה שהמשתמש מחובר
+    const user = getCurrentUser();
+    if (!user) {
+      Alert.alert("שגיאה", "עליך להתחבר לחשבון לפני עדכון פריטים ברשימה");
+      return;
+    }
+
     const newQuantity = Math.max(1, currentQuantity + change);
     await updateShoppingItem(itemId, { quantity: newQuantity });
   };
@@ -141,10 +194,30 @@ const ShoppingListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>רשימת קניות</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>רשימת קניות</Text>
+        {!currentUser ? (
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => navigation.navigate("Auth")}
+          >
+            <Text style={styles.loginButtonText}>
+              התחבר כדי לראות את הרשימה שלך
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.dataSourceText}>
+            {dataSource.isShared ? "רשימה משותפת" : "רשימה אישית"}
+          </Text>
+        )}
+      </View>
 
       {loading ? (
         <Text style={styles.loadingText}>טוען...</Text>
+      ) : !currentUser ? (
+        <Text style={styles.emptyText}>
+          עליך להתחבר כדי לראות את רשימת הקניות שלך
+        </Text>
       ) : shoppingItems.length === 0 ? (
         <Text style={styles.emptyText}>
           אין פריטים ברשימת קניות. הוסף פריט חדש!
@@ -160,7 +233,26 @@ const ShoppingListScreen = () => {
 
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          if (!currentUser) {
+            Alert.alert(
+              "נדרשת התחברות",
+              "עליך להתחבר לחשבון לפני הוספת פריטים לרשימה",
+              [
+                {
+                  text: "ביטול",
+                  style: "cancel",
+                },
+                {
+                  text: "מעבר להתחברות",
+                  onPress: () => navigation.navigate("Auth"),
+                },
+              ]
+            );
+          } else {
+            setModalVisible(true);
+          }
+        }}
       >
         <Text style={styles.addButtonText}>+ הוסף פריט</Text>
       </TouchableOpacity>
@@ -223,10 +315,31 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  headerContainer: {
+    marginBottom: 20,
+    alignItems: "center",
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  dataSourceText: {
+    fontSize: 14,
+    color: "#666",
+    fontStyle: "italic",
+    textAlign: "center",
+  },
+  loginButton: {
+    backgroundColor: "#f4511e",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 5,
+  },
+  loginButtonText: {
+    color: "white",
+    fontWeight: "bold",
     textAlign: "center",
   },
   loadingText: {
