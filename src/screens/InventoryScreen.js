@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,33 +13,36 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
+import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
 
 const { width } = Dimensions.get('window');
 
-export default function ShoppingListScreen({ navigation }) {
+export default function InventoryScreen({ navigation }) {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  
+  // Add Item Form
   const [newItemName, setNewItemName] = useState("");
-  const [newItemQuantity, setNewItemQuantity] = useState("1");
+  const [newItemCategory, setNewItemCategory] = useState("other");
+  const [newItemCurrentAmount, setNewItemCurrentAmount] = useState("0");
+  const [newItemMinimumAmount, setNewItemMinimumAmount] = useState("1");
+  const [newItemUnit, setNewItemUnit] = useState("pieces");
 
   useEffect(() => {
     loadData();
-    checkAutoAddItems();
   }, []);
 
-  const loadData = useCallback(async () => {
+  const loadData = async () => {
     try {
-      const [user, shoppingItems] = await Promise.all([
+      const [user, inventoryItems] = await Promise.all([
         User.me(),
-        ShoppingListItem.list('-created_date')
+        InventoryItem.list('-updated_date')
       ]);
       
       setCurrentUser(user);
@@ -47,47 +50,15 @@ export default function ShoppingListScreen({ navigation }) {
       // Filter items for current user and partner
       const userEmails = [user.email];
       if (user.partner_email) userEmails.push(user.partner_email);
-      const filteredItems = shoppingItems.filter(item => 
-        !item.is_archived &&
-        (userEmails.includes(item.created_by) || userEmails.includes(item.added_by))
+      const filteredItems = inventoryItems.filter(item => 
+        userEmails.includes(item.created_by)
       );
       
       setItems(filteredItems);
     } catch (error) {
-      console.error("Error loading shopping list:", error);
+      console.error("Error loading inventory:", error);
     } finally {
       setIsLoading(false);
-    }
-  }, []);
-
-  const checkAutoAddItems = async () => {
-    try {
-      const inventoryItems = await InventoryItem.list();
-      const lowStockItems = inventoryItems.filter(item => 
-        item.current_amount < item.minimum_amount
-      );
-
-      for (const item of lowStockItems) {
-        const existingItem = await ShoppingListItem.filter({ 
-          name: item.name, 
-          is_purchased: false 
-        });
-        
-        if (existingItem.length === 0) {
-          await ShoppingListItem.create({
-            name: item.name,
-            category: item.category,
-            quantity: item.minimum_amount - item.current_amount,
-            unit: item.unit,
-            auto_added: true,
-            added_by: (await User.me()).email
-          });
-        }
-      }
-      
-      loadData();
-    } catch (error) {
-      console.error("Error checking auto-add items:", error);
     }
   };
 
@@ -98,16 +69,21 @@ export default function ShoppingListScreen({ navigation }) {
     }
 
     try {
-      await ShoppingListItem.create({
+      await InventoryItem.create({
         name: newItemName.trim(),
-        quantity: parseInt(newItemQuantity) || 1,
-        category: "other",
-        unit: "pcs",
-        added_by: currentUser.email
+        category: newItemCategory,
+        current_amount: parseInt(newItemCurrentAmount) || 0,
+        minimum_amount: parseInt(newItemMinimumAmount) || 1,
+        unit: newItemUnit,
+        created_by: currentUser.email
       });
       
+      // Reset form
       setNewItemName("");
-      setNewItemQuantity("1");
+      setNewItemCategory("other");
+      setNewItemCurrentAmount("0");
+      setNewItemMinimumAmount("1");
+      setNewItemUnit("pieces");
       setShowAddDialog(false);
       loadData();
     } catch (error) {
@@ -116,71 +92,61 @@ export default function ShoppingListScreen({ navigation }) {
     }
   };
 
-  const handleTogglePurchased = async (item) => {
+  const handleUpdateAmount = async (itemId, newAmount) => {
     try {
-      await ShoppingListItem.update(item.id, {
-        is_purchased: !item.is_purchased
+      await InventoryItem.update(itemId, {
+        current_amount: newAmount,
+        last_purchased: newAmount > 0 ? new Date().toISOString() : null
+      });
+      loadData();
+    } catch (error) {
+      console.error("Error updating item:", error);
+    }
+  };
+
+  const handleAddToShoppingList = async (item) => {
+    try {
+      // Check if item already exists in shopping list
+      const existingItems = await ShoppingListItem.filter({ 
+        name: item.name, 
+        is_purchased: false 
       });
       
-      if (!item.is_purchased) {
-        // Item being marked as purchased - update inventory
-        const existingInventory = await InventoryItem.filter({ name: item.name });
-        if (existingInventory.length > 0) {
-          await InventoryItem.update(existingInventory[0].id, {
-            current_amount: existingInventory[0].current_amount + item.quantity,
-            last_purchased: new Date().toISOString()
-          });
-        }
+      if (existingItems.length > 0) {
+        Alert.alert("Info", "This item is already in your shopping list");
+        return;
       }
+
+      const quantityNeeded = item.minimum_amount - item.current_amount;
       
-      loadData();
-    } catch (error) {
-      console.error("Error updating item:", error);
-    }
-  };
-
-  const handleEditItem = (item) => {
-    setEditingItem(item);
-    setNewItemName(item.name);
-    setNewItemQuantity(item.quantity.toString());
-    setShowEditDialog(true);
-  };
-
-  const handleUpdateItem = async () => {
-    if (!newItemName.trim()) {
-      Alert.alert("Error", "Please enter an item name");
-      return;
-    }
-
-    try {
-      await ShoppingListItem.update(editingItem.id, {
-        name: newItemName.trim(),
-        quantity: parseInt(newItemQuantity) || 1,
+      await ShoppingListItem.create({
+        name: item.name,
+        category: item.category,
+        quantity: quantityNeeded,
+        unit: item.unit,
+        auto_added: true,
+        added_by: currentUser.email
       });
       
-      setEditingItem(null);
-      setNewItemName("");
-      setNewItemQuantity("1");
-      setShowEditDialog(false);
-      loadData();
+      Alert.alert("Success", `Added ${item.name} to shopping list`);
     } catch (error) {
-      console.error("Error updating item:", error);
-      Alert.alert("Error", "Failed to update item");
+      console.error("Error adding to shopping list:", error);
+      Alert.alert("Error", "Failed to add to shopping list");
     }
   };
 
   const handleDeleteItem = async (itemId) => {
     Alert.alert(
-      "Delete Item", 
+      "Delete Item",
       "Are you sure you want to delete this item?",
       [
         { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
+        {
+          text: "Delete",
           style: "destructive",
           onPress: async () => {
             try {
-              await ShoppingListItem.delete(itemId);
+              await InventoryItem.delete(itemId);
               loadData();
             } catch (error) {
               console.error("Error deleting item:", error);
@@ -195,63 +161,63 @@ export default function ShoppingListScreen({ navigation }) {
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const pendingItems = filteredItems.filter(item => !item.is_purchased);
-  const purchasedItems = filteredItems.filter(item => item.is_purchased);
+  const lowStockItems = filteredItems.filter(item => item.current_amount < item.minimum_amount);
+  const normalStockItems = filteredItems.filter(item => item.current_amount >= item.minimum_amount);
 
-  const handleStartShopping = () => {
-    const itemIds = pendingItems.map(item => item.id);
-    if (itemIds.length > 0) {
-      navigation.navigate('ShoppingMode', { itemIds });
-    }
-  };
-
-  const ShoppingItemCard = ({ item }) => (
-    <View style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}>
-      <TouchableOpacity
-        style={styles.itemContent}
-        onPress={() => handleTogglePurchased(item)}
-      >
-        <View style={styles.itemLeft}>
-          <Icon
-            name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
-            size={24}
-            color={item.is_purchased ? '#16A34A' : '#9CA3AF'}
-          />
-          <View style={styles.itemDetails}>
-            <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
-              {item.name}
+  const InventoryItemCard = ({ item, isLowStock }) => (
+    <View style={[styles.itemCard, isLowStock && styles.lowStockCard]}>
+      <View style={styles.itemContent}>
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemCategory}>{item.category}</Text>
+          
+          <View style={styles.amountContainer}>
+            <TouchableOpacity
+              style={styles.amountButton}
+              onPress={() => handleUpdateAmount(item.id, Math.max(0, item.current_amount - 1))}
+            >
+              <Icon name="remove" size={20} color="#6B7280" />
+            </TouchableOpacity>
+            
+            <Text style={styles.amountText}>
+              {item.current_amount} / {item.minimum_amount} {item.unit}
             </Text>
-            <Text style={styles.itemQuantity}>
-              {item.quantity} {item.unit || 'pcs'}
-            </Text>
-            {item.auto_added && (
-              <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
-            )}
+            
+            <TouchableOpacity
+              style={styles.amountButton}
+              onPress={() => handleUpdateAmount(item.id, item.current_amount + 1)}
+            >
+              <Icon name="add" size={20} color="#6B7280" />
+            </TouchableOpacity>
           </View>
         </View>
         
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => handleEditItem(item)}
-        >
-          <Icon name="edit" size={20} color="#6B7280" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteItem(item.id)}
-        >
-          <Icon name="delete" size={20} color="#EF4444" />
-        </TouchableOpacity>
-      </TouchableOpacity>
+        <View style={styles.itemActions}>
+          {isLowStock && (
+            <TouchableOpacity
+              style={styles.addToListButton}
+              onPress={() => handleAddToShoppingList(item)}
+            >
+              <Icon name="add-shopping-cart" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDeleteItem(item.id)}
+          >
+            <Icon name="delete" size={20} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
-        <Text style={styles.loadingText}>Loading your shopping list...</Text>
+        <ActivityIndicator size="large" color="#10B981" />
+        <Text style={styles.loadingText}>Loading your inventory...</Text>
       </SafeAreaView>
     );
   }
@@ -262,27 +228,17 @@ export default function ShoppingListScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Shopping List</Text>
-            <Text style={styles.subtitle}>What do you need to buy?</Text>
+            <Text style={styles.title}>Home Inventory</Text>
+            <Text style={styles.subtitle}>Track what you have at home</Text>
           </View>
           
-          <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={[styles.shopButton, pendingItems.length === 0 && styles.disabledButton]}
-              onPress={handleStartShopping}
-              disabled={pendingItems.length === 0}
-            >
-              <Icon name="play-arrow" size={20} color="#FFFFFF" />
-              <Text style={styles.shopButtonText}>Shop</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowAddDialog(true)}
-            >
-              <Icon name="add" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddDialog(true)}
+          >
+            <Icon name="add" size={24} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add Item</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Search */}
@@ -290,7 +246,7 @@ export default function ShoppingListScreen({ navigation }) {
           <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search items..."
+            placeholder="Search inventory..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9CA3AF"
@@ -300,44 +256,49 @@ export default function ShoppingListScreen({ navigation }) {
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#FED7AA' }]}>
-              <Icon name="shopping-cart" size={20} color="#EA580C" />
+            <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
+              <Icon name="inventory" size={20} color="#2563EB" />
             </View>
             <View style={styles.statContent}>
-              <Text style={styles.statLabel}>To Buy</Text>
-              <Text style={styles.statValue}>{pendingItems.length}</Text>
+              <Text style={styles.statLabel}>Total Items</Text>
+              <Text style={styles.statValue}>{filteredItems.length}</Text>
             </View>
           </View>
           
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#DCFCE7' }]}>
-              <Icon name="check" size={20} color="#16A34A" />
+            <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
+              <Icon name="warning" size={20} color="#DC2626" />
             </View>
             <View style={styles.statContent}>
-              <Text style={styles.statLabel}>Purchased</Text>
-              <Text style={styles.statValue}>{purchasedItems.length}</Text>
+              <Text style={styles.statLabel}>Low Stock</Text>
+              <Text style={styles.statValue}>{lowStockItems.length}</Text>
             </View>
           </View>
         </View>
 
-        {/* Shopping Items */}
+        {/* Inventory Items */}
         <View style={styles.itemsContainer}>
-          {/* Pending Items */}
-          {pendingItems.length > 0 && (
+          {/* Low Stock Items */}
+          {lowStockItems.length > 0 && (
             <View style={styles.itemsSection}>
-              <Text style={styles.sectionTitle}>To Buy</Text>
-              {pendingItems.map((item) => (
-                <ShoppingItemCard key={item.id} item={item} />
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: '#DC2626' }]}>Low Stock</Text>
+                <View style={styles.sectionBadge}>
+                  <Text style={styles.sectionBadgeText}>{lowStockItems.length} items</Text>
+                </View>
+              </View>
+              {lowStockItems.map((item) => (
+                <InventoryItemCard key={item.id} item={item} isLowStock={true} />
               ))}
             </View>
           )}
 
-          {/* Purchased Items */}
-          {purchasedItems.length > 0 && (
+          {/* Normal Stock Items */}
+          {normalStockItems.length > 0 && (
             <View style={styles.itemsSection}>
-              <Text style={[styles.sectionTitle, styles.purchasedSectionTitle]}>Purchased</Text>
-              {purchasedItems.map((item) => (
-                <ShoppingItemCard key={item.id} item={item} />
+              <Text style={styles.sectionTitle}>In Stock</Text>
+              {normalStockItems.map((item) => (
+                <InventoryItemCard key={item.id} item={item} isLowStock={false} />
               ))}
             </View>
           )}
@@ -346,10 +307,10 @@ export default function ShoppingListScreen({ navigation }) {
           {filteredItems.length === 0 && (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="shopping-cart" size={40} color="#8B5CF6" />
+                <Icon name="inventory" size={40} color="#10B981" />
               </View>
-              <Text style={styles.emptyTitle}>No items yet</Text>
-              <Text style={styles.emptySubtitle}>Add items to your shopping list to get started</Text>
+              <Text style={styles.emptyTitle}>No items in inventory</Text>
+              <Text style={styles.emptySubtitle}>Add items to track what you have at home</Text>
               <TouchableOpacity
                 style={styles.emptyButton}
                 onPress={() => setShowAddDialog(true)}
@@ -371,18 +332,18 @@ export default function ShoppingListScreen({ navigation }) {
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Item</Text>
+            <Text style={styles.modalTitle}>Add Inventory Item</Text>
             <TouchableOpacity onPress={() => setShowAddDialog(false)}>
               <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
           
-          <View style={styles.modalContent}>
+          <ScrollView style={styles.modalContent}>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Item Name</Text>
               <TextInput
                 style={styles.input}
-                placeholder="What do you need to buy?"
+                placeholder="What item do you want to track?"
                 value={newItemName}
                 onChangeText={setNewItemName}
                 placeholderTextColor="#9CA3AF"
@@ -390,83 +351,46 @@ export default function ShoppingListScreen({ navigation }) {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Quantity</Text>
+              <Text style={styles.inputLabel}>Category</Text>
+              <Text style={styles.inputValue}>{newItemCategory}</Text>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Current Amount</Text>
               <TextInput
                 style={styles.input}
-                placeholder="1"
-                value={newItemQuantity}
-                onChangeText={setNewItemQuantity}
+                placeholder="0"
+                value={newItemCurrentAmount}
+                onChangeText={setNewItemCurrentAmount}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
               />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Minimum Amount</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="1"
+                value={newItemMinimumAmount}
+                onChangeText={setNewItemMinimumAmount}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Unit</Text>
+              <Text style={styles.inputValue}>{newItemUnit}</Text>
             </View>
 
             <TouchableOpacity
               style={styles.addItemButton}
               onPress={handleAddItem}
             >
-              <Text style={styles.addItemButtonText}>Add Item</Text>
+              <Text style={styles.addItemButtonText}>Add to Inventory</Text>
             </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
-
-      {/* Edit Item Modal */}
-      <Modal
-        visible={showEditDialog}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setShowEditDialog(false);
-          setEditingItem(null);
-          setNewItemName("");
-          setNewItemQuantity("1");
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Edit Item</Text>
-            <TouchableOpacity onPress={() => {
-              setShowEditDialog(false);
-              setEditingItem(null);
-              setNewItemName("");
-              setNewItemQuantity("1");
-            }}>
-              <Icon name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Item Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="What do you need to buy?"
-                value={newItemName}
-                onChangeText={setNewItemName}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Quantity</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="1"
-                value={newItemQuantity}
-                onChangeText={setNewItemQuantity}
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.addItemButton}
-              onPress={handleUpdateItem}
-            >
-              <Text style={styles.addItemButtonText}>Update Item</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
@@ -513,34 +437,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
-  headerButtons: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  shopButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#16A34A',
+    backgroundColor: '#10B981',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  shopButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#8B5CF6',
-    justifyContent: 'center',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -549,6 +452,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -626,14 +534,27 @@ const styles = StyleSheet.create({
   itemsSection: {
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 12,
+    marginRight: 8,
   },
-  purchasedSectionTitle: {
-    color: '#9CA3AF',
+  sectionBadge: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  sectionBadgeText: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontWeight: '500',
   },
   itemCard: {
     backgroundColor: '#FFFFFF',
@@ -648,8 +569,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  purchasedCard: {
-    opacity: 0.7,
+  lowStockCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
   },
   itemContent: {
     flexDirection: 'row',
@@ -657,14 +579,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
   },
-  itemLeft: {
+  itemInfo: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  itemDetails: {
-    flex: 1,
-    marginLeft: 12,
   },
   itemName: {
     fontSize: 16,
@@ -672,22 +588,43 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginBottom: 4,
   },
-  purchasedText: {
-    textDecorationLine: 'line-through',
-    color: '#9CA3AF',
-  },
-  itemQuantity: {
+  itemCategory: {
     fontSize: 14,
     color: '#6B7280',
+    marginBottom: 8,
   },
-  autoAddedText: {
-    fontSize: 12,
-    color: '#8B5CF6',
-    fontStyle: 'italic',
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  editButton: {
-    padding: 8,
-    marginRight: 8,
+  amountButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  amountText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    minWidth: 80,
+    textAlign: 'center',
+  },
+  itemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  addToListButton: {
+    backgroundColor: '#10B981',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteButton: {
     padding: 8,
@@ -699,7 +636,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#D1FAE5',
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -721,7 +658,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#10B981',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
@@ -750,6 +687,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   modalContent: {
+    flex: 1,
     padding: 20,
   },
   inputGroup: {
@@ -770,8 +708,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     color: '#1F2937',
   },
+  inputValue: {
+    fontSize: 16,
+    color: '#6B7280',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+  },
   addItemButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -782,4 +728,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-});
+}); 

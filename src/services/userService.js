@@ -1,4 +1,5 @@
 import { auth, database, app, checkFirebaseStatus } from "../firebase/config";
+import { initializeDatabase, createUserProfile, initializeUserFirstLogin } from "../firebase/database-init";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
