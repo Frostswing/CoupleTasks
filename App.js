@@ -16,8 +16,11 @@ import {
   ActivityIndicator,
   LogBox,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DrawerNavigator from "./src/navigation/DrawerNavigator";
+import LanguageSelectionScreen from "./src/screens/LanguageSelectionScreen";
 import { subscribeToAuthChanges } from "./src/services/userService";
+import { loadLanguagePreference } from "./src/localization/i18n";
 
 // התעלמות משגיאות ידועות שקשורות ל-Firebase
 LogBox.ignoreLogs([
@@ -25,15 +28,37 @@ LogBox.ignoreLogs([
   "Non-serializable values were found in the navigation state",
 ]);
 
-// הגדרת תמיכה בשפות RTL (עברית)
-I18nManager.allowRTL(true);
-I18nManager.forceRTL(true);
-
 export default function App() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
   const [firebaseReady, setFirebaseReady] = useState(false);
   const [firebaseStatus, setFirebaseStatus] = useState(null);
+  const [languageLoaded, setLanguageLoaded] = useState(false);
+  const [showLanguageSelection, setShowLanguageSelection] = useState(false);
+
+  // Initialize language and check if user has selected language before
+  useEffect(() => {
+    const initializeLanguage = async () => {
+      try {
+        // Load saved language preference
+        await loadLanguagePreference();
+        
+        // Check if user has completed language selection before
+        const hasSelectedLanguage = await AsyncStorage.getItem('hasSelectedLanguage');
+        
+        if (!hasSelectedLanguage) {
+          setShowLanguageSelection(true);
+        }
+        
+        setLanguageLoaded(true);
+      } catch (error) {
+        console.error('Error loading language:', error);
+        setLanguageLoaded(true);
+      }
+    };
+
+    initializeLanguage();
+  }, []);
 
   // וודא שפיירבייס אותחל
   useEffect(() => {
@@ -62,8 +87,10 @@ export default function App() {
       }
     };
 
-    checkFirebase();
-  }, []);
+    if (languageLoaded) {
+      checkFirebase();
+    }
+  }, [languageLoaded]);
 
   // אתחול האימות ומעקב אחר מצב המשתמש - רק אם פיירבייס מוכן
   useEffect(() => {
@@ -79,25 +106,42 @@ export default function App() {
     return unsubscribe;
   }, [firebaseReady, initializing]);
 
+  // Handle language selection completion
+  const handleLanguageSelectionComplete = () => {
+    setShowLanguageSelection(false);
+  };
+
   // מסך טעינה בזמן אתחול האימות
-  if (initializing || !firebaseReady) {
+  if (!languageLoaded || initializing || !firebaseReady) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ marginTop: 10 }}>טוען את האפליקציה...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F8FAFC" }}>
+        <Text style={{ fontSize: 60, marginBottom: 20 }}>💜</Text>
+        <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 10, color: "#1F2937" }}>CoupleTasks</Text>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={{ marginTop: 10, color: "#6B7280" }}>טוען את האפליקציה...</Text>
         {!firebaseReady && (
-          <View>
-            <Text style={{ marginTop: 5, color: "red" }}>
+          <View style={{ alignItems: 'center', marginTop: 10 }}>
+            <Text style={{ marginTop: 5, color: "#EF4444" }}>
               מאתחל את Firebase...
             </Text>
             {firebaseStatus && (
-              <Text style={{ marginTop: 5, fontSize: 12, color: "gray" }}>
+              <Text style={{ marginTop: 5, fontSize: 12, color: "#9CA3AF", textAlign: 'center' }}>
                 מצב Firebase: {JSON.stringify(firebaseStatus)}
               </Text>
             )}
           </View>
         )}
       </View>
+    );
+  }
+
+  // Show language selection if not completed
+  if (showLanguageSelection) {
+    return (
+      <>
+        <LanguageSelectionScreen onComplete={handleLanguageSelectionComplete} />
+        <StatusBar style="auto" />
+      </>
     );
   }
 
