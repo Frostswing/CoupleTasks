@@ -1,0 +1,70 @@
+{
+    "name": "InventoryItem",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Item name"
+        },
+        "category": {
+            "type": "string",
+            "enum": [
+                "dairy",
+                "meat",
+                "vegetables",
+                "fruits",
+                "grains",
+                "snacks",
+                "beverages",
+                "household",
+                "personal_care",
+                "other"
+            ],
+            "default": "other",
+            "description": "Item category"
+        },
+        "current_amount": {
+            "type": "number",
+            "default": 0,
+            "description": "Current amount available"
+        },
+        "minimum_amount": {
+            "type": "number",
+            "default": 1,
+            "description": "Minimum required amount"
+        },
+        "unit": {
+            "type": "string",
+            "enum": [
+                "pieces",
+                "kg",
+                "g",
+                "l",
+                "ml",
+                "bottles",
+                "cans",
+                "packs",
+                "boxes"
+            ],
+            "default": "pieces",
+            "description": "Unit of measurement"
+        },
+        "icon_url": {
+            "type": "string",
+            "description": "URL of the item icon"
+        },
+        "last_purchased": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When was this item last purchased"
+        },
+        "purchase_frequency": {
+            "type": "number",
+            "default": 0,
+            "description": "How many times this item was purchased (for suggestions)"
+        }
+    },
+    "required": [
+        "name"
+    ]
+}

@@ -1,0 +1,74 @@
+{
+    "name": "ShoppingListItem",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Item name"
+        },
+        "category": {
+            "type": "string",
+            "enum": [
+                "dairy",
+                "meat",
+                "vegetables",
+                "fruits",
+                "grains",
+                "snacks",
+                "beverages",
+                "household",
+                "personal_care",
+                "other"
+            ],
+            "default": "other",
+            "description": "Item category"
+        },
+        "quantity": {
+            "type": "number",
+            "default": 1,
+            "description": "Quantity needed"
+        },
+        "unit": {
+            "type": "string",
+            "enum": [
+                "pieces",
+                "kg",
+                "g",
+                "l",
+                "ml",
+                "bottles",
+                "cans",
+                "packs",
+                "boxes"
+            ],
+            "default": "pieces",
+            "description": "Unit of measurement"
+        },
+        "is_purchased": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether item has been purchased"
+        },
+        "icon_url": {
+            "type": "string",
+            "description": "URL of the item icon"
+        },
+        "added_by": {
+            "type": "string",
+            "description": "Email of user who added this item"
+        },
+        "auto_added": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this item was auto-added from inventory"
+        },
+        "is_archived": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the item is part of an archived list"
+        }
+    },
+    "required": [
+        "name"
+    ]
+}
