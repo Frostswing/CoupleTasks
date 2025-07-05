@@ -1,0 +1,106 @@
+{
+    "name": "Task",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Task title"
+      },
+      "description": {
+        "type": "string",
+        "description": "Task description"
+      },
+      "category": {
+        "type": "string",
+        "enum": [
+          "household",
+          "errands",
+          "planning",
+          "finance",
+          "health",
+          "social",
+          "personal",
+          "other"
+        ],
+        "default": "household",
+        "description": "Task category"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "in_progress",
+          "completed"
+        ],
+        "default": "pending",
+        "description": "Task status"
+      },
+      "priority": {
+        "type": "string",
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "default": "medium",
+        "description": "Task priority"
+      },
+      "assigned_to": {
+        "type": "string",
+        "description": "Email of the partner assigned to this task"
+      },
+      "due_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Task due date"
+      },
+      "due_time": {
+        "type": "string",
+        "description": "Task due time (e.g., '14:30')"
+      },
+      "recurrence_rule": {
+        "type": "string",
+        "enum": [
+          "none",
+          "daily",
+          "weekly",
+          "monthly"
+        ],
+        "default": "none",
+        "description": "How often the task repeats"
+      },
+      "subtasks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "is_completed": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      },
+      "is_archived": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether the task is archived"
+      },
+      "archived_date": {
+        "type": "string",
+        "format": "date-time",
+        "description": "When the task was archived"
+      },
+      "completion_date": {
+        "type": "string",
+        "format": "date-time",
+        "description": "When the task was completed"
+      }
+    },
+    "required": [
+      "title"
+    ]
+  }
