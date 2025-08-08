@@ -11,6 +11,9 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
+import { Swipeable } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
+import { useRef } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
@@ -26,9 +29,13 @@ export default function ShoppingListScreen({ navigation }) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchTimeout = useRef(null);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("1");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
     loadData();
@@ -117,24 +124,14 @@ export default function ShoppingListScreen({ navigation }) {
   };
 
   const handleTogglePurchased = async (item) => {
+    // optimistic
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_purchased: !i.is_purchased } : i));
+    Haptics.selectionAsync().catch(() => {});
     try {
-      await ShoppingListItem.update(item.id, {
-        is_purchased: !item.is_purchased
-      });
-      
-      if (!item.is_purchased) {
-        // Item being marked as purchased - update inventory
-        const existingInventory = await InventoryItem.filter({ name: item.name });
-        if (existingInventory.length > 0) {
-          await InventoryItem.update(existingInventory[0].id, {
-            current_amount: existingInventory[0].current_amount + item.quantity,
-            last_purchased: new Date().toISOString()
-          });
-        }
-      }
-      
-      loadData();
+      await ShoppingListItem.update(item.id, { is_purchased: !item.is_purchased });
     } catch (error) {
+      // revert
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_purchased: item.is_purchased } : i));
       console.error("Error updating item:", error);
     }
   };
@@ -191,8 +188,14 @@ export default function ShoppingListScreen({ navigation }) {
     );
   };
 
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchQuery]);
+
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    item.name.toLowerCase().includes(debouncedQuery.toLowerCase())
   );
 
   const pendingItems = filteredItems.filter(item => !item.is_purchased);
@@ -219,46 +222,50 @@ export default function ShoppingListScreen({ navigation }) {
     }
   };
 
-  const ShoppingItemCard = ({ item }) => (
-    <View style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}>
-      <TouchableOpacity
-        style={styles.itemContent}
-        onPress={() => handleTogglePurchased(item)}
-      >
-        <View style={styles.itemLeft}>
-          <Icon
-            name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
-            size={24}
-            color={item.is_purchased ? '#16A34A' : '#9CA3AF'}
-          />
-          <View style={styles.itemDetails}>
-            <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
-              {item.name}
-            </Text>
-            <Text style={styles.itemQuantity}>
-              {item.quantity} {item.unit || 'pcs'}
-            </Text>
-            {item.auto_added && (
-              <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
-            )}
-          </View>
-        </View>
-        
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => handleEditItem(item)}
-        >
-          <Icon name="edit" size={20} color="#6B7280" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteItem(item.id)}
-        >
-          <Icon name="delete" size={20} color="#EF4444" />
-        </TouchableOpacity>
+  const renderRightActions = (itemId) => (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <TouchableOpacity style={[styles.swipeAction, { backgroundColor: '#F59E0B' }]} onPress={() => handleEditItem(items.find(i => i.id === itemId))}>
+        <Icon name="edit" size={20} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.swipeAction, { backgroundColor: '#EF4444' }]} onPress={() => handleDeleteItem(itemId)}>
+        <Icon name="delete" size={20} color="#fff" />
       </TouchableOpacity>
     </View>
+  );
+
+  const ShoppingItemCard = ({ item }) => (
+    <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+      <View style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}>
+        <TouchableOpacity
+          style={styles.itemContent}
+          onPress={() => selectMode ? setSelectedIds(prev => new Set(prev.has(item.id) ? [...[...prev].filter(id => id !== item.id)] : [...prev, item.id])) : handleTogglePurchased(item)}
+          onLongPress={() => { setSelectMode(true); setSelectedIds(prev => new Set(prev).add(item.id)); }}
+        >
+          <View style={styles.itemLeft}>
+            {selectMode ? (
+              <Icon name={selectedIds.has(item.id) ? 'check-box' : 'check-box-outline-blank'} size={22} color={selectedIds.has(item.id) ? '#8B5CF6' : '#9CA3AF'} />
+            ) : (
+              <Icon
+                name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
+                size={24}
+                color={item.is_purchased ? '#16A34A' : '#9CA3AF'}
+              />
+            )}
+            <View style={styles.itemDetails}>
+              <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
+                {item.name}
+              </Text>
+              <Text style={styles.itemQuantity}>
+                {item.quantity} {item.unit || 'pcs'}
+              </Text>
+              {item.auto_added && (
+                <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Swipeable>
   );
 
   if (isLoading) {
@@ -307,6 +314,34 @@ export default function ShoppingListScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
+        {selectMode && (
+          <View style={styles.selectionBar}>
+            <Text style={styles.selectionText}>{selectedIds.size} selected</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity style={[styles.selectionAction]} onPress={async () => {
+                const ids = Array.from(selectedIds);
+                await Promise.all(ids.map(id => ShoppingListItem.update(id, { is_archived: true })));
+                setSelectMode(false);
+                setSelectedIds(new Set());
+                loadData();
+              }}>
+                <Icon name="archive" size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.selectionAction, { backgroundColor: '#EF4444' }]} onPress={async () => {
+                const ids = Array.from(selectedIds);
+                await Promise.all(ids.map(id => ShoppingListItem.delete(id)));
+                setSelectMode(false);
+                setSelectedIds(new Set());
+                loadData();
+              }}>
+                <Icon name="delete" size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.selectionAction, { backgroundColor: '#6B7280' }]} onPress={() => { setSelectMode(false); setSelectedIds(new Set()); }}>
+                <Icon name="close" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Search */}
         <View style={styles.searchContainer}>
@@ -384,6 +419,11 @@ export default function ShoppingListScreen({ navigation }) {
           )}
         </View>
       </ScrollView>
+
+      {/* Floating Add Button */}
+      <TouchableOpacity style={styles.fab} onPress={() => setShowAddDialog(true)}>
+        <Icon name="add" size={28} color="#fff" />
+      </TouchableOpacity>
 
       {/* Add Item Modal */}
       <Modal
@@ -817,5 +857,49 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     marginLeft: 6,
+  },
+  swipeAction: {
+    width: 64,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 8,
+    borderRadius: 12,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    backgroundColor: '#8B5CF6',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  selectionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#111827',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+  },
+  selectionText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  selectionAction: {
+    backgroundColor: '#8B5CF6',
+    marginLeft: 8,
+    padding: 8,
+    borderRadius: 8,
   },
 });

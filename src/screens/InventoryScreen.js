@@ -11,6 +11,7 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
+import { useRef } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { InventoryItem } from "../entities/InventoryItem";
@@ -25,6 +26,8 @@ export default function InventoryScreen({ navigation }) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const searchTimeout = useRef(null);
   const [currentUser, setCurrentUser] = useState(null);
   
   // Add Item Form
@@ -157,8 +160,14 @@ export default function InventoryScreen({ navigation }) {
     );
   };
 
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchQuery]);
+
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    item.name.toLowerCase().includes(debouncedQuery.toLowerCase())
   );
 
   const lowStockItems = filteredItems.filter(item => item.current_amount < item.minimum_amount);
@@ -428,6 +437,12 @@ export default function InventoryScreen({ navigation }) {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Floating Add Button */}
+      <TouchableOpacity style={styles.fab} onPress={() => setShowAddDialog(true)}>
+        <Icon name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+
     </SafeAreaView>
   );
 }
@@ -769,5 +784,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    backgroundColor: '#10B981',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
 }); 

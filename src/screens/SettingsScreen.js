@@ -9,10 +9,12 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { User } from "../entities/User";
+import { useTheme } from "../theme/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +23,7 @@ export default function SettingsScreen({ navigation }) {
   const [partnerEmail, setPartnerEmail] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { isDark, toggle } = useTheme();
 
   useEffect(() => {
     loadUserData();
@@ -76,6 +79,23 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.header}>
           <Text style={styles.title}>Settings</Text>
           <Text style={styles.subtitle}>Manage your profile and link with your partner.</Text>
+        </View>
+
+        {/* Theme */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardTitleContainer}>
+              <Icon name="dark-mode" size={24} color="#8B5CF6" />
+              <Text style={styles.cardTitle}>Appearance</Text>
+            </View>
+            <Text style={styles.cardDescription}>Choose between light and dark modes.</Text>
+          </View>
+          <View style={styles.cardContent}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 16, color: '#1F2937', fontWeight: '500' }}>Dark Mode</Text>
+              <Switch value={isDark} onValueChange={toggle} />
+            </View>
+          </View>
         </View>
 
         {/* Partner Link Card */}

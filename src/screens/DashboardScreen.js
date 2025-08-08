@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Dimensions,
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { Task } from "../entities/Task";
@@ -385,6 +386,11 @@ export default function DashboardScreen({ navigation }) {
         </View>
       </ScrollView>
 
+      {/* FAB */}
+      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddTask')}>
+        <Icon name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+ 
       {/* Edit Task Modal */}
       <EditTaskDialog
         task={editingTask}
@@ -557,5 +563,21 @@ const styles = StyleSheet.create({
   },
   tasksList: {
     gap: 12,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    backgroundColor: '#8B5CF6',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
 }); 
