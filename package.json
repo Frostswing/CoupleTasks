@@ -23,6 +23,7 @@
     "expo-localization": "~16.1.6",
     "expo-status-bar": "~2.2.3",
     "expo-web-browser": "~14.2.0",
+    "expo-haptics": "~13.0.1",
     "firebase": "^11.7.1",
     "i18n-js": "^4.4.3",
     "react": "19.0.0",

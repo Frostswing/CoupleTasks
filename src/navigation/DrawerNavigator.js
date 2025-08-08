@@ -16,12 +16,15 @@ import {
   subscribeToAuthChanges,
 } from "../services/userService";
 import i18n from "../localization/i18n";
+import { TouchableOpacity, Text, View } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
 
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigator = () => {
   const [user, setUser] = useState(null);
   const [initialUser, setInitialUser] = useState(null);
+  const { isDark, toggle } = useTheme();
 
   useEffect(() => {
     // Get current user immediately for initialRouteName
@@ -68,6 +71,19 @@ const DrawerNavigator = () => {
           },
           drawerActiveBackgroundColor: "#EDE9FE",
           drawerActiveTintColor: "#8B5CF6",
+          headerRight: ({ tintColor, canGoBack }) => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {user && (
+                <TouchableOpacity onPress={() => {}}
+                  style={{ marginRight: 12, padding: 6 }}>
+                  <Icon name="add-task" size={22} color="#fff" />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity onPress={toggle} style={{ marginRight: 8, padding: 6 }}>
+                <Icon name={isDark ? 'light-mode' : 'dark-mode'} size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )
         }}
       >
         {user ? (

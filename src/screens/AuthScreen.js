@@ -18,6 +18,7 @@ import {
   logoutUser,
   getCurrentUser,
   subscribeToAuthChanges,
+  resetPassword,
 } from "../services/userService";
 import { simpleGoogleSignIn } from "../services/googleAuthService";
 import i18n from "../localization/i18n";
@@ -189,6 +190,25 @@ const AuthScreen = () => {
     setName("");
   };
 
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert(i18n.t('common.error'), i18n.t('auth.enterEmail'));
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await resetPassword(email.trim());
+      if (result.success) {
+        Alert.alert(i18n.t('common.success'), i18n.t('auth.resetEmailSent'));
+      } else {
+        Alert.alert(i18n.t('common.error'), result.error?.message || i18n.t('auth.resetEmailError'));
+      }
+    } catch (err) {
+      Alert.alert(i18n.t('common.error'), i18n.t('auth.resetEmailError'));
+    }
+    setLoading(false);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -329,7 +349,7 @@ const AuthScreen = () => {
             </TouchableOpacity>
 
             {isLogin && (
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
                 <Text style={styles.forgotPasswordText}>{i18n.t('auth.forgotPassword')}</Text>
               </TouchableOpacity>
             )}

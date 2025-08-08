@@ -11,6 +11,7 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
+import { useRef } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { InventoryItem } from "../entities/InventoryItem";
@@ -25,6 +26,8 @@ export default function InventoryScreen({ navigation }) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const searchTimeout = useRef(null);
   const [currentUser, setCurrentUser] = useState(null);
   
   // Add Item Form
@@ -157,12 +160,42 @@ export default function InventoryScreen({ navigation }) {
     );
   };
 
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchQuery]);
+
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    item.name.toLowerCase().includes(debouncedQuery.toLowerCase())
   );
 
   const lowStockItems = filteredItems.filter(item => item.current_amount < item.minimum_amount);
   const normalStockItems = filteredItems.filter(item => item.current_amount >= item.minimum_amount);
+
+  const handleAddAllLowStockToShoppingList = async () => {
+    if (lowStockItems.length === 0) return;
+    try {
+      for (const item of lowStockItems) {
+        const existingItems = await ShoppingListItem.filter({ name: item.name, is_purchased: false });
+        if (existingItems.length === 0) {
+          const quantityNeeded = item.minimum_amount - item.current_amount;
+          await ShoppingListItem.create({
+            name: item.name,
+            category: item.category,
+            quantity: quantityNeeded,
+            unit: item.unit,
+            auto_added: true,
+            added_by: currentUser.email
+          });
+        }
+      }
+      Alert.alert('Success', 'All low stock items were added to the shopping list');
+    } catch (e) {
+      console.error('Bulk add low stock failed:', e);
+      Alert.alert('Error', 'Failed adding some items');
+    }
+  };
 
   const InventoryItemCard = ({ item, isLowStock }) => (
     <View style={[styles.itemCard, isLowStock && styles.lowStockCard]}>
@@ -274,6 +307,17 @@ export default function InventoryScreen({ navigation }) {
               <Text style={styles.statValue}>{lowStockItems.length}</Text>
             </View>
           </View>
+          {lowStockItems.length > 0 && (
+            <TouchableOpacity style={[styles.statCard, styles.bulkAddCard]} onPress={handleAddAllLowStockToShoppingList}>
+              <View style={[styles.statIcon, { backgroundColor: '#DCFCE7' }]}>
+                <Icon name="playlist-add" size={20} color="#16A34A" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statLabel}>Add All Low Stock</Text>
+                <Text style={styles.statSubLabel}>to Shopping List</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Inventory Items */}
@@ -393,6 +437,12 @@ export default function InventoryScreen({ navigation }) {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Floating Add Button */}
+      <TouchableOpacity style={styles.fab} onPress={() => setShowAddDialog(true)}>
+        <Icon name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+
     </SafeAreaView>
   );
 }
@@ -500,22 +550,25 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  bulkAddCard: {
+    flex: 1,
   },
   statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   statContent: {
-    flex: 1,
+    marginLeft: 12,
   },
   statLabel: {
     fontSize: 12,
@@ -526,6 +579,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1F2937',
+  },
+  statSubLabel: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   itemsContainer: {
     paddingHorizontal: 20,
@@ -727,5 +784,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    backgroundColor: '#10B981',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
 }); 
