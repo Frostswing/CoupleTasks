@@ -47,7 +47,9 @@
         "registrationSuccess": "הרשמה בוצעה בהצלחה",
         "loginError": "שגיאה בהתחברות",
         "registrationError": "שגיאה בהרשמה",
-        "logoutSuccess": "התנתקות בוצעה בהצלחה"
+        "logoutSuccess": "התנתקות בוצעה בהצלחה",
+        "resetEmailSent": "נשלח מייל לאיפוס סיסמה",
+        "resetEmailError": "לא ניתן לשלוח מייל איפוס"
     },
     "navigation": {
         "tasks": "מטלות",

@@ -34,6 +34,7 @@ export default function DashboardScreen({ navigation }) {
     priority: 'all',
     assigned_to: 'all'
   });
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -78,7 +79,7 @@ export default function DashboardScreen({ navigation }) {
 
   useEffect(() => {
     applyFilters();
-  }, [tasks, filters, currentUser]);
+  }, [tasks, filters, currentUser, showOverdueOnly]);
 
   const applyFilters = () => {
     let filtered = [...tasks];
@@ -87,7 +88,11 @@ export default function DashboardScreen({ navigation }) {
     filtered = filtered.filter(task => task.status !== 'completed');
     
     if (filters.status !== 'all') {
-      filtered = filtered.filter(task => task.status === filters.status);
+      if (filters.status === 'overdue') {
+        // leave status as pending/in_progress implicitly, handled below
+      } else {
+        filtered = filtered.filter(task => task.status === filters.status);
+      }
     }
 
     if (filters.category !== 'all') {
@@ -100,6 +105,13 @@ export default function DashboardScreen({ navigation }) {
 
     if (filters.assigned_to === 'me' && currentUser) {
       filtered = filtered.filter(task => task.assigned_to === currentUser.email);
+    }
+
+    // Overdue filter
+    if (showOverdueOnly || filters.status === 'overdue') {
+      filtered = filtered.filter(t =>
+        t.due_date && new Date(t.due_date) < new Date()
+      );
     }
 
     setFilteredTasks(filtered);
@@ -216,6 +228,11 @@ export default function DashboardScreen({ navigation }) {
 
   const stats = getStats();
 
+  const resetFilters = () => {
+    setFilters({ status: 'all', category: 'all', priority: 'all', assigned_to: 'all' });
+    setShowOverdueOnly(false);
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -263,7 +280,7 @@ export default function DashboardScreen({ navigation }) {
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
-            <View style={styles.statCard}>
+            <TouchableOpacity style={styles.statCard} onPress={resetFilters}>
               <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
                 <Icon name="favorite" size={20} color="#2563EB" />
               </View>
@@ -271,9 +288,12 @@ export default function DashboardScreen({ navigation }) {
                 <Text style={styles.statLabel}>Total Tasks</Text>
                 <Text style={styles.statValue}>{stats.total}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
             
-            <View style={styles.statCard}>
+            <TouchableOpacity 
+              style={styles.statCard}
+              onPress={() => navigation.navigate('Archive')}
+            >
               <View style={[styles.statIcon, { backgroundColor: '#DCFCE7' }]}>
                 <Icon name="check-circle" size={20} color="#16A34A" />
               </View>
@@ -281,11 +301,14 @@ export default function DashboardScreen({ navigation }) {
                 <Text style={styles.statLabel}>Completed</Text>
                 <Text style={styles.statValue}>{stats.completed}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
           
           <View style={styles.statsRow}>
-            <View style={styles.statCard}>
+            <TouchableOpacity 
+              style={styles.statCard}
+              onPress={() => setFilters(prev => ({ ...prev, assigned_to: prev.assigned_to === 'me' ? 'all' : 'me' }))}
+            >
               <View style={[styles.statIcon, { backgroundColor: '#F3E8FF' }]}>
                 <Icon name="person" size={20} color="#9333EA" />
               </View>
@@ -293,9 +316,15 @@ export default function DashboardScreen({ navigation }) {
                 <Text style={styles.statLabel}>Your Tasks</Text>
                 <Text style={styles.statValue}>{stats.myTasks}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
             
-            <View style={styles.statCard}>
+            <TouchableOpacity 
+              style={styles.statCard}
+              onPress={() => {
+                setFilters(prev => ({ ...prev, status: 'overdue' }));
+                setShowOverdueOnly(true);
+              }}
+            >
               <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
                 <Icon name="warning" size={20} color="#DC2626" />
               </View>
@@ -303,7 +332,7 @@ export default function DashboardScreen({ navigation }) {
                 <Text style={styles.statLabel}>Overdue</Text>
                 <Text style={styles.statValue}>{stats.overdue}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 

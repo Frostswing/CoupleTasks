@@ -47,7 +47,9 @@
         "registrationSuccess": "Registration successful",
         "loginError": "Login error",
         "registrationError": "Registration error",
-        "logoutSuccess": "Logout successful"
+        "logoutSuccess": "Logout successful",
+        "resetEmailSent": "Password reset email sent",
+        "resetEmailError": "Could not send reset email"
     },
     "navigation": {
         "tasks": "Tasks",

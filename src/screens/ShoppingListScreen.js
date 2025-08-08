@@ -205,6 +205,20 @@ export default function ShoppingListScreen({ navigation }) {
     }
   };
 
+  const handleArchivePurchased = async () => {
+    if (purchasedItems.length === 0) return;
+    try {
+      for (const item of purchasedItems) {
+        await ShoppingListItem.update(item.id, { is_archived: true });
+      }
+      loadData();
+      Alert.alert('Archived', 'Purchased items have been archived.');
+    } catch (e) {
+      console.error('Error archiving purchased items:', e);
+      Alert.alert('Error', 'Failed to archive purchased items');
+    }
+  };
+
   const ShoppingItemCard = ({ item }) => (
     <View style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}>
       <TouchableOpacity
@@ -275,6 +289,15 @@ export default function ShoppingListScreen({ navigation }) {
               <Icon name="play-arrow" size={20} color="#FFFFFF" />
               <Text style={styles.shopButtonText}>Shop</Text>
             </TouchableOpacity>
+            {purchasedItems.length > 0 && (
+              <TouchableOpacity
+                style={[styles.clearButton]}
+                onPress={handleArchivePurchased}
+              >
+                <Icon name="archive" size={20} color="#FFFFFF" />
+                <Text style={styles.clearButtonText}>Archive Purchased</Text>
+              </TouchableOpacity>
+            )}
             
             <TouchableOpacity
               style={styles.addButton}
@@ -516,7 +539,7 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   shopButton: {
     flexDirection: 'row',
@@ -781,5 +804,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  clearButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6B7280',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  clearButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginLeft: 6,
   },
 });
