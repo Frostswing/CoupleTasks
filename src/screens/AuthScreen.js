@@ -20,6 +20,8 @@ import {
   subscribeToAuthChanges,
 } from "../services/userService";
 import { simpleGoogleSignIn } from "../services/googleAuthService";
+import { handleError, showSuccess } from "../services/errorHandlingService";
+import { validateForm, commonRules } from "../utils/validation";
 import i18n from "../localization/i18n";
 
 const { width } = Dimensions.get('window');
@@ -42,34 +44,30 @@ const AuthScreen = () => {
     return () => unsubscribe();
   }, []);
 
-  const validateForm = () => {
-    if (!email.trim()) {
-      Alert.alert(i18n.t('common.error'), i18n.t('auth.enterEmail'));
-      return false;
-    }
-
-    if (!password.trim() || password.length < 6) {
-      Alert.alert(i18n.t('common.error'), i18n.t('auth.weakPassword'));
-      return false;
-    }
+  const validateAuthForm = () => {
+    const rules = {
+      email: commonRules.email,
+      password: commonRules.password,
+    };
 
     if (!isLogin) {
-      if (!name.trim()) {
-        Alert.alert(i18n.t('common.error'), i18n.t('auth.enterFullName'));
-        return false;
-      }
+      rules.name = commonRules.name;
+      rules.confirmPassword = [commonRules.passwordConfirm(password)];
+    }
 
-      if (password !== confirmPassword) {
-        Alert.alert(i18n.t('common.error'), i18n.t('auth.passwordsDontMatch'));
-        return false;
-      }
+    const errors = validateForm({ email, password, name, confirmPassword }, rules);
+    
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      Alert.alert(i18n.t('common.error'), firstError);
+      return false;
     }
 
     return true;
   };
 
   const handleAuth = async () => {
-    if (!validateForm()) return;
+    if (!validateAuthForm()) return;
 
     setLoading(true);
 
@@ -82,28 +80,22 @@ const AuthScreen = () => {
       }
 
       if (result.success) {
-        // איפוס השדות
+        // Reset form fields
         setEmail("");
         setPassword("");
         setConfirmPassword("");
         setName("");
-        Alert.alert(
-          i18n.t('common.success'),
+        showSuccess(
           isLogin ? i18n.t('auth.loginSuccess') : i18n.t('auth.registrationSuccess')
         );
       } else {
-        const errorMessage = getErrorMessage(result.error);
-        Alert.alert(i18n.t('common.error'), errorMessage);
+        handleError(result.error, isLogin ? 'loginUser' : 'registerUser');
       }
     } catch (error) {
-      Alert.alert(
-        i18n.t('common.error'),
-        isLogin ? i18n.t('auth.loginError') : i18n.t('auth.registrationError')
-      );
-      console.error(error);
+      handleError(error, isLogin ? 'loginUser' : 'registerUser');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
@@ -126,26 +118,26 @@ const AuthScreen = () => {
         const firebaseResult = await registerUser(googleUser.email, 'google-auth-' + googleUser.id, googleUser.name);
         
         if (firebaseResult.success) {
-          Alert.alert(i18n.t('common.success'), i18n.t('auth.loginSuccess'));
+          showSuccess(i18n.t('auth.loginSuccess'));
         } else {
-          // אם המשתמש כבר קיים, נסה להתחבר
+          // If user already exists, try to login
           const loginResult = await loginUser(googleUser.email, 'google-auth-' + googleUser.id);
           if (loginResult.success) {
-            Alert.alert(i18n.t('common.success'), i18n.t('auth.loginSuccess'));
+            showSuccess(i18n.t('auth.loginSuccess'));
           } else {
-            Alert.alert(i18n.t('common.error'), i18n.t('auth.loginError'));
+            handleError(loginResult.error, 'googleSignIn');
           }
         }
       } else {
         if (result.error !== 'Login cancelled') {
-          Alert.alert(i18n.t('common.error'), result.error);
+          handleError(result.error, 'googleSignIn');
         }
       }
     } catch (error) {
-      console.error('Google Sign In error:', error);
-      Alert.alert(i18n.t('common.error'), i18n.t('auth.loginError'));
+      handleError(error, 'googleSignIn');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const getErrorMessage = (error) => {
@@ -172,12 +164,12 @@ const AuthScreen = () => {
     setLoading(true);
     try {
       await logoutUser();
-      Alert.alert(i18n.t('common.success'), i18n.t('auth.logoutSuccess'));
+      showSuccess(i18n.t('auth.logoutSuccess'));
     } catch (error) {
-      Alert.alert(i18n.t('common.error'), "אירעה שגיאה בתהליך היציאה");
-      console.error(error);
+      handleError(error, 'logoutUser');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const toggleAuthMode = () => {

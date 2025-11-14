@@ -17,6 +17,7 @@ import { User } from "../entities/User";
 import TaskCard from "../components/Tasks/TaskCard";
 import TaskFilters from "../components/Tasks/TaskFilters";
 import EditTaskDialog from "../components/Tasks/EditTaskDialog";
+import { handleError, showSuccess } from "../services/errorHandlingService";
 import { add, addDays, addMonths, addWeeks } from 'date-fns';
 
 const { width } = Dimensions.get('window');
@@ -27,6 +28,7 @@ export default function DashboardScreen({ navigation }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [filters, setFilters] = useState({
     status: 'pending',
@@ -35,46 +37,71 @@ export default function DashboardScreen({ navigation }) {
     assigned_to: 'all'
   });
 
-  const loadData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) {
-      setIsRefreshing(true);
-    } else if (tasks.length === 0) {
-      setIsLoading(true);
-    }
+  // Load user data once on mount
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await User.me();
+        setCurrentUser(user);
+      } catch (error) {
+        handleError(error, 'loadUser');
+      }
+    };
+    loadUser();
+  }, []);
 
+  // Set up real-time task listener
+  useEffect(() => {
+    if (!currentUser) return;
+
+    setIsLoading(true);
+
+    // Use real-time listener instead of polling
+    const unsubscribe = Task.onSnapshot(
+      (taskList) => {
+        // Filter tasks by user emails
+        const userEmails = [currentUser.email];
+        if (currentUser.partner_email) {
+          userEmails.push(currentUser.partner_email);
+        }
+        
+        const filtered = taskList.filter(t => 
+          userEmails.includes(t.created_by) && 
+          !t.is_archived
+        );
+        
+        setTasks(filtered);
+        setIsLoading(false);
+      },
+      { is_archived: { '$ne': true } }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser]);
+
+  // Manual refresh handler
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
     try {
+      // Force reload by fetching once
       const user = await User.me();
       setCurrentUser(user);
-
-      let taskList = [];
+      
+      const allTasks = await Task.filter({ is_archived: { '$ne': true } }, '-updated_date');
       const userEmails = [user.email];
       if (user.partner_email) {
         userEmails.push(user.partner_email);
       }
-
-      // Fetch tasks that are not archived
-      const allTasks = await Task.filter({ is_archived: { '$ne': true } }, '-updated_date');
-      taskList = allTasks.filter(t => userEmails.includes(t.created_by));
-
-      setTasks(taskList);
+      const filtered = allTasks.filter(t => userEmails.includes(t.created_by));
+      setTasks(filtered);
     } catch (error) {
-      console.error("Error loading data:", error);
+      handleError(error, 'refreshTasks');
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [tasks.length]);
-
-  useEffect(() => {
-    loadData();
-
-    // Auto-refresh every 30 seconds to sync
-    const intervalId = setInterval(() => {
-      loadData();
-    }, 30000);
-
-    return () => clearInterval(intervalId);
-  }, [loadData]);
+  }, []);
 
   useEffect(() => {
     applyFilters();
@@ -116,12 +143,16 @@ export default function DashboardScreen({ navigation }) {
   };
 
   const handleStatusChange = async (task, newStatus) => {
+    setIsUpdating(true);
+    
     if (newStatus !== 'completed') {
       try {
         await Task.update(task.id, { status: newStatus });
-        loadData();
-      } catch (error) { 
-        console.error("Error updating task status:", error); 
+        // Real-time listener will update automatically
+      } catch (error) {
+        handleError(error, 'updateTaskStatus');
+      } finally {
+        setIsUpdating(false);
       }
       return;
     }
@@ -154,34 +185,46 @@ export default function DashboardScreen({ navigation }) {
         await Task.create(newTask);
       }
       
-      loadData();
+      // Real-time listener will update automatically
     } catch (error) {
-      console.error("Error completing task:", error);
+      handleError(error, 'completeTask');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleSubtaskToggle = async (taskId, subtaskIndex, isCompleted) => {
+    setIsUpdating(true);
     const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+    if (!task) {
+      setIsUpdating(false);
+      return;
+    }
     
     const newSubtasks = [...task.subtasks];
     newSubtasks[subtaskIndex].is_completed = isCompleted;
     
     try {
       await Task.update(taskId, { subtasks: newSubtasks });
-      loadData();
+      // Real-time listener will update automatically
     } catch (error) {
-      console.error("Error updating subtask:", error);
+      handleError(error, 'updateSubtask');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleUpdateTask = async (taskData) => {
+    setIsUpdating(true);
     try {
       await Task.update(editingTask.id, taskData);
       setEditingTask(null);
-      loadData();
+      showSuccess('Task updated successfully');
+      // Real-time listener will update automatically
     } catch (error) {
-      console.error("Error updating task:", error);
+      handleError(error, 'updateTask');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -234,7 +277,7 @@ export default function DashboardScreen({ navigation }) {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => loadData(true)}
+            onRefresh={handleRefresh}
             colors={["#8B5CF6"]}
             tintColor="#8B5CF6"
           />
@@ -252,8 +295,9 @@ export default function DashboardScreen({ navigation }) {
             </Text>
           </View>
           <TouchableOpacity 
-            style={styles.addButton}
+            style={[styles.addButton, isUpdating && styles.disabledButton]}
             onPress={() => navigation.navigate('AddTask')}
+            disabled={isUpdating}
           >
             <Icon name="add" size={24} color="#FFFFFF" />
             <Text style={styles.addButtonText}>Add Task</Text>
@@ -528,5 +572,8 @@ const styles = StyleSheet.create({
   },
   tasksList: {
     gap: 12,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 }); 

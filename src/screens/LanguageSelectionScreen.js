@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n, { changeLanguage, loadLanguagePreference } from '../localization/i18n';
+import { handleError } from '../services/errorHandlingService';
 
 const { width } = Dimensions.get('window');
 
@@ -40,37 +41,42 @@ const LanguageSelectionScreen = ({ onComplete }) => {
       const shouldBeRTL = languageCode === 'he';
       
       if (wasRTL !== shouldBeRTL) {
+        // Force RTL settings
+        I18nManager.allowRTL(shouldBeRTL);
+        I18nManager.forceRTL(shouldBeRTL);
+        
+        // Complete language selection first
+        await completeLanguageSelection();
+        
+        // Show alert asking user to restart app for RTL changes
         Alert.alert(
           i18n.t('language.languageChanged'),
-          'האפליקציה תיסגר כדי לשנות את כיוון הטקסט. אנא פתח אותה מחדש.',
+          languageCode === 'he' 
+            ? 'השפה שונתה בהצלחה. אנא סגרו ופתחו את האפליקציה מחדש כדי לשנות את כיוון הטקסט.'
+            : 'Language changed successfully. Please close and reopen the app to change text direction.',
           [
             {
-              text: 'אישור',
-              onPress: async () => {
-                // Force RTL settings
-                I18nManager.allowRTL(shouldBeRTL);
-                I18nManager.forceRTL(shouldBeRTL);
-                // Complete language selection
-                await completeLanguageSelection();
-              }
+              text: i18n.t('common.done'),
+              onPress: () => {}
             }
           ]
         );
       } else {
+        // No RTL change needed, just complete
+        await completeLanguageSelection();
         Alert.alert(
           i18n.t('language.languageChanged'),
           '',
           [
             {
               text: i18n.t('common.done'),
-              onPress: () => completeLanguageSelection()
+              onPress: () => {}
             }
           ]
         );
       }
     } catch (error) {
-      console.error('Error changing language:', error);
-      Alert.alert(i18n.t('common.error'), 'שגיאה בשינוי שפה');
+      handleError(error, 'changeLanguage');
     } finally {
       setIsLoading(false);
     }

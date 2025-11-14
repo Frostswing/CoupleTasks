@@ -1,12 +1,19 @@
 {
     "rules": {
+        // Default: deny all access
         ".read": false,
         ".write": false,
+        // User data - users can read/write their own data and their partner's data
         "users": {
             "$userId": {
+                // Read: own data OR if user is sharing with this userId
                 ".read": "auth != null && (auth.uid == $userId || root.child('users').child(auth.uid).child('profile').child('sharing_with').val() == $userId)",
+                // Write: only own data
                 ".write": "auth != null && auth.uid == $userId",
                 "profile": {
+                    // Allow creating profile on first login
+                    ".write": "auth != null && auth.uid == $userId && (!data.exists() || data.child('email').val() == newData.child('email').val())",
+                    // Validation rules
                     ".validate": "newData.hasChildren(['email', 'full_name'])",
                     "email": {
                         ".validate": "newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/)"
@@ -15,10 +22,16 @@
                         ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
                     },
                     "partner_email": {
-                        ".validate": "newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/)"
+                        ".validate": "newData.val() == null || (newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/))"
                     },
                     "language_preference": {
-                        ".validate": "newData.isString() && (newData.val() == 'he' || newData.val() == 'en')"
+                        ".validate": "newData.val() == null || (newData.isString() && (newData.val() == 'he' || newData.val() == 'en'))"
+                    },
+                    "shared_space_id": {
+                        ".validate": "newData.val() == null || newData.isString()"
+                    },
+                    "sharing_with": {
+                        ".validate": "newData.val() == null || newData.isString()"
                     },
                     "$other": {
                         ".validate": true
@@ -26,21 +39,37 @@
                 },
                 "tasks": {
                     "$taskId": {
-                        ".validate": "newData.hasChildren(['title', 'status', 'assigned_to', 'created_by'])",
+                        ".write": "auth != null && auth.uid == $userId",
+                        ".validate": "newData.hasChildren(['title', 'status', 'created_by'])",
                         "title": {
                             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+                        },
+                        "description": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 1000)"
                         },
                         "status": {
                             ".validate": "newData.isString() && (newData.val() == 'pending' || newData.val() == 'in_progress' || newData.val() == 'completed')"
                         },
                         "priority": {
-                            ".validate": "newData.isString() && (newData.val() == 'low' || newData.val() == 'medium' || newData.val() == 'high')"
+                            ".validate": "newData.val() == null || (newData.isString() && (newData.val() == 'low' || newData.val() == 'medium' || newData.val() == 'high'))"
+                        },
+                        "category": {
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "assigned_to": {
-                            ".validate": "newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/)"
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/))"
                         },
                         "created_by": {
-                            ".validate": "newData.isString() && newData.val() == auth.uid"
+                            ".validate": "newData.isString() && (newData.val() == auth.uid || newData.val() == $userId)"
+                        },
+                        "created_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "updated_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "is_archived": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
                         },
                         "$other": {
                             ".validate": true
@@ -49,18 +78,25 @@
                 },
                 "shopping_list_items": {
                     "$itemId": {
-                        ".validate": "newData.hasChildren(['name', 'category', 'quantity', 'unit'])",
+                        ".write": "auth != null && auth.uid == $userId",
+                        ".validate": "newData.hasChildren(['name', 'category'])",
                         "name": {
                             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
                         },
                         "category": {
-                            ".validate": "newData.isString() && (newData.val() == 'produce' || newData.val() == 'dairy' || newData.val() == 'meat' || newData.val() == 'grains' || newData.val() == 'snacks' || newData.val() == 'beverages' || newData.val() == 'frozen' || newData.val() == 'household' || newData.val() == 'personal_care' || newData.val() == 'baby' || newData.val() == 'pharmacy' || newData.val() == 'other')"
+                            ".validate": "newData.isString()"
                         },
                         "quantity": {
-                            ".validate": "newData.isNumber() && newData.val() > 0"
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "unit": {
-                            ".validate": "newData.isString() && (newData.val() == 'pieces' || newData.val() == 'kg' || newData.val() == 'grams' || newData.val() == 'liters' || newData.val() == 'ml' || newData.val() == 'packages' || newData.val() == 'bottles' || newData.val() == 'cans' || newData.val() == 'boxes' || newData.val() == 'bags')"
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "is_purchased": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "is_archived": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
                         },
                         "$other": {
                             ".validate": true
@@ -69,51 +105,77 @@
                 },
                 "inventory_items": {
                     "$itemId": {
-                        ".validate": "newData.hasChildren(['name', 'category', 'current_amount', 'minimum_amount', 'unit'])",
+                        ".write": "auth != null && auth.uid == $userId",
+                        ".validate": "newData.hasChildren(['name', 'category'])",
                         "name": {
                             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
                         },
                         "category": {
-                            ".validate": "newData.isString() && (newData.val() == 'produce' || newData.val() == 'dairy' || newData.val() == 'meat' || newData.val() == 'grains' || newData.val() == 'snacks' || newData.val() == 'beverages' || newData.val() == 'frozen' || newData.val() == 'household' || newData.val() == 'personal_care' || newData.val() == 'baby' || newData.val() == 'pharmacy' || newData.val() == 'other')"
+                            ".validate": "newData.isString()"
                         },
                         "current_amount": {
-                            ".validate": "newData.isNumber() && newData.val() >= 0"
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "minimum_amount": {
-                            ".validate": "newData.isNumber() && newData.val() >= 0"
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "unit": {
-                            ".validate": "newData.isString() && (newData.val() == 'pieces' || newData.val() == 'kg' || newData.val() == 'grams' || newData.val() == 'liters' || newData.val() == 'ml' || newData.val() == 'packages' || newData.val() == 'bottles' || newData.val() == 'cans' || newData.val() == 'boxes' || newData.val() == 'bags')"
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "$other": {
                             ".validate": true
                         }
                     }
+                },
+                "history": {
+                    ".write": "auth != null && auth.uid == $userId",
+                    "$other": {
+                        ".validate": true
+                    }
                 }
             }
         },
+        // Shared spaces - accessible by both members
         "shared": {
             "$sharedSpaceId": {
+                // Read: must be a member
                 ".read": "auth != null && root.child('shared').child($sharedSpaceId).child('members').child(auth.uid).exists()",
+                // Write: must be a member
                 ".write": "auth != null && root.child('shared').child($sharedSpaceId).child('members').child(auth.uid).exists()",
                 "members": {
                     ".read": "auth != null && root.child('shared').child($sharedSpaceId).child('members').child(auth.uid).exists()",
-                    ".write": "auth != null && root.child('shared').child($sharedSpaceId).child('members').child(auth.uid).exists()"
+                    // Allow members to add themselves (for initial creation)
+                    ".write": "auth != null && (root.child('shared').child($sharedSpaceId).child('members').child(auth.uid).exists() || !data.exists())",
+                    "$memberId": {
+                        ".validate": "newData.isBoolean() && newData.val() == true"
+                    }
+                },
+                "created_at": {
+                    ".validate": "newData.isString()"
+                },
+                "updated_at": {
+                    ".validate": "newData.isString()"
                 },
                 "tasks": {
                     "$taskId": {
-                        ".validate": "newData.hasChildren(['title', 'status', 'assigned_to', 'created_by'])",
+                        ".validate": "newData.hasChildren(['title', 'status', 'created_by'])",
                         "title": {
                             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+                        },
+                        "description": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 1000)"
                         },
                         "status": {
                             ".validate": "newData.isString() && (newData.val() == 'pending' || newData.val() == 'in_progress' || newData.val() == 'completed')"
                         },
                         "priority": {
-                            ".validate": "newData.isString() && (newData.val() == 'low' || newData.val() == 'medium' || newData.val() == 'high')"
+                            ".validate": "newData.val() == null || (newData.isString() && (newData.val() == 'low' || newData.val() == 'medium' || newData.val() == 'high'))"
+                        },
+                        "category": {
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "assigned_to": {
-                            ".validate": "newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/)"
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/))"
                         },
                         "created_by": {
                             ".validate": "newData.isString() && root.child('shared').child($sharedSpaceId).child('members').child(newData.val()).exists()"
@@ -125,18 +187,18 @@
                 },
                 "shopping_list_items": {
                     "$itemId": {
-                        ".validate": "newData.hasChildren(['name', 'category', 'quantity', 'unit'])",
+                        ".validate": "newData.hasChildren(['name', 'category'])",
                         "name": {
                             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
                         },
                         "category": {
-                            ".validate": "newData.isString() && (newData.val() == 'produce' || newData.val() == 'dairy' || newData.val() == 'meat' || newData.val() == 'grains' || newData.val() == 'snacks' || newData.val() == 'beverages' || newData.val() == 'frozen' || newData.val() == 'household' || newData.val() == 'personal_care' || newData.val() == 'baby' || newData.val() == 'pharmacy' || newData.val() == 'other')"
+                            ".validate": "newData.isString()"
                         },
                         "quantity": {
-                            ".validate": "newData.isNumber() && newData.val() > 0"
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "unit": {
-                            ".validate": "newData.isString() && (newData.val() == 'pieces' || newData.val() == 'kg' || newData.val() == 'grams' || newData.val() == 'liters' || newData.val() == 'ml' || newData.val() == 'packages' || newData.val() == 'bottles' || newData.val() == 'cans' || newData.val() == 'boxes' || newData.val() == 'bags')"
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "$other": {
                             ".validate": true
@@ -145,21 +207,21 @@
                 },
                 "inventory_items": {
                     "$itemId": {
-                        ".validate": "newData.hasChildren(['name', 'category', 'current_amount', 'minimum_amount', 'unit'])",
+                        ".validate": "newData.hasChildren(['name', 'category'])",
                         "name": {
                             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
                         },
                         "category": {
-                            ".validate": "newData.isString() && (newData.val() == 'produce' || newData.val() == 'dairy' || newData.val() == 'meat' || newData.val() == 'grains' || newData.val() == 'snacks' || newData.val() == 'beverages' || newData.val() == 'frozen' || newData.val() == 'household' || newData.val() == 'personal_care' || newData.val() == 'baby' || newData.val() == 'pharmacy' || newData.val() == 'other')"
+                            ".validate": "newData.isString()"
                         },
                         "current_amount": {
-                            ".validate": "newData.isNumber() && newData.val() >= 0"
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "minimum_amount": {
-                            ".validate": "newData.isNumber() && newData.val() >= 0"
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "unit": {
-                            ".validate": "newData.isString() && (newData.val() == 'pieces' || newData.val() == 'kg' || newData.val() == 'grams' || newData.val() == 'liters' || newData.val() == 'ml' || newData.val() == 'packages' || newData.val() == 'bottles' || newData.val() == 'cans' || newData.val() == 'boxes' || newData.val() == 'bags')"
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "$other": {
                             ".validate": true
@@ -168,7 +230,7 @@
                 },
                 "shopping_sessions": {
                     "$sessionId": {
-                        ".validate": "newData.hasChildren(['name', 'started_by', 'started_at'])",
+                        ".validate": "newData.hasChildren(['started_by', 'started_at'])",
                         "started_by": {
                             ".validate": "newData.isString() && root.child('shared').child($sharedSpaceId).child('members').child(newData.val()).exists()"
                         },
@@ -177,24 +239,52 @@
                         }
                     }
                 },
+                "history": {
+                    "$other": {
+                        ".validate": true
+                    }
+                },
                 "$other": {
                     ".validate": true
                 }
             }
         },
+        // App metadata - readable by all authenticated users, writable only for initialization
         "app_metadata": {
+            // Read: any authenticated user
             ".read": "auth != null",
-            ".write": false,
+            // Write: allow initialization if database_version doesn't exist yet
+            ".write": "auth != null && !root.child('app_metadata').child('database_version').exists()",
+            "database_version": {
+                ".read": "auth != null",
+                // Allow writing version if it doesn't exist (initialization)
+                ".write": "auth != null && !data.exists()",
+                ".validate": "newData.isString()"
+            },
             "categories": {
-                ".read": "auth != null"
+                ".read": "auth != null",
+                // Allow writing categories if database_version doesn't exist (initialization)
+                ".write": "auth != null && !root.child('app_metadata').child('database_version').exists()",
+                "$categoryId": {
+                    ".validate": "newData.hasChildren(['id', 'name_he', 'name_en'])"
+                }
             },
             "units": {
-                ".read": "auth != null"
+                ".read": "auth != null",
+                // Allow writing units if database_version doesn't exist (initialization)
+                ".write": "auth != null && !root.child('app_metadata').child('database_version').exists()",
+                "$unitId": {
+                    ".validate": "newData.hasChildren(['id', 'name_he', 'name_en'])"
+                }
             },
-            "database_version": {
-                ".read": "auth != null"
+            "last_migration": {
+                ".read": "auth != null",
+                // Allow writing migration timestamp during initialization
+                ".write": "auth != null && !root.child('app_metadata').child('database_version').exists()",
+                ".validate": "newData.isString()"
             }
         },
+        // Analytics - read/write disabled for now (can be enabled later)
         "analytics": {
             ".read": false,
             ".write": false
