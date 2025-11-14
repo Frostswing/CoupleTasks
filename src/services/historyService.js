@@ -1,4 +1,4 @@
-import { firestore } from '../firebase/config';
+import { firestore, database } from '../firebase/config';
 import { 
   collection, 
   addDoc, 
@@ -13,7 +13,8 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import { getCurrentUser } from './userService';
+import { ref, get } from 'firebase/database';
+import { getCurrentUser, getDataSource } from './userService';
 
 // Collections names
 const COLLECTIONS = {
@@ -22,32 +23,42 @@ const COLLECTIONS = {
   USER_SUGGESTIONS: 'user_suggestions'
 };
 
-// Save shopping item to history
+// Save shopping item to history with timeout protection
 export const saveShoppingItemToHistory = async (item) => {
   try {
     const user = getCurrentUser();
     if (!user) return;
 
-    const historyData = {
-      user_id: user.uid,
-      item_name: item.name.toLowerCase().trim(),
-      display_name: item.name,
-      category: item.category,
-      unit: item.unit,
-      quantity: item.quantity,
-      created_at: serverTimestamp(),
-      frequency: 1
-    };
+    // Add timeout to prevent hanging (5 seconds max)
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('History save timeout')), 5000)
+    );
 
-    // Add to shopping history collection
-    await addDoc(collection(firestore, COLLECTIONS.SHOPPING_HISTORY), historyData);
+    const savePromise = (async () => {
+      const historyData = {
+        user_id: user.uid,
+        item_name: item.name.toLowerCase().trim(),
+        display_name: item.name,
+        category: item.category,
+        unit: item.unit,
+        quantity: item.quantity,
+        created_at: serverTimestamp(),
+        frequency: 1
+      };
 
-    // Update user suggestions
-    await updateUserSuggestion(user.uid, 'shopping', item.name);
-    
-    console.log('✅ Shopping item saved to history:', item.name);
+      // Add to shopping history collection
+      await addDoc(collection(firestore, COLLECTIONS.SHOPPING_HISTORY), historyData);
+
+      // Update user suggestions
+      await updateUserSuggestion(user.uid, 'shopping', item.name);
+      
+      console.log('✅ Shopping item saved to history:', item.name);
+    })();
+
+    await Promise.race([savePromise, timeoutPromise]);
   } catch (error) {
-    console.error('❌ Error saving shopping item to history:', error);
+    // Don't throw - this is non-critical, just log the error
+    console.warn('⚠️ Could not save shopping item to history (non-critical):', error.message || error);
   }
 };
 
@@ -160,7 +171,60 @@ export const getShoppingSuggestions = async (searchText, limit_count = 10) => {
       }
     });
 
-    return [...suggestions, ...historyItems].slice(0, limit_count);
+    // Also get archived shopping items from Realtime Database that start with the same letter
+    const archivedItems = [];
+    try {
+      const dataSource = await getDataSource(user.uid);
+      if (dataSource.success) {
+        const archivedItemsRef = ref(database, `${dataSource.path}/shopping_list_items`);
+        const archivedSnapshot = await get(archivedItemsRef);
+        
+        if (archivedSnapshot.exists()) {
+          const archivedData = archivedSnapshot.val() || {};
+          const firstLetter = searchTerm.charAt(0).toLowerCase();
+          
+          Object.entries(archivedData).forEach(([id, item]) => {
+            // Check if item is archived and starts with the same letter
+            if (item.is_archived && item.name && item.name.toLowerCase().startsWith(firstLetter)) {
+              const itemNameLower = item.name.toLowerCase();
+              // Check if it's not already in suggestions or history
+              const alreadyExists = suggestions.find(s => s.name.toLowerCase() === itemNameLower) ||
+                                   historyItems.find(h => h.name.toLowerCase() === itemNameLower);
+              
+              if (!alreadyExists) {
+                archivedItems.push({
+                  id: id,
+                  name: item.name,
+                  category: item.category || 'other',
+                  unit: item.unit || 'pieces',
+                  quantity: item.quantity || 1,
+                  isFromArchive: true
+                });
+              }
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error getting archived items for suggestions:', error);
+    }
+
+    // Combine all suggestions, prioritizing history and archived items
+    const allSuggestions = [...suggestions, ...historyItems, ...archivedItems];
+    
+    // Remove duplicates and limit results
+    const uniqueSuggestions = [];
+    const seenNames = new Set();
+    
+    for (const suggestion of allSuggestions) {
+      const nameLower = suggestion.name.toLowerCase();
+      if (!seenNames.has(nameLower)) {
+        seenNames.add(nameLower);
+        uniqueSuggestions.push(suggestion);
+      }
+    }
+    
+    return uniqueSuggestions.slice(0, limit_count);
   } catch (error) {
     console.error('❌ Error getting shopping suggestions:', error);
     return [];

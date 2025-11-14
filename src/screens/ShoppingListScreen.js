@@ -12,6 +12,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
@@ -30,12 +31,25 @@ export default function ShoppingListScreen({ navigation }) {
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("1");
 
+  // Load data when component mounts (with loading indicator)
   useEffect(() => {
-    loadData();
+    loadData(true); // Show loading on initial mount
     checkAutoAddItems();
   }, []);
 
-  const loadData = useCallback(async () => {
+  // Refresh data when screen comes into focus (e.g., after returning from shopping mode)
+  // Don't show loading indicator on refresh to avoid flashing
+  useFocusEffect(
+    useCallback(() => {
+      console.log('ShoppingListScreen: Screen focused, refreshing data...');
+      loadData(false); // Don't show loading on refresh
+    }, [loadData])
+  );
+
+  const loadData = useCallback(async (showLoading = false) => {
+    if (showLoading) {
+      setIsLoading(true);
+    }
     try {
       const [user, shoppingItems] = await Promise.all([
         User.me(),

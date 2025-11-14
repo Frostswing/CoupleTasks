@@ -253,6 +253,8 @@ This allows seamless switching between personal and shared modes.
 - Auto-add to inventory on purchase
 - Mark items as purchased
 - Archive completed shopping trips
+- **Smart Suggestions:** When adding items, suggests archived items that start with the same letter
+- **Archive System:** Purchased items are archived (not deleted) so they can be suggested but don't appear in active shopping list
 
 ### 3. **Inventory Management**
 **Components:** AddInventoryItemDialog  
@@ -603,6 +605,8 @@ const styles = StyleSheet.create({
 7. ✅ Shopping mode infinite loading fixed
 8. ✅ Infinite loop in Dashboard fixed (dependency issues)
 9. ✅ Better error messages and UX
+10. ✅ Shopping items archived after purchase (for suggestions)
+11. ✅ Smart suggestions from archived items that start with same letter
 
 ### Medium Priority
 1. User entity partially implemented (works but could be enhanced)
