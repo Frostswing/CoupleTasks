@@ -15,9 +15,10 @@ const CONTENT_PADDING = 48; // 24px on each side
 const CARD_GAP = 16;
 
 export default function HomeScreen({ navigation }) {
-  // Calculate card width as percentage of screen width
-  // Each card is 48% of screen width (accounting for padding and gap)
-  const cardWidth = width * 0.48;
+  // Calculate card width as percentage of available width (after padding)
+  // Each card is 48% of the available width to ensure they fit side by side
+  const availableWidth = width - CONTENT_PADDING;
+  const cardWidth = availableWidth * 0.48;
 
   return (
     <SafeAreaView style={styles.container}>
