@@ -13,6 +13,7 @@ import {
   orderByKey
 } from 'firebase/database';
 import { getCurrentUser, getDataSource } from '../services/userService';
+import { saveTaskToHistory } from '../services/historyService';
 
 export class Task {
   constructor(data) {
@@ -114,6 +115,14 @@ export class Task {
         updated_date: new Date().toISOString(),
         updated_by: user.uid
       });
+
+      // Save to history when task is completed
+      if (updates.status === 'completed') {
+        const task = await this.getById(id);
+        if (task) {
+          await saveTaskToHistory(task);
+        }
+      }
       
       return true;
     } catch (error) {

@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Shopping History Rules
+    match /shopping_history/{document} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.user_id;
+    }
+    
+    // Task History Rules
+    match /task_history/{document} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.user_id;
+    }
+    
+    // User Suggestions Rules
+    match /user_suggestions/{document} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.user_id;
+    }
+    
+    // User Profiles (for backup/export)
+    match /user_profiles/{userId} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == userId;
+    }
+    
+    // Analytics (optional, for app-wide stats)
+    match /analytics/{document} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only server-side writes
+    }
+  }
+} 

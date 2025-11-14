@@ -14,6 +14,7 @@ import {
 } from 'firebase/database';
 import { getCurrentUser, getDataSource } from '../services/userService';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../constants/categories';
+import { saveShoppingItemToHistory } from '../services/historyService';
 
 export class ShoppingListItem {
   constructor(data) {
@@ -117,11 +118,13 @@ export class ShoppingListItem {
         updated_by: user.uid
       });
 
-      // Auto-update inventory when item is purchased
+      // Auto-update inventory and save to history when item is purchased
       if (updates.is_purchased === true) {
         const item = await this.getById(id);
         if (item) {
           await this.updateInventory(item);
+          // Save to history for future suggestions
+          await saveShoppingItemToHistory(item);
         }
       }
       

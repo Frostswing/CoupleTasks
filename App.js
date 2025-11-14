@@ -2,6 +2,7 @@ import {
   app,
   auth,
   database,
+  firestore,
   checkFirebaseStatus,
 } from "./src/firebase/config";
 
@@ -72,9 +73,10 @@ export default function App() {
         if (
           status.appInitialized &&
           status.authInitialized &&
-          status.databaseInitialized
+          status.databaseInitialized &&
+          status.firestoreInitialized
         ) {
-          console.log(`Firebase app '${status.appName}' is fully initialized`);
+          console.log(`Firebase app '${status.appName}' is fully initialized with Firestore`);
           setFirebaseReady(true);
         } else {
           console.error("Firebase is not fully initialized:", status);

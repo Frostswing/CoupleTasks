@@ -28,7 +28,8 @@ const DrawerNavigator = () => {
     const checkCurrentUser = () => {
       try {
         const currentUser = getCurrentUser();
-        setInitialUser(currentUser);
+        // Set initialUser to false (not null) when there's no user, so component can render
+        setInitialUser(currentUser ? currentUser : false);
         setUser(currentUser);
       } catch (error) {
         setInitialUser(false); // No user
