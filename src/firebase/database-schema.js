@@ -85,6 +85,8 @@ export const DATABASE_SCHEMA = {
           is_purchased: "boolean",
           is_archived: "boolean",
           icon_url: "string|null",
+          image_url: "string|null", // Firebase Storage URL for attached image
+          link: "string|null", // URL link attached to item
           price: "number|null",
           brand: "string|null",
           notes: "string|null",

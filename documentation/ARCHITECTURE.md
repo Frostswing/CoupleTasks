@@ -20,6 +20,7 @@ CoupleTasks is a React Native mobile application built with Expo, designed to he
 ### Backend
 - **Database:** Firebase Realtime Database
 - **Authentication:** Firebase Auth with AsyncStorage persistence
+- **Storage:** Firebase Storage (for image uploads)
 - **Additional Storage:** Firestore (initialized but not actively used)
 - **Local Storage:** AsyncStorage (@react-native-async-storage)
 
@@ -119,6 +120,7 @@ CoupleTasks/
     └── services/                  # Business logic services
         ├── googleAuthService.js   # Google authentication
         ├── historyService.js     # Task history tracking
+        ├── imageService.js       # Image picker and Firebase Storage upload
         ├── shoppingListService.js # Shopping list operations
         ├── taskService.js        # Task operations (deprecated)
         └── userService.js        # User operations
@@ -205,6 +207,8 @@ firebase-root/
 │       │       ├── unit
 │       │       ├── is_purchased
 │       │       ├── is_archived
+│       │       ├── image_url        # Firebase Storage URL for attached image
+│       │       ├── link             # URL link attached to item
 │       │       ├── shopping_trip_date  # Groups items from same shopping trip
 │       │       ├── purchased_date
 │       │       ├── created_by
@@ -266,11 +270,13 @@ This allows seamless switching between personal and shared modes.
 - Auto-add to inventory on purchase
 - Mark items as purchased
 - Archive completed shopping trips
+- **Image Attachments:** Attach photos to shopping list items (take photo or choose from library), stored in Firebase Storage, displayed as thumbnails in item cards with full-screen viewer
+- **Link Attachments:** Attach URLs/links to shopping list items for reference (e.g., product pages, recipes), displayed as clickable links in item cards
 - **Shopping List Archive:** When shopping mode ends, all purchased items are grouped together by `shopping_trip_date` and archived as a complete shopping list with date
 - **Smart Suggestions:** When adding items, suggests archived items that start with the same letter
 - **Archive Search:** When typing in the item name field, searches through archived items with Google-like autocomplete (matches items containing the search text anywhere in the name)
-- **Auto-fill from Archive:** Clicking on an archived item suggestion auto-fills the form with the item's name, category, unit, and quantity
-- **Archive System:** Purchased items are archived (not deleted) so they can be suggested but don't appear in active shopping list
+- **Auto-fill from Archive:** Clicking on an archived item suggestion auto-fills the form with the item's name, category, unit, quantity, image, and link
+- **Archive System:** Purchased items are archived (not deleted) so they can be suggested but don't appear in active shopping list. Images and links are preserved in archived items
 - **Priority Ordering:** Archived items matching the search are prioritized in suggestions (items starting with search term appear first, then items containing the search term)
 
 ### 3. **Inventory Management**
@@ -517,6 +523,7 @@ useEffect(() => {
 ### Firebase Services
 - **Realtime Database** - Primary data store
 - **Authentication** - User management
+- **Storage** - Image file storage for shopping list items
 - **Firestore** - Initialized but unused (future?)
 
 ### External Services (Planned)

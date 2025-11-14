@@ -20,6 +20,8 @@
     "expo": "~53.0.8",
     "expo-auth-session": "~6.2.1",
     "expo-crypto": "~14.1.1",
+    "expo-image": "^3.0.10",
+    "expo-image-picker": "^17.0.8",
     "expo-localization": "~16.1.6",
     "expo-status-bar": "~2.2.3",
     "expo-web-browser": "~14.2.0",

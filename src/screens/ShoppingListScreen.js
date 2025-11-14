@@ -10,7 +10,11 @@ import {
   Modal,
   Alert,
   Dimensions,
+  Linking,
+  ActionSheetIOS,
+  Platform,
 } from "react-native";
+import { Image } from 'expo-image';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -19,6 +23,7 @@ import { InventoryItem } from "../entities/InventoryItem";
 import { User } from "../entities/User";
 import AutoCompleteInput from "../components/common/AutoCompleteInput";
 import { autoDetectCategory, getDefaultUnitForCategory } from "../constants/categories";
+import { pickImage, uploadImage } from "../services/imageService";
 
 const { width } = Dimensions.get('window');
 
@@ -34,6 +39,13 @@ export default function ShoppingListScreen({ navigation }) {
   const [newItemQuantity, setNewItemQuantity] = useState("1");
   const [newItemCategory, setNewItemCategory] = useState("other");
   const [newItemUnit, setNewItemUnit] = useState("pcs");
+  const [newItemImage, setNewItemImage] = useState(null);
+  const [newItemImageUrl, setNewItemImageUrl] = useState("");
+  const [newItemLink, setNewItemLink] = useState("");
+  const [newItemNotes, setNewItemNotes] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [viewingImageUrl, setViewingImageUrl] = useState("");
 
   // Load data when component mounts (with loading indicator)
   useEffect(() => {
@@ -69,6 +81,13 @@ export default function ShoppingListScreen({ navigation }) {
         !item.is_archived &&
         (userEmails.includes(item.created_by) || userEmails.includes(item.added_by))
       );
+      
+      // Debug: Log items with images
+      filteredItems.forEach(item => {
+        if (item.image_url) {
+          console.log('Item with image:', item.name, 'image_url:', item.image_url);
+        }
+      });
       
       setItems(filteredItems);
     } catch (error) {
@@ -132,6 +151,95 @@ export default function ShoppingListScreen({ navigation }) {
       if (suggestion.quantity) {
         setNewItemQuantity(suggestion.quantity.toString());
       }
+      // Auto-fill image and link from archived item if available
+      if (suggestion.image_url) {
+        setNewItemImageUrl(suggestion.image_url);
+      }
+      if (suggestion.link) {
+        setNewItemLink(suggestion.link);
+      }
+    }
+  };
+
+  const handlePickImage = async (source) => {
+    try {
+      const result = await pickImage(source);
+      if (result.success && result.uri) {
+        setNewItemImage(result.uri);
+        setUploadingImage(true);
+        
+        // Upload image to Firebase Storage
+        const uploadResult = await uploadImage(result.uri);
+        setUploadingImage(false);
+        
+        if (uploadResult.success && uploadResult.url) {
+          console.log('Image uploaded successfully, URL:', uploadResult.url);
+          setNewItemImageUrl(uploadResult.url);
+        } else {
+          console.error('Upload failed:', uploadResult);
+          Alert.alert("Error", uploadResult.error || "Failed to upload image");
+          setNewItemImage(null);
+          setNewItemImageUrl("");
+        }
+      }
+    } catch (error) {
+      setUploadingImage(false);
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image");
+      setNewItemImage(null);
+      setNewItemImageUrl("");
+    }
+  };
+
+  const showImagePickerOptions = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose from Library'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            handlePickImage('camera');
+          } else if (buttonIndex === 2) {
+            handlePickImage('library');
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        'Select Image',
+        'Choose an option',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Take Photo', onPress: () => handlePickImage('camera') },
+          { text: 'Choose from Library', onPress: () => handlePickImage('library') },
+        ]
+      );
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setNewItemImage(null);
+    setNewItemImageUrl("");
+  };
+
+  const handleViewImage = (imageUrl) => {
+    setViewingImageUrl(imageUrl);
+    setShowImageModal(true);
+  };
+
+  const handleOpenLink = async (url) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Error", "Cannot open this URL");
+      }
+    } catch (error) {
+      console.error("Error opening link:", error);
+      Alert.alert("Error", "Failed to open link");
     }
   };
 
@@ -141,19 +249,39 @@ export default function ShoppingListScreen({ navigation }) {
       return;
     }
 
+    // If image is still uploading, wait for it
+    if (uploadingImage) {
+      Alert.alert("Please wait", "Image is still uploading. Please wait a moment and try again.");
+      return;
+    }
+
     try {
-      await ShoppingListItem.create({
+      console.log('Creating item with image_url:', newItemImageUrl);
+      console.log('newItemImage state:', newItemImage);
+      console.log('newItemImageUrl state:', newItemImageUrl);
+      
+      const createdItem = await ShoppingListItem.create({
         name: newItemName.trim(),
         quantity: parseInt(newItemQuantity) || 1,
         category: newItemCategory,
         unit: newItemUnit,
+        image_url: newItemImageUrl || "",
+        link: newItemLink.trim() || "",
+        notes: newItemNotes.trim() || "",
         added_by: currentUser.email
       });
+      
+      console.log('Created item:', createdItem);
+      console.log('Created item image_url:', createdItem.image_url);
       
       setNewItemName("");
       setNewItemQuantity("1");
       setNewItemCategory("other");
       setNewItemUnit("pcs");
+      setNewItemImage(null);
+      setNewItemImageUrl("");
+      setNewItemLink("");
+      setNewItemNotes("");
       setShowAddDialog(false);
       loadData();
     } catch (error) {
@@ -189,6 +317,10 @@ export default function ShoppingListScreen({ navigation }) {
     setEditingItem(item);
     setNewItemName(item.name);
     setNewItemQuantity(item.quantity.toString());
+    setNewItemImageUrl(item.image_url || "");
+    setNewItemLink(item.link || "");
+    setNewItemNotes(item.notes || "");
+    setNewItemImage(item.image_url || null);
     setShowEditDialog(true);
   };
 
@@ -202,11 +334,18 @@ export default function ShoppingListScreen({ navigation }) {
       await ShoppingListItem.update(editingItem.id, {
         name: newItemName.trim(),
         quantity: parseInt(newItemQuantity) || 1,
+        image_url: newItemImageUrl || "",
+        link: newItemLink.trim() || "",
+        notes: newItemNotes.trim() || "",
       });
       
       setEditingItem(null);
       setNewItemName("");
       setNewItemQuantity("1");
+      setNewItemImage(null);
+      setNewItemImageUrl("");
+      setNewItemLink("");
+      setNewItemNotes("");
       setShowEditDialog(false);
       loadData();
     } catch (error) {
@@ -256,7 +395,13 @@ export default function ShoppingListScreen({ navigation }) {
     }
   };
 
-  const ShoppingItemCard = ({ item }) => (
+  const ShoppingItemCard = ({ item }) => {
+    // Debug logging
+    if (item.image_url) {
+      console.log('Rendering item with image:', item.name, 'URL:', item.image_url);
+    }
+    
+    return (
     <View style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}>
       <TouchableOpacity
         style={styles.itemContent}
@@ -278,6 +423,49 @@ export default function ShoppingListScreen({ navigation }) {
             {item.auto_added && (
               <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
             )}
+            {/* Display notes */}
+            {item.notes && (
+              <Text style={styles.itemNotes} numberOfLines={2}>
+                {item.notes}
+              </Text>
+            )}
+            {/* Display image thumbnail */}
+            {item.image_url && (
+              <TouchableOpacity
+                onPress={() => handleViewImage(item.image_url)}
+                style={styles.imageThumbnailContainer}
+              >
+                <Image
+                  source={{ uri: item.image_url }}
+                  style={styles.imageThumbnail}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  transition={200}
+                  onError={(error) => {
+                    console.error('Image load error:', error);
+                    console.error('Image URL:', item.image_url);
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', item.image_url);
+                  }}
+                />
+                <View style={styles.imageOverlay}>
+                  <Icon name="zoom-in" size={16} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+            )}
+            {/* Display link */}
+            {item.link && (
+              <TouchableOpacity
+                onPress={() => handleOpenLink(item.link)}
+                style={styles.linkContainer}
+              >
+                <Icon name="link" size={14} color="#8B5CF6" />
+                <Text style={styles.linkText} numberOfLines={1}>
+                  {item.link}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
         
@@ -296,7 +484,8 @@ export default function ShoppingListScreen({ navigation }) {
         </TouchableOpacity>
       </TouchableOpacity>
     </View>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -429,12 +618,16 @@ export default function ShoppingListScreen({ navigation }) {
               setNewItemQuantity("1");
               setNewItemCategory("other");
               setNewItemUnit("pcs");
+              setNewItemImage(null);
+              setNewItemImageUrl("");
+              setNewItemLink("");
+              setNewItemNotes("");
             }}>
               <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
           
-          <View style={styles.modalContent}>
+          <ScrollView style={styles.modalContent}>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Item Name</Text>
               <View style={styles.inputWrapper}>
@@ -462,13 +655,80 @@ export default function ShoppingListScreen({ navigation }) {
               />
             </View>
 
+            {/* Image Attachment */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Image</Text>
+              {newItemImageUrl || newItemImage ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image
+                    source={{ uri: newItemImage || newItemImageUrl }}
+                    style={styles.imagePreview}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={200}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={handleRemoveImage}
+                  >
+                    <Icon name="close" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.attachButton}
+                  onPress={showImagePickerOptions}
+                  disabled={uploadingImage}
+                >
+                  {uploadingImage ? (
+                    <ActivityIndicator size="small" color="#8B5CF6" />
+                  ) : (
+                    <>
+                      <Icon name="add-photo-alternate" size={20} color="#8B5CF6" />
+                      <Text style={styles.attachButtonText}>Attach Image</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Link Attachment */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Link (optional)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="https://..."
+                value={newItemLink}
+                onChangeText={setNewItemLink}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Notes */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Notes (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.notesInput]}
+                placeholder="Add any additional notes..."
+                value={newItemNotes}
+                onChangeText={setNewItemNotes}
+                placeholderTextColor="#9CA3AF"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
             <TouchableOpacity
               style={styles.addItemButton}
               onPress={handleAddItem}
             >
               <Text style={styles.addItemButtonText}>Add Item</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </SafeAreaView>
       </Modal>
 
@@ -484,6 +744,10 @@ export default function ShoppingListScreen({ navigation }) {
           setNewItemQuantity("1");
           setNewItemCategory("other");
           setNewItemUnit("pcs");
+          setNewItemImage(null);
+          setNewItemImageUrl("");
+          setNewItemLink("");
+          setNewItemNotes("");
         }}
       >
         <SafeAreaView style={styles.modalContainer}>
@@ -496,12 +760,16 @@ export default function ShoppingListScreen({ navigation }) {
               setNewItemQuantity("1");
               setNewItemCategory("other");
               setNewItemUnit("pcs");
+              setNewItemImage(null);
+              setNewItemImageUrl("");
+              setNewItemLink("");
+              setNewItemNotes("");
             }}>
               <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
           
-          <View style={styles.modalContent}>
+          <ScrollView style={styles.modalContent}>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Item Name</Text>
               <TextInput
@@ -525,14 +793,105 @@ export default function ShoppingListScreen({ navigation }) {
               />
             </View>
 
+            {/* Image Attachment */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Image</Text>
+              {newItemImageUrl || newItemImage ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image
+                    source={{ uri: newItemImage || newItemImageUrl }}
+                    style={styles.imagePreview}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={200}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={handleRemoveImage}
+                  >
+                    <Icon name="close" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.attachButton}
+                  onPress={showImagePickerOptions}
+                  disabled={uploadingImage}
+                >
+                  {uploadingImage ? (
+                    <ActivityIndicator size="small" color="#8B5CF6" />
+                  ) : (
+                    <>
+                      <Icon name="add-photo-alternate" size={20} color="#8B5CF6" />
+                      <Text style={styles.attachButtonText}>Attach Image</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Link Attachment */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Link (optional)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="https://..."
+                value={newItemLink}
+                onChangeText={setNewItemLink}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Notes */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Notes (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.notesInput]}
+                placeholder="Add any additional notes..."
+                value={newItemNotes}
+                onChangeText={setNewItemNotes}
+                placeholderTextColor="#9CA3AF"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
             <TouchableOpacity
               style={styles.addItemButton}
               onPress={handleUpdateItem}
             >
               <Text style={styles.addItemButtonText}>Update Item</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </SafeAreaView>
+      </Modal>
+
+      {/* Image Viewer Modal */}
+      <Modal
+        visible={showImageModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowImageModal(false)}
+      >
+        <View style={styles.imageModalContainer}>
+          <TouchableOpacity
+            style={styles.imageModalCloseButton}
+            onPress={() => setShowImageModal(false)}
+          >
+            <Icon name="close" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Image
+            source={{ uri: viewingImageUrl }}
+            style={styles.imageModalImage}
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            transition={200}
+          />
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -750,6 +1109,12 @@ const styles = StyleSheet.create({
     color: '#8B5CF6',
     fontStyle: 'italic',
   },
+  itemNotes: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
   editButton: {
     padding: 8,
     marginRight: 8,
@@ -839,6 +1204,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     color: '#1F2937',
   },
+  notesInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
   addItemButton: {
     backgroundColor: '#8B5CF6',
     borderRadius: 12,
@@ -850,5 +1219,102 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  attachButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#F9FAFB',
+  },
+  attachButtonText: {
+    color: '#8B5CF6',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  imagePreviewContainer: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#F3F4F6',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageThumbnailContainer: {
+    position: 'relative',
+    marginTop: 8,
+    borderRadius: 8,
+    overflow: 'hidden',
+    width: 80,
+    height: 80,
+  },
+  imageThumbnail: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F3F4F6',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 4,
+    alignItems: 'center',
+  },
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F3E8FF',
+    borderRadius: 8,
+  },
+  linkText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#8B5CF6',
+    marginLeft: 6,
+  },
+  imageModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalImage: {
+    width: width - 40,
+    height: '80%',
   },
 });

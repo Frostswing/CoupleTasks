@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
@@ -281,6 +282,24 @@ export default function ShoppingModeScreen({ navigation, route }) {
           </Text>
           {item.auto_added && (
             <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
+          )}
+          {/* Display notes */}
+          {item.notes && (
+            <Text style={styles.itemNotes} numberOfLines={2}>
+              {item.notes}
+            </Text>
+          )}
+          {/* Display image thumbnail */}
+          {item.image_url && (
+            <View style={styles.imageThumbnailContainer}>
+              <Image
+                source={{ uri: item.image_url }}
+                style={styles.imageThumbnail}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={200}
+              />
+            </View>
           )}
         </View>
       </View>
@@ -663,6 +682,24 @@ const styles = StyleSheet.create({
     color: '#16A34A',
     fontStyle: 'italic',
     marginTop: 2,
+  },
+  itemNotes: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  imageThumbnailContainer: {
+    marginTop: 8,
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#F3F4F6',
+  },
+  imageThumbnail: {
+    width: '100%',
+    height: '100%',
   },
   allDoneContainer: {
     alignItems: 'center',
