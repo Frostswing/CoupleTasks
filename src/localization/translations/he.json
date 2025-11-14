@@ -73,6 +73,13 @@
         "profile": "פרופיל",
         "sharing": "שיתוף רשימות"
     },
+    "home": {
+        "title": "בית",
+        "welcome": "ברוכים הבאים ל-CoupleTasks",
+        "subtitle": "נהלו את המטלות והקניות שלכם יחד",
+        "tasksDescription": "צפו ונהלו את המטלות שלכם",
+        "shoppingDescription": "נהלו את רשימת הקניות שלכם"
+    },
     "dashboard": {
         "welcomeBack": "ברוכים הבאים,",
         "subtitle": "בואו נראה מה אתם ושותפכם צריכים לטפל בו היום",

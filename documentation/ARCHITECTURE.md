@@ -104,10 +104,11 @@ CoupleTasks/
     │   └── DrawerNavigator.js    # Main drawer navigation setup
     │
     ├── screens/                   # Screen components
+    │   ├── HomeScreen.js         # Home screen with quick access
     │   ├── AddTaskScreen.js      # Task creation screen
     │   ├── ArchiveScreen.js      # Archive viewer
     │   ├── AuthScreen.js         # Authentication (login/register)
-    │   ├── DashboardScreen.js    # Main dashboard
+    │   ├── DashboardScreen.js    # Main dashboard (tasks view)
     │   ├── HistoryScreen.js      # Task history
     │   ├── InventoryScreen.js    # Inventory management
     │   ├── LanguageSelectionScreen.js  # Language picker
@@ -137,7 +138,7 @@ App.js
   ├─> Check Firebase Status
   └─> Subscribe to Auth Changes
        ├─> No User → LanguageSelectionScreen → AuthScreen
-       └─> User Exists → DrawerNavigator → Dashboard
+       └─> User Exists → DrawerNavigator → HomeScreen
 ```
 
 ### Data Access Pattern (Active Record)
@@ -241,6 +242,15 @@ This allows seamless switching between personal and shared modes.
 ---
 
 ## 🎯 Core Features & Components
+
+### 0. **Home Screen**
+**Screens:** HomeScreen  
+**Features:**
+- Welcome screen with app branding
+- Quick access cards for Tasks and Shopping List
+- Direct navigation to most-used features without opening drawer
+- Clean, modern UI with card-based design
+- Serves as the initial route for authenticated users
 
 ### 1. **Task Management**
 **Components:** TaskCard, TaskForm, EditTaskDialog, TaskFilters  
@@ -437,7 +447,8 @@ useEffect(() => {
 
 ### Navigation Pattern
 **Drawer Navigator** (right-side for RTL support)
-- Dashboard (home)
+- **Home** (initial route) - Quick access to Tasks and Shopping
+- Dashboard (Tasks view)
 - Add Task
 - Shopping List
 - Shopping Mode

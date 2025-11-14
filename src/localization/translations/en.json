@@ -73,6 +73,13 @@
         "profile": "Profile",
         "sharing": "Share Lists"
     },
+    "home": {
+        "title": "Home",
+        "welcome": "Welcome to CoupleTasks",
+        "subtitle": "Manage your tasks and shopping together",
+        "tasksDescription": "View and manage your tasks",
+        "shoppingDescription": "Manage your shopping list"
+    },
     "dashboard": {
         "welcomeBack": "Welcome back,",
         "subtitle": "Let's see what you and your partner need to tackle today",
