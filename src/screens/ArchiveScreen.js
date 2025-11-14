@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
   Alert,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -21,10 +21,10 @@ const { width } = Dimensions.get('window');
 
 export default function ArchiveScreen({ navigation }) {
   const [archivedTasks, setArchivedTasks] = useState([]);
-  const [archivedShoppingLists, setArchivedShoppingLists] = useState([]);
-  const [selectedList, setSelectedList] = useState(null);
+  const [archivedProducts, setArchivedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tasks');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadArchivedData = useCallback(async () => {
     setIsLoading(true);
@@ -38,28 +38,47 @@ export default function ArchiveScreen({ navigation }) {
       const relevantTasks = allArchivedTasks.filter(t => userEmails.includes(t.created_by));
       setArchivedTasks(relevantTasks);
 
-      // Load archived shopping lists (group by date)
-      const allArchivedItems = await ShoppingListItem.filter({ is_archived: true }, '-updated_date');
-      const relevantItems = allArchivedItems.filter(item => 
+      // Load archived products (individual items, not grouped by lists)
+      const allArchivedItems = await ShoppingListItem.filter({ is_archived: true }, '-purchased_date');
+      const relevantProducts = allArchivedItems.filter(item => 
         userEmails.includes(item.created_by) || userEmails.includes(item.added_by)
       );
       
-      // Group shopping items by date
-      const groupedLists = {};
-      relevantItems.forEach(item => {
-        const date = format(new Date(item.updated_date), 'yyyy-MM-dd');
-        if (!groupedLists[date]) {
-          groupedLists[date] = [];
+      // Use a hash/dictionary to avoid duplicate products (group by product name, case-insensitive)
+      // Keep the most recent purchase for each product
+      const productsMap = new Map();
+      
+      relevantProducts.forEach(product => {
+        const productKey = product.name.toLowerCase().trim();
+        const existingProduct = productsMap.get(productKey);
+        
+        if (!existingProduct) {
+          // First time seeing this product, add it
+          productsMap.set(productKey, product);
+        } else {
+          // Product already exists, keep the one with the most recent purchase date
+          const existingDate = existingProduct.purchased_date 
+            ? new Date(existingProduct.purchased_date).getTime() 
+            : 0;
+          const currentDate = product.purchased_date 
+            ? new Date(product.purchased_date).getTime() 
+            : 0;
+          
+          if (currentDate > existingDate) {
+            // Current product is more recent, replace it
+            productsMap.set(productKey, product);
+          }
         }
-        groupedLists[date].push(item);
       });
       
-      setArchivedShoppingLists(Object.entries(groupedLists).map(([date, items]) => ({
-        date,
-        items,
-        totalItems: items.length,
-        purchasedItems: items.filter(item => item.is_purchased).length
-      })));
+      // Convert map to array and sort by purchase date (most recent first)
+      const uniqueProducts = Array.from(productsMap.values()).sort((a, b) => {
+        const dateA = a.purchased_date ? new Date(a.purchased_date).getTime() : 0;
+        const dateB = b.purchased_date ? new Date(b.purchased_date).getTime() : 0;
+        return dateB - dateA;
+      });
+      
+      setArchivedProducts(uniqueProducts);
 
       // Auto-delete old items
       const now = new Date();
@@ -107,25 +126,47 @@ export default function ArchiveScreen({ navigation }) {
     );
   };
 
-  const handleRestoreShoppingList = async (listItems) => {
+  const handleRestoreProduct = async (product) => {
     Alert.alert(
-      "Restore Shopping List",
-      "Are you sure you want to restore this shopping list?",
+      "Restore Product",
+      `Restore "${product.name}" to shopping list?`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Restore",
           onPress: async () => {
             try {
-              await Promise.all(listItems.map(item => 
-                ShoppingListItem.update(item.id, { 
-                  is_archived: false, 
-                  is_purchased: false 
-                })
-              ));
+              await ShoppingListItem.update(product.id, { 
+                is_archived: false, 
+                is_purchased: false 
+              });
               loadArchivedData();
             } catch (error) {
-              console.error("Error restoring shopping list:", error);
+              console.error("Error restoring product:", error);
+              Alert.alert("Error", "Failed to restore product");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    Alert.alert(
+      "Delete Product",
+      "This action cannot be undone. Are you sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await ShoppingListItem.delete(productId);
+              loadArchivedData();
+            } catch (error) {
+              console.error("Error deleting product:", error);
+              Alert.alert("Error", "Failed to delete product");
             }
           }
         }
@@ -154,6 +195,26 @@ export default function ArchiveScreen({ navigation }) {
       ]
     );
   };
+
+  // Filter tasks and products based on search query
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) return archivedTasks;
+    const query = searchQuery.toLowerCase().trim();
+    return archivedTasks.filter(task => 
+      task.title.toLowerCase().includes(query) ||
+      (task.description && task.description.toLowerCase().includes(query)) ||
+      task.category.toLowerCase().includes(query)
+    );
+  }, [archivedTasks, searchQuery]);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return archivedProducts;
+    const query = searchQuery.toLowerCase().trim();
+    return archivedProducts.filter(product => 
+      product.name.toLowerCase().includes(query) ||
+      (product.category && product.category.toLowerCase().includes(query))
+    );
+  }, [archivedProducts, searchQuery]);
 
   const TabButton = ({ title, count, isActive, onPress }) => (
     <TouchableOpacity
@@ -203,38 +264,39 @@ export default function ArchiveScreen({ navigation }) {
     </View>
   );
 
-  const ShoppingListCard = ({ list }) => (
+  const ProductCard = ({ product }) => (
     <View style={styles.archiveCard}>
       <View style={styles.cardContent}>
         <View style={styles.cardInfo}>
-          <Text style={styles.taskTitle}>
-            Shopping List - {format(new Date(list.date), 'MMM d, yyyy')}
-          </Text>
+          <Text style={styles.productName}>{product.name}</Text>
           <View style={styles.taskMeta}>
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>
-                {list.purchasedItems} of {list.totalItems} purchased
-              </Text>
+              <Text style={styles.categoryText}>{product.category || 'other'}</Text>
             </View>
             <Text style={styles.completionDate}>
-              {list.totalItems} items
+              {product.quantity} {product.unit || 'pcs'}
             </Text>
+            {product.purchased_date && (
+              <Text style={styles.completionDate}>
+                Purchased {format(new Date(product.purchased_date), 'MMM d, yyyy')}
+              </Text>
+            )}
           </View>
         </View>
         
         <View style={styles.cardActions}>
           <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => setSelectedList(list)}
+            style={styles.restoreButton}
+            onPress={() => handleRestoreProduct(product)}
           >
-            <Icon name="visibility" size={20} color="#3B82F6" />
+            <Icon name="restore" size={20} color="#16A34A" />
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={styles.restoreButton}
-            onPress={() => handleRestoreShoppingList(list.items)}
+            style={styles.deleteButton}
+            onPress={() => handleDeleteProduct(product.id)}
           >
-            <Icon name="restore" size={20} color="#16A34A" />
+            <Icon name="delete-forever" size={20} color="#EF4444" />
           </TouchableOpacity>
         </View>
       </View>
@@ -259,19 +321,46 @@ export default function ArchiveScreen({ navigation }) {
           <Text style={styles.subtitle}>Completed items are stored here for 60 days.</Text>
         </View>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={activeTab === 'tasks' ? "Search tasks..." : "Search products..."}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#9CA3AF"
+            clearButtonMode="while-editing"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.clearButton}
+            >
+              <Icon name="close" size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Tabs */}
         <View style={styles.tabContainer}>
           <TabButton
             title="Completed Tasks"
-            count={archivedTasks.length}
+            count={searchQuery ? filteredTasks.length : archivedTasks.length}
             isActive={activeTab === 'tasks'}
-            onPress={() => setActiveTab('tasks')}
+            onPress={() => {
+              setActiveTab('tasks');
+              setSearchQuery(''); // Clear search when switching tabs
+            }}
           />
           <TabButton
-            title="Shopping Lists"
-            count={archivedShoppingLists.length}
+            title="Archived Products"
+            count={searchQuery ? filteredProducts.length : archivedProducts.length}
             isActive={activeTab === 'shopping'}
-            onPress={() => setActiveTab('shopping')}
+            onPress={() => {
+              setActiveTab('shopping');
+              setSearchQuery(''); // Clear search when switching tabs
+            }}
           />
         </View>
 
@@ -279,17 +368,23 @@ export default function ArchiveScreen({ navigation }) {
         <View style={styles.content}>
           {activeTab === 'tasks' ? (
             <View style={styles.tabContent}>
-              {archivedTasks.length === 0 ? (
+              {filteredTasks.length === 0 ? (
                 <View style={styles.emptyState}>
                   <View style={styles.emptyIcon}>
-                    <Icon name="check-circle" size={40} color="#9CA3AF" />
+                    <Icon name={searchQuery ? "search-off" : "check-circle"} size={40} color="#9CA3AF" />
                   </View>
-                  <Text style={styles.emptyTitle}>No completed tasks</Text>
-                  <Text style={styles.emptySubtitle}>Completed tasks will appear here.</Text>
+                  <Text style={styles.emptyTitle}>
+                    {searchQuery ? "No tasks found" : "No completed tasks"}
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    {searchQuery 
+                      ? `No tasks match "${searchQuery}"` 
+                      : "Completed tasks will appear here."}
+                  </Text>
                 </View>
               ) : (
                 <View style={styles.itemsList}>
-                  {archivedTasks.map((task) => (
+                  {filteredTasks.map((task) => (
                     <TaskCard key={task.id} task={task} />
                   ))}
                 </View>
@@ -297,18 +392,24 @@ export default function ArchiveScreen({ navigation }) {
             </View>
           ) : (
             <View style={styles.tabContent}>
-              {archivedShoppingLists.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <View style={styles.emptyState}>
                   <View style={styles.emptyIcon}>
-                    <Icon name="shopping-cart" size={40} color="#9CA3AF" />
+                    <Icon name={searchQuery ? "search-off" : "shopping-cart"} size={40} color="#9CA3AF" />
                   </View>
-                  <Text style={styles.emptyTitle}>No shopping lists</Text>
-                  <Text style={styles.emptySubtitle}>Completed shopping lists will appear here.</Text>
+                  <Text style={styles.emptyTitle}>
+                    {searchQuery ? "No products found" : "No archived products"}
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    {searchQuery 
+                      ? `No products match "${searchQuery}"` 
+                      : "Products you purchase will be archived here for suggestions."}
+                  </Text>
                 </View>
               ) : (
                 <View style={styles.itemsList}>
-                  {archivedShoppingLists.map((list, index) => (
-                    <ShoppingListCard key={list.date} list={list} />
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
                   ))}
                 </View>
               )}
@@ -316,46 +417,6 @@ export default function ArchiveScreen({ navigation }) {
           )}
         </View>
       </ScrollView>
-
-      {/* Shopping List Detail Modal */}
-      <Modal
-        visible={!!selectedList}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelectedList(null)}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {selectedList && `Shopping List - ${format(new Date(selectedList.date), 'MMM d, yyyy')}`}
-            </Text>
-            <TouchableOpacity onPress={() => setSelectedList(null)}>
-              <Icon name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            {selectedList?.items.map((item, idx) => (
-              <View key={idx} style={styles.shoppingItem}>
-                <View style={styles.shoppingItemInfo}>
-                  <Text style={[
-                    styles.shoppingItemName, 
-                    item.is_purchased && styles.purchasedItemName
-                  ]}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.shoppingItemQuantity}>
-                    {item.quantity} {item.unit}
-                  </Text>
-                </View>
-                {item.is_purchased && (
-                  <Icon name="check-circle" size={20} color="#16A34A" />
-                )}
-              </View>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -393,6 +454,36 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 12,
+    color: '#1F2937',
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -467,6 +558,12 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     marginBottom: 4,
   },
+  productName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
   taskDescription: {
     fontSize: 14,
     color: '#6B7280',
@@ -507,11 +604,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FEF2F2',
   },
-  viewButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-  },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
@@ -545,54 +637,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    flex: 1,
-  },
-  modalContent: {
-    flex: 1,
-    padding: 20,
-  },
-  shoppingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  shoppingItemInfo: {
-    flex: 1,
-  },
-  shoppingItemName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  purchasedItemName: {
-    textDecorationLine: 'line-through',
-    color: '#9CA3AF',
-  },
-  shoppingItemQuantity: {
-    fontSize: 14,
-    color: '#6B7280',
   },
 }); 

@@ -171,7 +171,9 @@ export const getShoppingSuggestions = async (searchText, limit_count = 10) => {
       }
     });
 
-    // Also get archived shopping items from Realtime Database that start with the same letter
+    // Also get archived products/items from Realtime Database that match the search text
+    // These are actual products that were previously purchased and archived (e.g., "Milk", "Bread")
+    // Uses Google-like autocomplete: matches products that contain the search text anywhere in the name
     const archivedItems = [];
     try {
       const dataSource = await getDataSource(user.uid);
@@ -181,36 +183,80 @@ export const getShoppingSuggestions = async (searchText, limit_count = 10) => {
         
         if (archivedSnapshot.exists()) {
           const archivedData = archivedSnapshot.val() || {};
-          const firstLetter = searchTerm.charAt(0).toLowerCase();
           
+          let archivedCount = 0;
           Object.entries(archivedData).forEach(([id, item]) => {
-            // Check if item is archived and starts with the same letter
-            if (item.is_archived && item.name && item.name.toLowerCase().startsWith(firstLetter)) {
-              const itemNameLower = item.name.toLowerCase();
-              // Check if it's not already in suggestions or history
-              const alreadyExists = suggestions.find(s => s.name.toLowerCase() === itemNameLower) ||
-                                   historyItems.find(h => h.name.toLowerCase() === itemNameLower);
+            // Check if product/item is archived (previously purchased products)
+            if (item && item.is_archived && item.name) {
+              archivedCount++;
+              const itemNameLower = item.name.toLowerCase().trim();
               
-              if (!alreadyExists) {
-                archivedItems.push({
-                  id: id,
-                  name: item.name,
-                  category: item.category || 'other',
-                  unit: item.unit || 'pieces',
-                  quantity: item.quantity || 1,
-                  isFromArchive: true
-                });
+              // Google-like autocomplete: match products that contain the search text anywhere
+              // Example: typing "mil" will match "Milk", "Milk Chocolate", etc.
+              const matchesSearch = itemNameLower.includes(searchTerm);
+              
+              if (matchesSearch) {
+                // Check if this product is not already in suggestions or history
+                const alreadyExists = suggestions.find(s => s.name && s.name.toLowerCase().trim() === itemNameLower) ||
+                                     historyItems.find(h => h.name && h.name.toLowerCase().trim() === itemNameLower);
+                
+                if (!alreadyExists) {
+                  // Calculate relevance score for sorting (products starting with search term rank higher)
+                  const startsWithSearch = itemNameLower.startsWith(searchTerm);
+                  const relevanceScore = startsWithSearch ? 1 : 0;
+                  
+                  // Add the archived product to suggestions
+                  archivedItems.push({
+                    id: id,
+                    name: item.name.trim(), // Product name (e.g., "Milk", "Bread")
+                    category: item.category || 'other',
+                    unit: item.unit || 'pieces',
+                    quantity: item.quantity || 1,
+                    isFromArchive: true, // This product was previously purchased and archived
+                    relevanceScore: relevanceScore // For sorting: products starting with search term first
+                  });
+                }
               }
             }
           });
+          
+          // Sort archived items: products starting with search term first, then alphabetically
+          archivedItems.sort((a, b) => {
+            if (a.relevanceScore !== b.relevanceScore) {
+              return b.relevanceScore - a.relevanceScore; // Higher relevance first
+            }
+            return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); // Alphabetical
+          });
+          
+          console.log(`📦 Found ${archivedCount} archived products, ${archivedItems.length} matching search "${searchTerm}"`);
+        } else {
+          console.log('📦 No archived products found in database');
         }
+      } else {
+        console.warn('⚠️ Could not get data source for archived products');
       }
     } catch (error) {
-      console.error('❌ Error getting archived items for suggestions:', error);
+      console.error('❌ Error getting archived products for suggestions:', error);
     }
 
-    // Combine all suggestions, prioritizing history and archived items
-    const allSuggestions = [...suggestions, ...historyItems, ...archivedItems];
+    // Combine all suggestions with priority ordering:
+    // 1. Products starting with search term (from archive) - HIGHEST PRIORITY
+    // 2. Other archived products containing search term
+    // 3. Other suggestions from Firestore (frequency-based)
+    // 4. History items
+    
+    // Separate archived items by relevance
+    const archivedStartingWith = archivedItems.filter(item => item.relevanceScore === 1);
+    const archivedContaining = archivedItems.filter(item => item.relevanceScore === 0);
+    
+    // Combine with priority: archived items first (starting matches, then containing matches), 
+    // then frequency suggestions, then history
+    const allSuggestions = [
+      ...archivedStartingWith, // Products starting with search term (highest priority)
+      ...archivedContaining, // Products containing search term (but not starting with it) - SECOND PRIORITY
+      ...suggestions, // Frequency-based suggestions from Firestore
+      ...historyItems // Recent history
+    ];
     
     // Remove duplicates and limit results
     const uniqueSuggestions = [];
@@ -220,7 +266,9 @@ export const getShoppingSuggestions = async (searchText, limit_count = 10) => {
       const nameLower = suggestion.name.toLowerCase();
       if (!seenNames.has(nameLower)) {
         seenNames.add(nameLower);
-        uniqueSuggestions.push(suggestion);
+        // Remove relevanceScore before returning (internal sorting only)
+        const { relevanceScore, ...cleanSuggestion } = suggestion;
+        uniqueSuggestions.push(cleanSuggestion);
       }
     }
     

@@ -44,6 +44,49 @@ export class ShoppingListItem {
         throw new Error(dataSource.error);
       }
 
+      // Check if there's an archived product/item with the same name (case-insensitive)
+      // Shopping list items represent actual products (e.g., "Milk", "Bread", "Cheese")
+      // If found, restore the archived product instead of creating a duplicate product entry
+      const itemNameLower = itemData.name.toLowerCase().trim();
+      const allItems = await this.filter({});
+      const archivedItem = allItems.find(item => 
+        item.is_archived && 
+        item.name.toLowerCase().trim() === itemNameLower
+      );
+
+      if (archivedItem) {
+        console.log(`ShoppingListItem.create: Found archived product "${itemData.name}", restoring it instead of creating duplicate`);
+        // Restore the archived product (unarchive it) - this is the same product that was previously purchased
+        await this.update(archivedItem.id, {
+          is_archived: false,
+          is_purchased: false,
+          quantity: itemData.quantity || archivedItem.quantity || 1,
+          category: itemData.category || archivedItem.category,
+          unit: itemData.unit || archivedItem.unit,
+          updated_date: new Date().toISOString()
+        });
+        // Return the restored product/item
+        return await this.getById(archivedItem.id);
+      }
+
+      // Check if there's already an active (non-archived) product/item with the same name
+      // This prevents duplicate products in the shopping list
+      const activeItem = allItems.find(item => 
+        !item.is_archived && 
+        item.name.toLowerCase().trim() === itemNameLower
+      );
+
+      if (activeItem) {
+        console.log(`ShoppingListItem.create: Found active product "${itemData.name}", updating quantity instead of creating duplicate`);
+        // Update quantity for the existing product instead of creating a duplicate product entry
+        await this.update(activeItem.id, {
+          quantity: (activeItem.quantity || 0) + (itemData.quantity || 1),
+          updated_date: new Date().toISOString()
+        });
+        return await this.getById(activeItem.id);
+      }
+
+      // No existing item found, create new one
       const itemsRef = ref(database, `${dataSource.path}/shopping_list_items`);
       const newItemRef = push(itemsRef);
 

@@ -17,6 +17,8 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
 import { User } from "../entities/User";
+import AutoCompleteInput from "../components/common/AutoCompleteInput";
+import { autoDetectCategory, getDefaultUnitForCategory } from "../constants/categories";
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +32,8 @@ export default function ShoppingListScreen({ navigation }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("1");
+  const [newItemCategory, setNewItemCategory] = useState("other");
+  const [newItemUnit, setNewItemUnit] = useState("pcs");
 
   // Load data when component mounts (with loading indicator)
   useEffect(() => {
@@ -105,6 +109,32 @@ export default function ShoppingListScreen({ navigation }) {
     }
   };
 
+  const handleNameChange = (name) => {
+    const detectedCategory = autoDetectCategory(name);
+    const defaultUnit = getDefaultUnitForCategory(detectedCategory);
+    
+    setNewItemName(name);
+    // Auto-update category and unit if they're still default
+    if (newItemCategory === "other") {
+      setNewItemCategory(detectedCategory);
+    }
+    if (newItemUnit === "pcs") {
+      setNewItemUnit(defaultUnit);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    // Auto-fill form with suggestion data from archive
+    if (suggestion && suggestion.name) {
+      setNewItemName(suggestion.name);
+      setNewItemCategory(suggestion.category || autoDetectCategory(suggestion.name));
+      setNewItemUnit(suggestion.unit || getDefaultUnitForCategory(suggestion.category || autoDetectCategory(suggestion.name)));
+      if (suggestion.quantity) {
+        setNewItemQuantity(suggestion.quantity.toString());
+      }
+    }
+  };
+
   const handleAddItem = async () => {
     if (!newItemName.trim()) {
       Alert.alert("Error", "Please enter an item name");
@@ -115,13 +145,15 @@ export default function ShoppingListScreen({ navigation }) {
       await ShoppingListItem.create({
         name: newItemName.trim(),
         quantity: parseInt(newItemQuantity) || 1,
-        category: "other",
-        unit: "pcs",
+        category: newItemCategory,
+        unit: newItemUnit,
         added_by: currentUser.email
       });
       
       setNewItemName("");
       setNewItemQuantity("1");
+      setNewItemCategory("other");
+      setNewItemUnit("pcs");
       setShowAddDialog(false);
       loadData();
     } catch (error) {
@@ -391,7 +423,13 @@ export default function ShoppingListScreen({ navigation }) {
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Add Item</Text>
-            <TouchableOpacity onPress={() => setShowAddDialog(false)}>
+            <TouchableOpacity onPress={() => {
+              setShowAddDialog(false);
+              setNewItemName("");
+              setNewItemQuantity("1");
+              setNewItemCategory("other");
+              setNewItemUnit("pcs");
+            }}>
               <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
@@ -399,13 +437,17 @@ export default function ShoppingListScreen({ navigation }) {
           <View style={styles.modalContent}>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Item Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="What do you need to buy?"
-                value={newItemName}
-                onChangeText={setNewItemName}
-                placeholderTextColor="#9CA3AF"
-              />
+              <View style={styles.inputWrapper}>
+                <AutoCompleteInput
+                  placeholder="What do you need to buy?"
+                  value={newItemName}
+                  onChangeText={handleNameChange}
+                  onSelectSuggestion={handleSelectSuggestion}
+                  type="shopping"
+                  maxSuggestions={8}
+                  showSmartSuggestions={false}
+                />
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
@@ -440,6 +482,8 @@ export default function ShoppingListScreen({ navigation }) {
           setEditingItem(null);
           setNewItemName("");
           setNewItemQuantity("1");
+          setNewItemCategory("other");
+          setNewItemUnit("pcs");
         }}
       >
         <SafeAreaView style={styles.modalContainer}>
@@ -450,6 +494,8 @@ export default function ShoppingListScreen({ navigation }) {
               setEditingItem(null);
               setNewItemName("");
               setNewItemQuantity("1");
+              setNewItemCategory("other");
+              setNewItemUnit("pcs");
             }}>
               <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
@@ -779,6 +825,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#374151',
     marginBottom: 8,
+  },
+  inputWrapper: {
+    position: 'relative',
+    zIndex: 1000,
   },
   input: {
     borderWidth: 1,
