@@ -42,14 +42,18 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
   };
 
   const handleSelectSuggestion = (suggestion) => {
-    // Auto-fill form with suggestion data
-    setFormData(prev => ({
-      ...prev,
-      name: suggestion.name,
-      category: suggestion.category || autoDetectCategory(suggestion.name),
-      unit: suggestion.unit || getDefaultUnitForCategory(suggestion.category || autoDetectCategory(suggestion.name)),
-      quantity: suggestion.quantity ? suggestion.quantity.toString() : prev.quantity
-    }));
+    // If suggestion has a name property, use it; otherwise it's the typed text
+    if (suggestion && suggestion.name) {
+      // Auto-fill form with suggestion data
+      setFormData(prev => ({
+        ...prev,
+        name: suggestion.name,
+        category: suggestion.category || autoDetectCategory(suggestion.name),
+        unit: suggestion.unit || getDefaultUnitForCategory(suggestion.category || autoDetectCategory(suggestion.name)),
+        quantity: suggestion.quantity ? suggestion.quantity.toString() : prev.quantity
+      }));
+    }
+    // If no suggestion object, the text was already set by handleNameChange
   };
 
   const handleSubmit = async () => {
@@ -108,19 +112,25 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.content} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.formGroup}>
               <Text style={styles.label}>שם המוצר</Text>
-              <AutoCompleteInput
-                style={styles.textInput}
-                placeholder="מה צריך לקנות?"
-                value={formData.name}
-                onChangeText={handleNameChange}
-                onSelectSuggestion={handleSelectSuggestion}
-                type="shopping"
-                maxSuggestions={6}
-                showSmartSuggestions={true}
-              />
+              <View style={styles.inputWrapper}>
+                <AutoCompleteInput
+                  style={styles.textInput}
+                  placeholder="מה צריך לקנות?"
+                  value={formData.name}
+                  onChangeText={handleNameChange}
+                  onSelectSuggestion={handleSelectSuggestion}
+                  type="shopping"
+                  maxSuggestions={8}
+                  showSmartSuggestions={false}
+                />
+              </View>
             </View>
 
             <View style={styles.rowGroup}>
@@ -153,6 +163,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
               />
             </View>
           </ScrollView>
+
 
           <View style={styles.footer}>
             <TouchableOpacity
@@ -193,6 +204,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '80%',
+    overflow: 'visible', // Allow suggestions dropdown to overflow
   },
   header: {
     flexDirection: 'row',
@@ -214,9 +226,14 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+    overflow: 'visible', // Allow suggestions dropdown to overflow
   },
   formGroup: {
     marginBottom: 20,
+  },
+  inputWrapper: {
+    position: 'relative',
+    zIndex: 1000,
   },
   rowGroup: {
     flexDirection: 'row',

@@ -163,10 +163,11 @@ export default function ShoppingModeScreen({ navigation, route }) {
             });
           }
           
-          // Archive shopping list item (keeps it in archive for suggestions, filters out from active list)
-          // Archived items won't appear in shopping list but will be available for suggestions
-          console.log(`ShoppingMode: Archiving shopping item ${item.name} (id: ${item.id})`);
-          await ShoppingListItem.update(
+          // Archive the product/item after purchase (keeps it in archive for suggestions, filters out from active list)
+          // Shopping list items represent actual products (e.g., "Milk", "Bread", "Cheese")
+          // Archived products won't appear in active shopping list but will be available for suggestions
+          console.log(`ShoppingMode: Archiving product "${item.name}" (id: ${item.id})`);
+          const archiveResult = await ShoppingListItem.update(
             item.id, 
             { 
               is_archived: true, 
@@ -175,6 +176,14 @@ export default function ShoppingModeScreen({ navigation, route }) {
             },
             { skipInventoryUpdate: true } // Skip auto inventory update since we handled it manually
           );
+          
+          // Verify the product was archived
+          const archivedItem = await ShoppingListItem.getById(item.id);
+          if (archivedItem && archivedItem.is_archived) {
+            console.log(`✅ Successfully archived product "${item.name}" - will be available for suggestions when adding new items`);
+          } else {
+            console.warn(`⚠️ Warning: Product "${item.name}" may not have been archived properly`);
+          }
           
           // Save to history for additional suggestions support (non-blocking)
           // Don't await this to prevent hanging if Firestore is slow/unavailable

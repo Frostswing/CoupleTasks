@@ -254,7 +254,10 @@ This allows seamless switching between personal and shared modes.
 - Mark items as purchased
 - Archive completed shopping trips
 - **Smart Suggestions:** When adding items, suggests archived items that start with the same letter
+- **Archive Search:** When typing in the item name field, searches through archived items with Google-like autocomplete (matches items containing the search text anywhere in the name)
+- **Auto-fill from Archive:** Clicking on an archived item suggestion auto-fills the form with the item's name, category, unit, and quantity
 - **Archive System:** Purchased items are archived (not deleted) so they can be suggested but don't appear in active shopping list
+- **Priority Ordering:** Archived items matching the search are prioritized in suggestions (items starting with search term appear first, then items containing the search term)
 
 ### 3. **Inventory Management**
 **Components:** AddInventoryItemDialog  
