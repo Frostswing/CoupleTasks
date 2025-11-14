@@ -1,4 +1,4 @@
-import { database } from '../firebase/config';
+import { database, storage } from '../firebase/config';
 import { 
   ref, 
   set, 
@@ -12,6 +12,7 @@ import {
   equalTo,
   orderByKey
 } from 'firebase/database';
+import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { getCurrentUser, getDataSource } from '../services/userService';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../constants/categories';
 import { saveShoppingItemToHistory } from '../services/historyService';
@@ -25,6 +26,9 @@ export class ShoppingListItem {
     this.unit = data.unit || 'pieces';
     this.is_purchased = data.is_purchased || false;
     this.icon_url = data.icon_url || '';
+    this.image_url = data.image_url || '';
+    this.link = data.link || '';
+    this.notes = data.notes || '';
     this.added_by = data.added_by || '';
     this.auto_added = data.auto_added || false;
     this.is_archived = data.is_archived || false;
@@ -230,7 +234,33 @@ export class ShoppingListItem {
         throw new Error(dataSource.error);
       }
 
+      // Get the item first to check for image_url
       const itemRef = ref(database, `${dataSource.path}/shopping_list_items/${id}`);
+      const snapshot = await get(itemRef);
+      const itemData = snapshot.val();
+
+      // Delete image from Firebase Storage if it exists
+      if (itemData && itemData.image_url) {
+        try {
+          // Extract filename from the storage URL
+          // URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media&token=...
+          const imageUrl = itemData.image_url;
+          const urlMatch = imageUrl.match(/\/o\/([^?]+)/);
+          if (urlMatch) {
+            const encodedPath = urlMatch[1];
+            // Decode the path (Firebase Storage URLs are URL-encoded)
+            const decodedPath = decodeURIComponent(encodedPath);
+            const imageRef = storageRef(storage, decodedPath);
+            await deleteObject(imageRef);
+            console.log('Deleted image from storage:', decodedPath);
+          }
+        } catch (imageError) {
+          // Log but don't fail the delete operation if image deletion fails
+          console.error('Error deleting image from storage:', imageError);
+        }
+      }
+
+      // Delete the item from database
       await remove(itemRef);
       return true;
     } catch (error) {

@@ -98,6 +98,12 @@
                         "is_archived": {
                             ".validate": "newData.val() == null || newData.isBoolean()"
                         },
+                        "image_url": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "link": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
                         "$other": {
                             ".validate": true
                         }
@@ -198,6 +204,12 @@
                             ".validate": "newData.val() == null || (newData.isNumber() && newData.val() >= 0)"
                         },
                         "unit": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "image_url": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "link": {
                             ".validate": "newData.val() == null || newData.isString()"
                         },
                         "$other": {

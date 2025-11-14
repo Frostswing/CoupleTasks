@@ -1,0 +1,59 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Shopping items images - with ownership and partner sharing
+    match /shopping-items/{fileName} {
+      // Helper functions
+      function isAuthenticated() {
+        return request.auth != null;
+      }
+      
+      // Check if requesting user is the owner (from filename)
+      // Filename format: {userId}_{timestamp}.jpg
+      // We check if filename starts with the user's ID followed by underscore
+      // Note: Firebase Storage rules don't support dynamic regex, so we use a workaround
+      function isOwner() {
+        // Check if filename starts with userId_ using string comparison
+        // Since we can't use dynamic regex, we'll validate during write that filename matches pattern
+        return isAuthenticated() 
+          && resource != null
+          && resource.metadata != null
+          && resource.metadata.customMetadata != null
+          && resource.metadata.customMetadata.ownerId == request.auth.uid;
+      }
+      
+      // For write operations, validate filename pattern matches userId_
+      function filenameMatchesOwner() {
+        // Check if filename starts with userId_ (basic validation)
+        // This is a simplified check - Firebase Storage rules have limited string functions
+        return fileName.size() >= request.auth.uid.size() + 1
+          && fileName[0:request.auth.uid.size()] == request.auth.uid
+          && fileName[request.auth.uid.size():request.auth.uid.size()+1] == '_';
+      }
+      
+      // Check if user is the partner (from custom metadata - only works for existing files)
+      function isPartner() {
+        return isAuthenticated()
+          && resource != null
+          && resource.metadata != null
+          && resource.metadata.customMetadata != null
+          && resource.metadata.customMetadata.partnerId != null
+          && resource.metadata.customMetadata.partnerId != ''
+          && resource.metadata.customMetadata.partnerId == request.auth.uid;
+      }
+      
+      // Read: allow authenticated users to read (simplified for debugging)
+      allow read: if isAuthenticated();
+      
+      // Write: allow authenticated users to upload
+      // Simplified for now - we'll add ownership validation once basic upload works
+      allow write: if isAuthenticated()
+        && request.resource.size < 5 * 1024 * 1024  // Max 5MB
+        && request.resource.contentType.matches('image/.*');  // Only images
+      
+      // Delete: owner or partner can delete
+      allow delete: if isAuthenticated() && (isOwner() || isPartner());
+    }
+  }
+}
+
