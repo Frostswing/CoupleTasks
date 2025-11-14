@@ -52,19 +52,36 @@ export default function DashboardScreen({ navigation }) {
 
   // Set up real-time task listener
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser?.uid) {
+      setIsLoading(false); // Stop loading if no user
+      return;
+    }
 
     setIsLoading(true);
+    let isMounted = true;
+    
+    // Capture user emails to avoid dependency on currentUser object
+    const userEmails = [currentUser.email];
+    if (currentUser.partner_email) {
+      userEmails.push(currentUser.partner_email);
+    }
+
+    // Set timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (isMounted) {
+        console.warn('Task loading timeout - clearing loading state');
+        setIsLoading(false);
+      }
+    }, 10000); // 10 second timeout
 
     // Use real-time listener instead of polling
     const unsubscribe = Task.onSnapshot(
       (taskList) => {
-        // Filter tasks by user emails
-        const userEmails = [currentUser.email];
-        if (currentUser.partner_email) {
-          userEmails.push(currentUser.partner_email);
-        }
+        if (!isMounted) return;
         
+        clearTimeout(loadingTimeout);
+        
+        // Filter tasks by user emails
         const filtered = taskList.filter(t => 
           userEmails.includes(t.created_by) && 
           !t.is_archived
@@ -77,9 +94,11 @@ export default function DashboardScreen({ navigation }) {
     );
 
     return () => {
+      isMounted = false;
+      clearTimeout(loadingTimeout);
       unsubscribe();
     };
-  }, [currentUser]);
+  }, [currentUser?.uid]); // Only depend on uid, which is stable
 
   // Manual refresh handler
   const handleRefresh = useCallback(async () => {
@@ -105,7 +124,7 @@ export default function DashboardScreen({ navigation }) {
 
   useEffect(() => {
     applyFilters();
-  }, [tasks, filters, currentUser]);
+  }, [tasks, filters, currentUser?.email]);
 
   const applyFilters = () => {
     let filtered = [...tasks];

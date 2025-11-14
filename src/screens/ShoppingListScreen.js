@@ -200,8 +200,13 @@ export default function ShoppingListScreen({ navigation }) {
 
   const handleStartShopping = () => {
     const itemIds = pendingItems.map(item => item.id);
+    console.log('ShoppingList: Starting shopping with items:', itemIds);
+    console.log('ShoppingList: Pending items:', pendingItems.map(i => ({ id: i.id, name: i.name })));
+    
     if (itemIds.length > 0) {
       navigation.navigate('ShoppingMode', { itemIds });
+    } else {
+      Alert.alert('No Items', 'Add items to your shopping list before starting shopping mode.');
     }
   };
 

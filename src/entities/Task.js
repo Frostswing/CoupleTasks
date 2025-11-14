@@ -253,8 +253,14 @@ export class Task {
       }
 
       let unsubscribe = () => {};
+      let isCancelled = false;
 
       getDataSource(user.uid).then((dataSource) => {
+        // Check if listener was cancelled before setup completed
+        if (isCancelled) {
+          return;
+        }
+
         if (!dataSource.success) {
           console.error('Error getting data source:', dataSource.error);
           callback([]);
@@ -266,6 +272,12 @@ export class Task {
         const unsubscribeFunc = onValue(
           tasksRef,
           (snapshot) => {
+            // Don't call callback if listener was cancelled
+            if (isCancelled) {
+              unsubscribeFunc();
+              return;
+            }
+
             const data = snapshot.val() || {};
             let tasks = Object.entries(data).map(([id, taskData]) => 
               new Task({ id, ...taskData })
@@ -283,15 +295,25 @@ export class Task {
             callback(tasks);
           },
           (error) => {
-            console.error('Error in task listener:', error);
-            callback([]);
+            if (!isCancelled) {
+              console.error('Error in task listener:', error);
+              callback([]);
+            }
           }
         );
 
         unsubscribe = unsubscribeFunc;
+      }).catch((error) => {
+        if (!isCancelled) {
+          console.error('Error setting up task listener:', error);
+          callback([]);
+        }
       });
 
-      return () => unsubscribe();
+      return () => {
+        isCancelled = true;
+        unsubscribe();
+      };
     } catch (error) {
       console.error('Error setting up task listener:', error);
       return () => {};

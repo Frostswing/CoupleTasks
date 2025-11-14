@@ -590,22 +590,25 @@ const styles = StyleSheet.create({
 ## 🐛 Known Issues & Technical Debt
 
 ### Critical
-1. Firebase API keys in source code
-2. Navigation white screen bug (✅ FIXED)
+1. ⚠️ Firebase API keys in source code (SECURITY ISSUE - NOT FIXED YET)
+2. ⚠️ Firebase security rules must be applied manually (see QUICK_FIX_FIREBASE_RULES.md)
 
-### High Priority
-1. Duplicate task service code
-2. Inconsistent error handling
-3. Auto-refresh performance issue
-4. Missing loading states
+### Recently Fixed ✅
+1. ✅ Navigation white screen bug
+2. ✅ Centralized error handling service created
+3. ✅ Input validation utility added
+4. ✅ Loading states added to async operations
+5. ✅ Real-time Firebase listeners replacing polling
+6. ✅ Duplicate task service code deprecated
+7. ✅ Shopping mode infinite loading fixed
+8. ✅ Infinite loop in Dashboard fixed (dependency issues)
+9. ✅ Better error messages and UX
 
 ### Medium Priority
-1. User entity not fully implemented
-2. In-memory filtering inefficient
-3. Language switch requires app reload
-4. Missing input validation
-
-See [CODE_REVIEW_AND_IMPROVEMENTS.md](./CODE_REVIEW_AND_IMPROVEMENTS.md) for full list.
+1. User entity partially implemented (works but could be enhanced)
+2. Some in-memory filtering (Firebase query optimization needed)
+3. Language switch requires manual app restart
+4. Package version warnings (@react-native-async-storage, react-native)
 
 ---
 

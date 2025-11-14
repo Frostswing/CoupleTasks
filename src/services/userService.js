@@ -1,5 +1,6 @@
 import { auth, database, app, checkFirebaseStatus } from "../firebase/config";
 import { initializeDatabase, createUserProfile, initializeUserFirstLogin } from "../firebase/database-init";
+import { cacheDataSource, getCachedDataSource, clearDataSourceCache } from "./dataSourceCache";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -104,8 +105,10 @@ export const registerUser = async (email, password, name) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
-    // אתחול מסד הנתונים אם נדרש
-    await initializeDatabase();
+    // אתחול מסד הנתונים אם נדרש (non-blocking - don't fail if it errors)
+    initializeDatabase().catch(err => {
+      console.warn("Database initialization failed (non-critical):", err.message);
+    });
 
     // לוג של מצב Firebase לפני הרישום
     console.log("Firebase status before registration:", checkFirebaseStatus());
@@ -148,8 +151,10 @@ export const loginUser = async (email, password) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
-    // אתחול מסד הנתונים אם נדרש
-    await initializeDatabase();
+    // אתחול מסד הנתונים אם נדרש (non-blocking - don't fail if it errors)
+    initializeDatabase().catch(err => {
+      console.warn("Database initialization failed (non-critical):", err.message);
+    });
 
     const userCredential = await signInWithEmailAndPassword(
       auth,
@@ -443,41 +448,44 @@ export const checkIfSharing = async (userId) => {
  */
 export const getDataSource = async (userId) => {
   try {
-    // הוספת לוגים לאיתור בעיות
-    console.log("getDataSource נקרא עבור userId:", userId);
-
     if (!userId) {
       console.error("getDataSource: לא התקבל מזהה משתמש");
       return { success: false, error: "לא התקבל מזהה משתמש" };
     }
 
+    // Check cache first
+    const cached = getCachedDataSource(userId);
+    if (cached) {
+      return cached;
+    }
+
     // קריאה לפונקציה המקורית שבודקת שיתוף
     const sharingStatus = await checkIfSharing(userId);
-    console.log("getDataSource: תוצאת בדיקת שיתוף:", sharingStatus);
 
+    let result;
     // בדיקה אם המשתמש משתף ויש לו מזהה למרחב משותף
     if (
       sharingStatus.success &&
       sharingStatus.isSharing &&
       sharingStatus.sharedSpaceId
     ) {
-      console.log(
-        "getDataSource: משתמש עם מרחב משותף:",
-        sharingStatus.sharedSpaceId
-      );
-      return {
+      result = {
         success: true,
         path: `shared/${sharingStatus.sharedSpaceId}`,
         isShared: true,
       };
     } else {
-      console.log("getDataSource: משתמש ללא מרחב משותף, משתמש בנתונים אישיים");
-      return {
+      result = {
         success: true,
         path: `users/${userId}`,
         isShared: false,
       };
     }
+    
+    // Cache the result
+    cacheDataSource(userId, result);
+    
+    return result;
   } catch (error) {
     console.error("getDataSource שגיאה:", error);
     return { success: false, error: error.message };

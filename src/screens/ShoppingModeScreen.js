@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
+import { handleError, showSuccess } from "../services/errorHandlingService";
 
 const { width } = Dimensions.get('window');
 
@@ -22,33 +23,61 @@ export default function ShoppingModeScreen({ navigation, route }) {
   const [items, setItems] = useState([]);
   const [categoryOrder, setCategoryOrder] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFinishing, setIsFinishing] = useState(false);
   const [error, setError] = useState(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
-      if (!itemIds || itemIds.length === 0) {
-        setError("No items to shop for.");
-        setIsLoading(false);
-        return;
-      }
-
+      console.log('ShoppingMode: Starting fetch, itemIds:', itemIds);
+      
       try {
-        const fetchedItems = await Promise.all(
-          itemIds.map(async (id) => {
-            try {
-              return await ShoppingListItem.getById(id);
-            } catch (error) {
-              console.error(`Failed to fetch item ${id}:`, error);
-              return null;
-            }
-          })
-        );
-        setItems(fetchedItems.filter(Boolean));
+        // If itemIds are provided, use them; otherwise fetch all pending items
+        if (itemIds && itemIds.length > 0) {
+          console.log(`ShoppingMode: Fetching ${itemIds.length} specific items`);
+          
+          const fetchedItems = await Promise.all(
+            itemIds.map(async (id) => {
+              try {
+                const item = await ShoppingListItem.getById(id);
+                console.log(`ShoppingMode: Fetched item ${id}:`, item?.name);
+                return item;
+              } catch (error) {
+                console.error(`Failed to fetch item ${id}:`, error);
+                return null;
+              }
+            })
+          );
+          const validItems = fetchedItems.filter(Boolean);
+          
+          console.log(`ShoppingMode: Got ${validItems.length} valid items from ${itemIds.length} ids`);
+          
+          if (validItems.length === 0) {
+            setError("No items to shop for.");
+          } else {
+            setItems(validItems);
+          }
+        } else {
+          // No itemIds provided - fetch all pending shopping items
+          console.log('ShoppingMode: No itemIds, fetching all pending items');
+          
+          const allItems = await ShoppingListItem.filter({ 
+            is_purchased: false,
+            is_archived: false 
+          });
+          
+          console.log(`ShoppingMode: Found ${allItems.length} pending items`);
+          
+          if (allItems.length === 0) {
+            setError("No items to shop for. Add items to your shopping list first.");
+          } else {
+            setItems(allItems);
+          }
+        }
       } catch (err) {
+        console.error('ShoppingMode: Error loading items:', err);
         setError("Failed to load shopping items.");
-        console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -88,35 +117,104 @@ export default function ShoppingModeScreen({ navigation, route }) {
   };
 
   const handleFinishShopping = async () => {
+    if (isFinishing) {
+      console.log('ShoppingMode: Already finishing, ignoring duplicate call');
+      return; // Prevent multiple clicks
+    }
+    
     const purchasedItems = items.filter(item => item.is_purchased);
+    console.log(`ShoppingMode: Finishing shopping with ${purchasedItems.length} purchased items`);
+    
     if (purchasedItems.length === 0) {
       Alert.alert("No Items", "You haven't marked any items as purchased.");
+      setShowFinishDialog(false);
       return;
     }
 
+    setIsFinishing(true);
+    console.log('ShoppingMode: Starting to process items...');
+    
     try {
+      // Process items one by one with error handling
+      const processedItems = [];
+      const failedItems = [];
+      
       for (const item of purchasedItems) {
-        // Update inventory
-        const existingInventory = await InventoryItem.filter({ name: item.name });
-        if (existingInventory.length > 0) {
-          await InventoryItem.update(existingInventory[0].id, {
-            current_amount: (existingInventory[0].current_amount || 0) + item.quantity,
-            last_purchased: new Date().toISOString()
-          });
+        console.log(`ShoppingMode: Processing item: ${item.name}`);
+        try {
+          // Update inventory if item exists
+          const existingInventory = await InventoryItem.filter({ name: item.name });
+          if (existingInventory.length > 0) {
+            console.log(`ShoppingMode: Updating existing inventory for ${item.name}`);
+            await InventoryItem.update(existingInventory[0].id, {
+              current_amount: (existingInventory[0].current_amount || 0) + item.quantity,
+              last_purchased: new Date().toISOString()
+            });
+          } else {
+            console.log(`ShoppingMode: Creating new inventory for ${item.name}`);
+            // Create new inventory item if it doesn't exist
+            await InventoryItem.create({
+              name: item.name,
+              category: item.category || 'other',
+              current_amount: item.quantity,
+              minimum_amount: 0,
+              unit: item.unit || 'pieces',
+              last_purchased: new Date().toISOString()
+            });
+          }
+          
+          // Archive shopping list item (skip inventory update since we already did it above)
+          console.log(`ShoppingMode: Archiving shopping item ${item.name} (id: ${item.id})`);
+          const updateResult = await ShoppingListItem.update(
+            item.id, 
+            { 
+              is_archived: true, 
+              is_purchased: true,
+              purchased_date: new Date().toISOString()
+            },
+            { skipInventoryUpdate: true } // Skip auto inventory update since we handled it manually
+          );
+          console.log(`ShoppingMode: Archive update result:`, updateResult);
+          
+          processedItems.push(item.name);
+          console.log(`ShoppingMode: Successfully processed ${item.name}`);
+        } catch (itemError) {
+          console.error(`ShoppingMode: Failed to process item ${item.name}:`, itemError);
+          failedItems.push(item.name);
         }
-        // Archive shopping list item
-        await ShoppingListItem.update(item.id, { 
-          is_archived: true, 
-          is_purchased: true 
-        });
       }
       
+      console.log(`ShoppingMode: Finished processing. Success: ${processedItems.length}, Failed: ${failedItems.length}`);
+      
+      // Close dialog first
       setShowFinishDialog(false);
+      setIsFinishing(false); // Reset before navigation
+      
+      // Navigate immediately, show alert after navigation
       navigation.navigate('ShoppingList');
-      Alert.alert("Success", "Shopping completed! Your inventory has been updated.");
+      
+      // Show results after navigation
+      setTimeout(() => {
+        if (failedItems.length === 0) {
+          showSuccess(`Shopping completed! ${processedItems.length} items added to inventory.`);
+        } else if (processedItems.length > 0) {
+          Alert.alert(
+            "Partial Success",
+            `Processed ${processedItems.length} items. Failed to process: ${failedItems.join(', ')}`
+          );
+        } else {
+          Alert.alert(
+            "Error",
+            `Failed to process all items: ${failedItems.join(', ')}`
+          );
+        }
+      }, 300);
+      
     } catch (err) {
-      console.error("Failed to finish shopping:", err);
-      Alert.alert("Error", "There was an error finishing your shopping trip. Please try again.");
+      console.error("ShoppingMode: Failed to finish shopping:", err);
+      setShowFinishDialog(false);
+      setIsFinishing(false);
+      handleError(err, 'finishShopping');
     }
   };
 
@@ -178,13 +276,15 @@ export default function ShoppingModeScreen({ navigation, route }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Icon name="error" size={60} color="#EF4444" />
+          <Icon name="shopping-cart" size={60} color="#9CA3AF" />
+          <Text style={styles.errorTitle}>No Items to Shop For</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity
-            style={styles.backToListButton}
+            style={styles.addItemsButton}
             onPress={() => navigation.navigate('ShoppingList')}
           >
-            <Text style={styles.backToListButtonText}>Back to Shopping List</Text>
+            <Icon name="add-shopping-cart" size={20} color="#FFFFFF" />
+            <Text style={styles.addItemsButtonText}>Add Items to Shopping List</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -319,16 +419,22 @@ export default function ShoppingModeScreen({ navigation, route }) {
             </Text>
             <View style={styles.dialogButtons}>
               <TouchableOpacity
-                style={styles.dialogButtonCancel}
-                onPress={() => setShowFinishDialog(false)}
+                style={[styles.dialogButtonCancel, isFinishing && styles.dialogButtonDisabled]}
+                onPress={() => !isFinishing && setShowFinishDialog(false)}
+                disabled={isFinishing}
               >
                 <Text style={styles.dialogButtonCancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.dialogButtonConfirm}
+                style={[styles.dialogButtonConfirm, isFinishing && styles.dialogButtonDisabled]}
                 onPress={handleFinishShopping}
+                disabled={isFinishing}
               >
-                <Text style={styles.dialogButtonConfirmText}>Yes, Finish</Text>
+                {isFinishing ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.dialogButtonConfirmText}>Yes, Finish</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -360,21 +466,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  errorText: {
-    fontSize: 18,
-    color: '#EF4444',
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
     textAlign: 'center',
-    marginVertical: 20,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  backToListButton: {
+  errorText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  addItemsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#16A34A',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
     borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  backToListButtonText: {
+  addItemsButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 16,
   },
   header: {
     flexDirection: 'row',
@@ -648,5 +775,8 @@ const styles = StyleSheet.create({
   dialogButtonConfirmText: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  dialogButtonDisabled: {
+    opacity: 0.6,
   },
 }); 
