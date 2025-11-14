@@ -99,7 +99,7 @@ export class ShoppingListItem {
     }
   }
 
-  static async update(id, updates) {
+  static async update(id, updates, options = {}) {
     try {
       const user = getCurrentUser();
       if (!user) {
@@ -112,14 +112,21 @@ export class ShoppingListItem {
       }
 
       const itemRef = ref(database, `${dataSource.path}/shopping_list_items/${id}`);
+      
+      console.log(`ShoppingListItem.update: Updating item ${id} at path ${dataSource.path}/shopping_list_items/${id}`);
+      
       await update(itemRef, {
         ...updates,
         updated_date: new Date().toISOString(),
         updated_by: user.uid
       });
+      
+      console.log(`ShoppingListItem.update: Update completed for ${id}`);
 
       // Auto-update inventory and save to history when item is purchased
-      if (updates.is_purchased === true) {
+      // Skip if skipInventoryUpdate option is true (to prevent double updates)
+      if (updates.is_purchased === true && !options.skipInventoryUpdate && !updates.is_archived) {
+        console.log(`ShoppingListItem.update: Auto-updating inventory for ${id}`);
         const item = await this.getById(id);
         if (item) {
           await this.updateInventory(item);
