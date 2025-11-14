@@ -23,6 +23,7 @@
     "expo-image": "^3.0.10",
     "expo-image-picker": "^17.0.8",
     "expo-localization": "~16.1.6",
+    "expo-notifications": "^0.32.12",
     "expo-status-bar": "~2.2.3",
     "expo-web-browser": "~14.2.0",
     "firebase": "^11.7.1",

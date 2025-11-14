@@ -34,6 +34,17 @@ export class Task {
     this.created_by = data.created_by || data.createdBy || '';
     this.created_date = data.created_date || data.createdAt || new Date().toISOString();
     this.updated_date = data.updated_date || data.updatedAt || new Date().toISOString();
+    // New fields for template system
+    this.template_id = data.template_id || null;
+    this.auto_generated = data.auto_generated || false;
+    this.scheduled_date = data.scheduled_date || null;
+    this.estimated_duration = data.estimated_duration || null;
+    this.actual_duration = data.actual_duration || null;
+    this.room_location = data.room_location || null;
+    this.defer_count = data.defer_count || 0;
+    this.defer_until = data.defer_until || null;
+    this.completed_by = data.completed_by || null;
+    this.notification_offset_hours = data.notification_offset_hours || 6; // Default 6 hours before
   }
 
   static async create(taskData) {
