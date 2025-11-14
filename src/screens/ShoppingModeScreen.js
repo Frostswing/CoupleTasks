@@ -163,9 +163,10 @@ export default function ShoppingModeScreen({ navigation, route }) {
             });
           }
           
-          // Archive shopping list item (skip inventory update since we already did it above)
+          // Archive shopping list item (keeps it in archive for suggestions, filters out from active list)
+          // Archived items won't appear in shopping list but will be available for suggestions
           console.log(`ShoppingMode: Archiving shopping item ${item.name} (id: ${item.id})`);
-          const updateResult = await ShoppingListItem.update(
+          await ShoppingListItem.update(
             item.id, 
             { 
               is_archived: true, 
@@ -174,7 +175,16 @@ export default function ShoppingModeScreen({ navigation, route }) {
             },
             { skipInventoryUpdate: true } // Skip auto inventory update since we handled it manually
           );
-          console.log(`ShoppingMode: Archive update result:`, updateResult);
+          
+          // Save to history for additional suggestions support (non-blocking)
+          // Don't await this to prevent hanging if Firestore is slow/unavailable
+          import('../services/historyService').then(({ saveShoppingItemToHistory }) => {
+            saveShoppingItemToHistory(item).catch(err => {
+              console.warn(`ShoppingMode: Failed to save ${item.name} to history (non-critical):`, err);
+            });
+          }).catch(err => {
+            console.warn(`ShoppingMode: Failed to load history service (non-critical):`, err);
+          });
           
           processedItems.push(item.name);
           console.log(`ShoppingMode: Successfully processed ${item.name}`);
