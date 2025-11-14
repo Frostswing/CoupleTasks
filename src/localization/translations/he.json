@@ -12,7 +12,21 @@
         "back": "חזרה",
         "next": "הבא",
         "done": "סיום",
-        "retry": "נסה שוב"
+        "retry": "נסה שוב",
+        "confirm": "אישור",
+        "unknownError": "אירעה שגיאה לא ידועה"
+    },
+    "errors": {
+        "AUTH_REQUIRED": "נדרשת אימות",
+        "NETWORK_ERROR": "שגיאת רשת. אנא בדקו את החיבור לאינטרנט.",
+        "PERMISSION_DENIED": "אין הרשאה",
+        "VALIDATION_ERROR": "שגיאת אימות",
+        "UNKNOWN_ERROR": "אירעה שגיאה לא ידועה",
+        "FIREBASE_ERROR": "אירעה שגיאת Firebase",
+        "DATABASE_ERROR": "אירעה שגיאת מסד נתונים",
+        "permissionDenied": "אין הרשאה",
+        "networkError": "שגיאת רשת. אנא בדקו את החיבור לאינטרנט.",
+        "serviceUnavailable": "השירות אינו זמין כרגע"
     },
     "language": {
         "selectLanguage": "בחר שפה",

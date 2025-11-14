@@ -1,13 +1,29 @@
+/**
+ * @deprecated This service is deprecated. Use Task entity class instead (src/entities/Task.js)
+ * 
+ * Migration guide:
+ * - subscribeTasks() → Task.onSnapshot()
+ * - addTask() → Task.create()
+ * - updateTask() → Task.update()
+ * - deleteTask() → Task.delete()
+ * - toggleTaskCompletion() → Task.update(id, { status: 'completed' })
+ * 
+ * This file will be removed in a future version.
+ */
+
 import { database } from "../firebase/config";
 import { ref, set, onValue, push, remove, update } from "firebase/database";
 import { getCurrentUser, getDataSource } from "./userService";
+import { Task } from "../entities/Task";
 
 /**
+ * @deprecated Use Task.onSnapshot() instead
  * קבלת כל המטלות מהמסד נתונים
  * @param {function} callback - פונקציה שתתבצע כאשר המידע מתקבל
  * @returns {function} - פונקציית הסרת האזנה
  */
 export const subscribeTasks = (callback) => {
+  console.warn('taskService.subscribeTasks is deprecated. Use Task.onSnapshot() instead.');
   console.log("Subscribing to tasks...");
   const user = getCurrentUser();
 
@@ -64,11 +80,24 @@ export const subscribeTasks = (callback) => {
 };
 
 /**
+ * @deprecated Use Task.create() instead
  * הוספת מטלה חדשה
  * @param {Object} task - פרטי המטלה
  * @returns {Promise} - הבטחה שמתרחשת עם סיום הפעולה
  */
 export const addTask = async (task) => {
+  console.warn('taskService.addTask is deprecated. Use Task.create() instead.');
+  
+  // Redirect to Task entity
+  try {
+    const createdTask = await Task.create(task);
+    return { success: true, id: createdTask.id };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+  
+  /* Legacy implementation below - kept for reference only */
+  /*
   try {
     console.log("Adding task:", task);
     const user = getCurrentUser();
@@ -99,15 +128,29 @@ export const addTask = async (task) => {
     console.error("שגיאה בהוספת מטלה:", error);
     return { success: false, error: error.message };
   }
+  */
 };
 
 /**
+ * @deprecated Use Task.update() instead
  * עדכון מטלה קיימת
  * @param {string} taskId - מזהה המטלה
  * @param {Object} taskData - נתוני המטלה לעדכון
  * @returns {Promise} - הבטחה שמתרחשת עם סיום הפעולה
  */
 export const updateTask = async (taskId, taskData) => {
+  console.warn('taskService.updateTask is deprecated. Use Task.update() instead.');
+  
+  // Redirect to Task entity
+  try {
+    await Task.update(taskId, taskData);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+  
+  /* Legacy implementation below - kept for reference only */
+  /*
   try {
     const user = getCurrentUser();
 
@@ -132,14 +175,28 @@ export const updateTask = async (taskId, taskData) => {
     console.error("שגיאה בעדכון מטלה:", error);
     return { success: false, error: error.message };
   }
+  */
 };
 
 /**
+ * @deprecated Use Task.delete() instead
  * מחיקת מטלה
  * @param {string} taskId - מזהה המטלה למחיקה
  * @returns {Promise} - הבטחה שמתרחשת עם סיום הפעולה
  */
 export const deleteTask = async (taskId) => {
+  console.warn('taskService.deleteTask is deprecated. Use Task.delete() instead.');
+  
+  // Redirect to Task entity
+  try {
+    await Task.delete(taskId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+  
+  /* Legacy implementation below - kept for reference only */
+  /*
   try {
     const user = getCurrentUser();
 
@@ -160,14 +217,17 @@ export const deleteTask = async (taskId) => {
     console.error("שגיאה במחיקת מטלה:", error);
     return { success: false, error: error.message };
   }
+  */
 };
 
 /**
+ * @deprecated Use Task.update(id, { status: 'completed' }) instead
  * סימון מטלה כמושלמת או לא מושלמת
  * @param {string} taskId - מזהה המטלה
  * @param {boolean} isCompleted - האם המטלה הושלמה
  * @returns {Promise} - הבטחה שמתרחשת עם סיום הפעולה
  */
 export const toggleTaskCompletion = async (taskId, isCompleted) => {
+  console.warn('taskService.toggleTaskCompletion is deprecated. Use Task.update(id, { status: "completed" }) instead.');
   return updateTask(taskId, { completed: isCompleted });
 };

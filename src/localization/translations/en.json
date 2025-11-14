@@ -12,7 +12,21 @@
         "back": "Back",
         "next": "Next",
         "done": "Done",
-        "retry": "Retry"
+        "retry": "Retry",
+        "confirm": "Confirm",
+        "unknownError": "An unknown error occurred"
+    },
+    "errors": {
+        "AUTH_REQUIRED": "Authentication required",
+        "NETWORK_ERROR": "Network error. Please check your connection.",
+        "PERMISSION_DENIED": "Permission denied",
+        "VALIDATION_ERROR": "Validation error",
+        "UNKNOWN_ERROR": "An unknown error occurred",
+        "FIREBASE_ERROR": "Firebase error occurred",
+        "DATABASE_ERROR": "Database error occurred",
+        "permissionDenied": "Permission denied",
+        "networkError": "Network error. Please check your connection.",
+        "serviceUnavailable": "Service is temporarily unavailable"
     },
     "language": {
         "selectLanguage": "Select Language",
