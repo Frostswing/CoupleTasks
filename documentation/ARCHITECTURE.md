@@ -28,6 +28,7 @@ CoupleTasks is a React Native mobile application built with Expo, designed to he
 - **Package Manager:** npm
 - **Bundler:** Metro (Expo default)
 - **Date Handling:** date-fns
+- **Notifications:** expo-notifications
 
 ---
 
@@ -70,10 +71,14 @@ CoupleTasks/
     │   │   ├── AddShoppingItemDialog.js
     │   │   └── ShoppingItemCard.js
     │   └── Tasks/
+    │       ├── CalendarView.js           # Calendar component
+    │       ├── DailyTaskCard.js          # Simplified task card
     │       ├── EditTaskDialog.js
-    │       ├── TaskCard.js
+    │       ├── TaskCard.js               # Detailed task card
     │       ├── TaskFilters.js
-    │       └── TaskForm.js
+    │       ├── TaskForm.js
+    │       ├── TaskTemplateCard.js       # Template card
+    │       └── TaskTemplateForm.js      # Template form
     │
     ├── config/                    # Configuration files
     │   └── historyConfig.js      # History system configuration
@@ -84,7 +89,8 @@ CoupleTasks/
     ├── entities/                  # Data models (Active Record pattern)
     │   ├── InventoryItem.js      # Inventory item model
     │   ├── ShoppingListItem.js   # Shopping list item model
-    │   ├── Task.js               # Task model
+    │   ├── Task.js               # Task model (enhanced with template support)
+    │   ├── TaskTemplate.js       # Task template model
     │   └── User.js               # User model (partial implementation)
     │
     ├── firebase/                  # Firebase configuration and utilities
@@ -122,7 +128,10 @@ CoupleTasks/
         ├── googleAuthService.js   # Google authentication
         ├── historyService.js     # Task history tracking
         ├── imageService.js       # Image picker and Firebase Storage upload
+        ├── notificationService.js # Task notifications (expo-notifications)
         ├── shoppingListService.js # Shopping list operations
+        ├── taskGenerationService.js # Auto-generate tasks from templates
+        ├── taskSchedulingService.js # Task scheduling and date calculations
         ├── taskService.js        # Task operations (deprecated)
         └── userService.js        # User operations
 ```
@@ -199,6 +208,36 @@ firebase-root/
 │       │       ├── is_archived
 │       │       ├── created_by
 │       │       ├── created_date
+│       │       ├── updated_date
+│       │       ├── template_id              # NEW: Reference to template
+│       │       ├── auto_generated            # NEW: Was auto-generated?
+│       │       ├── scheduled_date            # NEW: When scheduled
+│       │       ├── estimated_duration        # NEW: Estimated time
+│       │       ├── actual_duration           # NEW: Actual time taken
+│       │       ├── room_location             # NEW: Room/area
+│       │       ├── defer_count               # NEW: Times deferred
+│       │       ├── defer_until                # NEW: Deferred until date
+│       │       ├── completed_by               # NEW: Who completed
+│       │       └── notification_offset_hours # NEW: Notification timing
+│       ├── task_templates/         # NEW: Task templates
+│       │   └── {templateId}/
+│       │       ├── template_name
+│       │       ├── description
+│       │       ├── category
+│       │       ├── subcategory
+│       │       ├── frequency_type            # daily, weekly, monthly, custom
+│       │       ├── frequency_interval         # Every X days/weeks/months
+│       │       ├── frequency_custom           # Custom frequency description
+│       │       ├── assigned_to
+│       │       ├── estimated_duration
+│       │       ├── priority
+│       │       ├── auto_generate              # Auto-create tasks?
+│       │       ├── generation_offset          # Days before due date
+│       │       ├── notification_offset_hours # Hours before task
+│       │       ├── room_location
+│       │       ├── is_active                 # Active template?
+│       │       ├── created_by
+│       │       ├── created_date
 │       │       └── updated_date
 │       ├── shopping_list_items/   # Personal shopping list
 │       │   └── {itemId}/
@@ -252,21 +291,73 @@ This allows seamless switching between personal and shared modes.
 - Clean, modern UI with card-based design
 - Serves as the initial route for authenticated users
 
-### 1. **Task Management**
-**Components:** TaskCard, TaskForm, EditTaskDialog, TaskFilters  
-**Screens:** DashboardScreen, AddTaskScreen  
-**Entity:** Task  
+### 1. **Task Management** (Renovated)
+**Components:** 
+- TaskCard, DailyTaskCard (simplified), TaskForm, EditTaskDialog, TaskFilters
+- CalendarView (weekly/monthly calendar)
+- TaskTemplateCard, TaskTemplateForm
+
+**Screens:** 
+- DailyTasksScreen (NEW - Simple daily view)
+- TaskPlanningScreen (NEW - Calendar planning)
+- TaskTemplatesScreen (NEW - Template management)
+- DashboardScreen (Legacy - kept for compatibility)
+- AddTaskScreen
+
+**Entities:** Task, TaskTemplate
+
+**Services:** taskGenerationService, taskSchedulingService, notificationService
+
 **Features:**
-- Create, read, update, delete tasks
-- Task categories (household, shopping, personal, etc.)
-- Priority levels (low, medium, high)
-- Status tracking (pending, in_progress, completed)
-- Subtasks with individual completion tracking
-- Recurring tasks (daily, weekly, monthly)
-- Due date and time
-- Task assignment to partner
-- Archive completed tasks
-- Filter and sort tasks
+
+#### Daily Tasks Screen
+- **Simple, focused view** showing only relevant tasks
+- Tasks automatically grouped by urgency:
+  - 🔥 **Overdue** - Missed tasks
+  - ⏰ **Today** - Tasks due today
+  - 📅 **This Week** - Tasks due in next 7 days
+  - 🔜 **Coming Soon** - Tasks due in next 14 days
+- Quick actions: Complete, Defer (1, 2, 3, or 7 days)
+- Auto-refresh with pull-to-refresh
+- Clean, minimal UI focused on "what to do now"
+
+#### Task Planning Screen (Calendar)
+- **Weekly view** (default) with toggle to monthly view
+- Visual calendar showing all tasks
+- Create tasks directly on calendar dates
+- Create tasks from templates
+- Edit tasks inline
+- Drag-and-drop support (planned)
+- Task indicators on calendar dates
+
+#### Task Templates System
+- **Template-based task generation**
+- Create reusable task templates with:
+  - Frequency (daily, weekly, monthly, custom)
+  - Assignment (specific user, together, separately)
+  - Estimated duration
+  - Auto-generation settings
+  - Generation offset (days before due date)
+  - Notification offset (hours before task)
+- **Auto-generation**: Automatically create tasks from active templates
+- Templates can be activated/deactivated
+- Edit templates and generated tasks independently
+
+#### Enhanced Task Features
+- Template reference (`template_id`) - Link tasks to templates
+- Auto-generated flag - Track which tasks were auto-created
+- Scheduled date - When task was scheduled
+- Estimated vs actual duration tracking
+- Room/location field
+- Defer functionality with defer count tracking
+- Completed by tracking
+- Configurable notification offset (default: 6 hours before)
+
+#### Notifications
+- **Automatic notifications** for tasks with due dates and times
+- Configurable notification offset per task/template (default: 6 hours)
+- Notifications scheduled automatically when tasks are created/updated
+- Notifications cancelled when tasks are completed
 
 ### 2. **Shopping List**
 **Components:** ShoppingItemCard, AddShoppingItemDialog  
@@ -448,7 +539,10 @@ useEffect(() => {
 ### Navigation Pattern
 **Drawer Navigator** (right-side for RTL support)
 - **Home** (initial route) - Quick access to Tasks and Shopping
-- Dashboard (Tasks view)
+- **Daily Tasks** (NEW) - Simple daily task view
+- Dashboard (Tasks view - Legacy)
+- **Task Planning** (NEW) - Calendar planning view
+- **Task Templates** (NEW) - Template management
 - Add Task
 - Shopping List
 - Shopping Mode
@@ -714,7 +808,26 @@ const styles = StyleSheet.create({
 
 ---
 
-**Last Updated:** November 14, 2025  
-**Version:** 1.0.0  
+**Last Updated:** December 2024  
+**Version:** 2.0.0  
 **Maintained By:** Development Team
+
+---
+
+## 🆕 Recent Major Updates (v2.0.0)
+
+### Task System Renovation (December 2024)
+- **Daily Tasks Screen**: Simplified view focusing on today and upcoming tasks
+- **Task Planning Screen**: Full calendar view with weekly/monthly toggle
+- **Task Templates**: Reusable templates with auto-generation
+- **Smart Task Generation**: Automatically create tasks from templates based on frequency
+- **Notifications**: Configurable task reminders (default: 6 hours before)
+- **Enhanced Task Fields**: Template references, scheduling, duration tracking, defer functionality
+
+### Key Improvements
+1. **Separation of Concerns**: Daily view for quick actions, calendar for planning
+2. **Automation**: Templates reduce manual task creation
+3. **Better Organization**: Tasks grouped by urgency automatically
+4. **Flexibility**: Both templates and individual tasks are editable
+5. **Notifications**: Never miss a task with automatic reminders
 

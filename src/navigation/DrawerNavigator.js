@@ -4,6 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import HomeScreen from "../screens/HomeScreen";
 import DashboardScreen from "../screens/DashboardScreen";
+import DailyTasksScreen from "../screens/Tasks/DailyTasksScreen";
+import TaskPlanningScreen from "../screens/Tasks/TaskPlanningScreen";
+import TaskTemplatesScreen from "../screens/Tasks/TaskTemplatesScreen";
 import AddTaskScreen from "../screens/AddTaskScreen";
 import ShoppingListScreen from "../screens/ShoppingListScreen";
 import ShoppingModeScreen from "../screens/ShoppingModeScreen";
@@ -87,6 +90,17 @@ const DrawerNavigator = () => {
               }}
             />
             <Drawer.Screen
+              name="DailyTasks"
+              component={DailyTasksScreen}
+              options={{
+                title: "Daily Tasks",
+                drawerLabel: "Daily Tasks",
+                drawerIcon: ({ color, size }) => (
+                  <Icon name="today" size={size} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Dashboard"
               component={DashboardScreen}
               options={{
@@ -94,6 +108,28 @@ const DrawerNavigator = () => {
                 drawerLabel: i18n.t('navigation.tasks'),
                 drawerIcon: ({ color, size }) => (
                   <Icon name="check-circle" size={size} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="TaskPlanning"
+              component={TaskPlanningScreen}
+              options={{
+                title: "Task Planning",
+                drawerLabel: "Task Planning",
+                drawerIcon: ({ color, size }) => (
+                  <Icon name="calendar-month" size={size} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="TaskTemplates"
+              component={TaskTemplatesScreen}
+              options={{
+                title: "Task Templates",
+                drawerLabel: "Task Templates",
+                drawerIcon: ({ color, size }) => (
+                  <Icon name="description" size={size} color={color} />
                 ),
               }}
             />
