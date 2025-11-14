@@ -198,6 +198,19 @@ firebase-root/
 │       │       ├── created_date
 │       │       └── updated_date
 │       ├── shopping_list_items/   # Personal shopping list
+│       │   └── {itemId}/
+│       │       ├── name
+│       │       ├── category
+│       │       ├── quantity
+│       │       ├── unit
+│       │       ├── is_purchased
+│       │       ├── is_archived
+│       │       ├── shopping_trip_date  # Groups items from same shopping trip
+│       │       ├── purchased_date
+│       │       ├── created_by
+│       │       ├── added_by
+│       │       ├── created_date
+│       │       └── updated_date
 │       ├── inventory_items/       # Personal inventory
 │       └── history/               # Task completion history
 │
@@ -253,6 +266,7 @@ This allows seamless switching between personal and shared modes.
 - Auto-add to inventory on purchase
 - Mark items as purchased
 - Archive completed shopping trips
+- **Shopping List Archive:** When shopping mode ends, all purchased items are grouped together by `shopping_trip_date` and archived as a complete shopping list with date
 - **Smart Suggestions:** When adding items, suggests archived items that start with the same letter
 - **Archive Search:** When typing in the item name field, searches through archived items with Google-like autocomplete (matches items containing the search text anywhere in the name)
 - **Auto-fill from Archive:** Clicking on an archived item suggestion auto-fills the form with the item's name, category, unit, and quantity
@@ -281,7 +295,23 @@ This allows seamless switching between personal and shared modes.
 - Real-time sync between partners
 - Remove sharing relationship
 
-### 5. **History & Analytics**
+### 5. **Archive**
+**Screens:** ArchiveScreen  
+**Features:**
+- **Completed Tasks:** View and restore archived completed tasks
+  - Auto-deleted after 60 days
+- **Shopping Lists:** View archived shopping lists grouped by date (from completed shopping trips)
+  - Shows shopping trip date
+  - Displays total items and purchased items count
+  - Preview of first 3 items with option to see more
+  - Items are grouped by `shopping_trip_date` set when shopping mode ends
+  - Auto-deleted after 60 days (items with `shopping_trip_date`)
+- **Archived Products:** View individual archived products (for suggestions)
+  - **Kept forever** - never auto-deleted (items without `shopping_trip_date`)
+  - Used for smart suggestions when adding new items
+- Search functionality across all archive sections
+
+### 6. **History & Analytics**
 **Components:** HistoryStatsCard, RecentHistoryWidget  
 **Screens:** HistoryScreen  
 **Service:** historyService  
@@ -291,7 +321,7 @@ This allows seamless switching between personal and shared modes.
 - Category insights
 - Partner contribution tracking
 
-### 6. **Internationalization**
+### 7. **Internationalization**
 **Screens:** LanguageSelectionScreen  
 **Service:** i18n  
 **Supported Languages:**
@@ -610,6 +640,7 @@ const styles = StyleSheet.create({
 9. ✅ Better error messages and UX
 10. ✅ Shopping items archived after purchase (for suggestions)
 11. ✅ Smart suggestions from archived items that start with same letter
+12. ✅ Shopping lists grouped by date in archive (shopping_trip_date)
 
 ### Medium Priority
 1. User entity partially implemented (works but could be enhanced)
