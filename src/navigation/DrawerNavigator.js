@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import HomeScreen from "../screens/HomeScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import AddTaskScreen from "../screens/AddTaskScreen";
 import ShoppingListScreen from "../screens/ShoppingListScreen";
@@ -54,7 +55,7 @@ const DrawerNavigator = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Drawer.Navigator
-        initialRouteName={user ? "Dashboard" : "Auth"}
+        initialRouteName={user ? "Home" : "Auth"}
         screenOptions={{
           headerStyle: {
             backgroundColor: "#8B5CF6",
@@ -75,13 +76,24 @@ const DrawerNavigator = () => {
           // Screens for authenticated users
           <>
             <Drawer.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                title: i18n.t('home.title'),
+                drawerLabel: i18n.t('home.title'),
+                drawerIcon: ({ color, size }) => (
+                  <Icon name="home" size={size} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Dashboard"
               component={DashboardScreen}
               options={{
                 title: i18n.t('navigation.tasks'),
                 drawerLabel: i18n.t('navigation.tasks'),
                 drawerIcon: ({ color, size }) => (
-                  <Icon name="home" size={size} color={color} />
+                  <Icon name="check-circle" size={size} color={color} />
                 ),
               }}
             />
