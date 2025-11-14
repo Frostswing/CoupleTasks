@@ -12,6 +12,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CategorySelector from '../common/CategorySelector';
 import UnitSelector from '../common/UnitSelector';
+import AutoCompleteInput from '../common/AutoCompleteInput';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../../constants/categories';
 
 const AddInventoryItemDialog = ({ open, onOpenChange, onAddItem }) => {
@@ -38,6 +39,16 @@ const AddInventoryItemDialog = ({ open, onOpenChange, onAddItem }) => {
       // Auto-update category and unit if they're still default
       category: prev.category === 'other' ? detectedCategory : prev.category,
       unit: prev.unit === 'pieces' ? defaultUnit : prev.unit
+    }));
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    // For inventory, we might get shopping suggestions, so adapt them
+    setFormData(prev => ({
+      ...prev,
+      name: suggestion.name,
+      category: suggestion.category || autoDetectCategory(suggestion.name),
+      unit: suggestion.unit || getDefaultUnitForCategory(suggestion.category || autoDetectCategory(suggestion.name))
     }));
   };
 
@@ -103,12 +114,15 @@ const AddInventoryItemDialog = ({ open, onOpenChange, onAddItem }) => {
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.formGroup}>
               <Text style={styles.label}>שם המוצר</Text>
-              <TextInput
+              <AutoCompleteInput
                 style={styles.textInput}
                 placeholder="איזה מוצר יש לך?"
                 value={formData.name}
                 onChangeText={handleNameChange}
-                placeholderTextColor="#9CA3AF"
+                onSelectSuggestion={handleSelectSuggestion}
+                type="shopping"
+                maxSuggestions={6}
+                showSmartSuggestions={true}
               />
             </View>
 

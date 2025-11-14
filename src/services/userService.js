@@ -104,6 +104,9 @@ export const registerUser = async (email, password, name) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
+    // אתחול מסד הנתונים אם נדרש
+    await initializeDatabase();
+
     // לוג של מצב Firebase לפני הרישום
     console.log("Firebase status before registration:", checkFirebaseStatus());
 
@@ -115,12 +118,16 @@ export const registerUser = async (email, password, name) => {
     );
     const user = userCredential.user;
 
-    // שמירת מידע נוסף על המשתמש במסד הנתונים
-    await set(ref(database, `users/${user.uid}/profile`), {
+    // יצירת פרופיל משתמש עם אתחול מלא
+    const profileResult = await initializeUserFirstLogin(user.uid, {
       email: email,
-      name: name,
-      createdAt: new Date().toISOString(),
+      full_name: name,
+      name: name // legacy support
     });
+
+    if (!profileResult.success) {
+      console.error("Error creating user profile:", profileResult.error);
+    }
 
     return { success: true, user };
   } catch (error) {
@@ -141,11 +148,27 @@ export const loginUser = async (email, password) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
+    // אתחול מסד הנתונים אם נדרש
+    await initializeDatabase();
+
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
       password
     );
+    
+    // בדיקה אם יש פרופיל למשתמש, אם לא - יצירת פרופיל
+    const profileRef = ref(database, `users/${userCredential.user.uid}/profile`);
+    const profileSnapshot = await get(profileRef);
+    
+    if (!profileSnapshot.exists()) {
+      // יצירת פרופיל למשתמש קיים שאין לו פרופיל
+      await createUserProfile(userCredential.user.uid, {
+        email: userCredential.user.email,
+        full_name: userCredential.user.displayName || 'User'
+      });
+    }
+    
     return { success: true, user: userCredential.user };
   } catch (error) {
     console.error("שגיאה בכניסת משתמש:", error);

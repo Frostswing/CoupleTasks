@@ -14,6 +14,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { User as UserEntity } from "../../entities/User";
+import AutoCompleteInput from "../common/AutoCompleteInput";
 
 const { width } = Dimensions.get('window');
 
@@ -80,6 +81,16 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTaskSuggestion = (suggestion) => {
+    // Auto-fill task data from suggestion
+    setFormData(prev => ({
+      ...prev,
+      title: suggestion.title,
+      category: suggestion.category || prev.category,
+      priority: suggestion.priority || prev.priority
+    }));
   };
 
   const addSubtask = () => {
@@ -191,12 +202,15 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
           {/* Title */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Task Title</Text>
-            <TextInput
+            <AutoCompleteInput
               style={styles.input}
               placeholder="What needs to be done?"
               value={formData.title}
               onChangeText={(text) => handleInputChange('title', text)}
-              placeholderTextColor="#9CA3AF"
+              onSelectSuggestion={handleTaskSuggestion}
+              type="tasks"
+              maxSuggestions={6}
+              showSmartSuggestions={true}
             />
           </View>
 
