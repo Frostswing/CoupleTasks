@@ -134,6 +134,9 @@ export default function ShoppingModeScreen({ navigation, route }) {
     setIsFinishing(true);
     console.log('ShoppingMode: Starting to process items...');
     
+    // Use the same shopping trip date for all items purchased in this trip
+    const shoppingTripDate = new Date().toISOString();
+    
     try {
       // Process items one by one with error handling
       const processedItems = [];
@@ -166,13 +169,15 @@ export default function ShoppingModeScreen({ navigation, route }) {
           // Archive the product/item after purchase (keeps it in archive for suggestions, filters out from active list)
           // Shopping list items represent actual products (e.g., "Milk", "Bread", "Cheese")
           // Archived products won't appear in active shopping list but will be available for suggestions
+          // Set shopping_trip_date to group items from the same shopping trip together
           console.log(`ShoppingMode: Archiving product "${item.name}" (id: ${item.id})`);
           const archiveResult = await ShoppingListItem.update(
             item.id, 
             { 
               is_archived: true, 
               is_purchased: true,
-              purchased_date: new Date().toISOString()
+              purchased_date: shoppingTripDate,
+              shopping_trip_date: shoppingTripDate
             },
             { skipInventoryUpdate: true } // Skip auto inventory update since we handled it manually
           );

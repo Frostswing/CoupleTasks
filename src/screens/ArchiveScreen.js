@@ -22,6 +22,7 @@ const { width } = Dimensions.get('window');
 export default function ArchiveScreen({ navigation }) {
   const [archivedTasks, setArchivedTasks] = useState([]);
   const [archivedProducts, setArchivedProducts] = useState([]);
+  const [archivedShoppingLists, setArchivedShoppingLists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tasks');
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,10 +39,16 @@ export default function ArchiveScreen({ navigation }) {
       const relevantTasks = allArchivedTasks.filter(t => userEmails.includes(t.created_by));
       setArchivedTasks(relevantTasks);
 
-      // Load archived products (individual items, not grouped by lists)
+      // Load all archived shopping items
       const allArchivedItems = await ShoppingListItem.filter({ is_archived: true }, '-purchased_date');
-      const relevantProducts = allArchivedItems.filter(item => 
+      const allRelevantItems = allArchivedItems.filter(item => 
         userEmails.includes(item.created_by) || userEmails.includes(item.added_by)
+      );
+
+      // Load archived products (individual items, not grouped by lists)
+      // Only include items WITHOUT shopping_trip_date (these are kept forever for suggestions)
+      const relevantProducts = allRelevantItems.filter(item => 
+        !item.shopping_trip_date // Only products without shopping_trip_date (kept forever)
       );
       
       // Use a hash/dictionary to avoid duplicate products (group by product name, case-insensitive)
@@ -80,14 +87,68 @@ export default function ArchiveScreen({ navigation }) {
       
       setArchivedProducts(uniqueProducts);
 
-      // Auto-delete old items
+      // Load archived shopping lists (grouped by shopping_trip_date)
+      // Only include items WITH shopping_trip_date (these are deleted after 60 days)
+      const shoppingListsMap = new Map();
+      
+      allRelevantItems.forEach(item => {
+        // Only include items that have a shopping_trip_date (from shopping mode)
+        if (item.shopping_trip_date) {
+          const tripDate = item.shopping_trip_date;
+          
+          if (!shoppingListsMap.has(tripDate)) {
+            shoppingListsMap.set(tripDate, {
+              date: tripDate,
+              items: [],
+              totalItems: 0,
+              purchasedItems: 0
+            });
+          }
+          
+          const list = shoppingListsMap.get(tripDate);
+          list.items.push(item);
+          list.totalItems += 1;
+          if (item.is_purchased) {
+            list.purchasedItems += 1;
+          }
+        }
+      });
+      
+      // Convert map to array and sort by date (most recent first)
+      const shoppingLists = Array.from(shoppingListsMap.values()).sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA;
+      });
+      
+      setArchivedShoppingLists(shoppingLists);
+
+      // Auto-delete old items (tasks and shopping lists, but NOT archived products)
       const now = new Date();
-      const itemsToDelete = relevantTasks.filter(task => 
+      
+      // Delete old tasks (older than 60 days)
+      const tasksToDelete = relevantTasks.filter(task => 
         differenceInDays(now, new Date(task.archived_date)) > 60
       );
 
-      if (itemsToDelete.length > 0) {
-        await Promise.all(itemsToDelete.map(task => Task.delete(task.id)));
+      if (tasksToDelete.length > 0) {
+        await Promise.all(tasksToDelete.map(task => Task.delete(task.id)));
+      }
+
+      // Delete old shopping lists (items with shopping_trip_date older than 60 days)
+      // Note: This deletes the items that form the shopping lists, but archived products
+      // (items without shopping_trip_date) are kept forever for suggestions
+      const shoppingListsToDelete = allRelevantItems.filter(item => 
+        item.shopping_trip_date && 
+        differenceInDays(now, new Date(item.shopping_trip_date)) > 60
+      );
+
+      if (shoppingListsToDelete.length > 0) {
+        await Promise.all(shoppingListsToDelete.map(item => ShoppingListItem.delete(item.id)));
+      }
+
+      // Reload data if anything was deleted
+      if (tasksToDelete.length > 0 || shoppingListsToDelete.length > 0) {
         loadArchivedData();
       }
     } catch (error) {
@@ -216,6 +277,20 @@ export default function ArchiveScreen({ navigation }) {
     );
   }, [archivedProducts, searchQuery]);
 
+  const filteredShoppingLists = useMemo(() => {
+    if (!searchQuery.trim()) return archivedShoppingLists;
+    const query = searchQuery.toLowerCase().trim();
+    return archivedShoppingLists.filter(list => {
+      // Search in list date or item names
+      const dateStr = format(new Date(list.date), 'MMM d, yyyy').toLowerCase();
+      const hasMatchingItem = list.items.some(item => 
+        item.name.toLowerCase().includes(query) ||
+        (item.category && item.category.toLowerCase().includes(query))
+      );
+      return dateStr.includes(query) || hasMatchingItem;
+    });
+  }, [archivedShoppingLists, searchQuery]);
+
   const TabButton = ({ title, count, isActive, onPress }) => (
     <TouchableOpacity
       style={[styles.tabButton, isActive && styles.activeTabButton]}
@@ -303,6 +378,38 @@ export default function ArchiveScreen({ navigation }) {
     </View>
   );
 
+  const ShoppingListCard = ({ list }) => (
+    <View style={styles.archiveCard}>
+      <View style={styles.cardContent}>
+        <View style={styles.cardInfo}>
+          <Text style={styles.productName}>
+            Shopping List - {format(new Date(list.date), 'MMM d, yyyy')}
+          </Text>
+          <View style={styles.taskMeta}>
+            <Text style={styles.completionDate}>
+              {list.purchasedItems} of {list.totalItems} items purchased
+            </Text>
+            <Text style={styles.completionDate}>
+              {list.totalItems} total items
+            </Text>
+          </View>
+          <View style={styles.itemsPreview}>
+            {list.items.slice(0, 3).map((item, index) => (
+              <Text key={index} style={styles.itemPreviewText}>
+                • {item.name} ({item.quantity} {item.unit || 'pcs'})
+              </Text>
+            ))}
+            {list.items.length > 3 && (
+              <Text style={styles.moreItemsText}>
+                +{list.items.length - 3} more items
+              </Text>
+            )}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -318,7 +425,7 @@ export default function ArchiveScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Archive</Text>
-          <Text style={styles.subtitle}>Completed items are stored here for 60 days.</Text>
+          <Text style={styles.subtitle}>Tasks and shopping lists are stored for 60 days. Archived products are kept forever.</Text>
         </View>
 
         {/* Search Bar */}
@@ -326,7 +433,13 @@ export default function ArchiveScreen({ navigation }) {
           <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder={activeTab === 'tasks' ? "Search tasks..." : "Search products..."}
+            placeholder={
+              activeTab === 'tasks' 
+                ? "Search tasks..." 
+                : activeTab === 'shoppingLists'
+                ? "Search shopping lists..."
+                : "Search products..."
+            }
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9CA3AF"
@@ -350,6 +463,15 @@ export default function ArchiveScreen({ navigation }) {
             isActive={activeTab === 'tasks'}
             onPress={() => {
               setActiveTab('tasks');
+              setSearchQuery(''); // Clear search when switching tabs
+            }}
+          />
+          <TabButton
+            title="Shopping Lists"
+            count={searchQuery ? filteredShoppingLists.length : archivedShoppingLists.length}
+            isActive={activeTab === 'shoppingLists'}
+            onPress={() => {
+              setActiveTab('shoppingLists');
               setSearchQuery(''); // Clear search when switching tabs
             }}
           />
@@ -386,6 +508,30 @@ export default function ArchiveScreen({ navigation }) {
                 <View style={styles.itemsList}>
                   {filteredTasks.map((task) => (
                     <TaskCard key={task.id} task={task} />
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : activeTab === 'shoppingLists' ? (
+            <View style={styles.tabContent}>
+              {filteredShoppingLists.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <View style={styles.emptyIcon}>
+                    <Icon name={searchQuery ? "search-off" : "shopping-bag"} size={40} color="#9CA3AF" />
+                  </View>
+                  <Text style={styles.emptyTitle}>
+                    {searchQuery ? "No shopping lists found" : "No archived shopping lists"}
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    {searchQuery 
+                      ? `No shopping lists match "${searchQuery}"` 
+                      : "Shopping lists from completed shopping trips will appear here."}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.itemsList}>
+                  {filteredShoppingLists.map((list, index) => (
+                    <ShoppingListCard key={list.date} list={list} />
                   ))}
                 </View>
               )}
@@ -637,5 +783,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  itemsPreview: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  itemPreviewText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  moreItemsText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    marginTop: 4,
   },
 }); 
