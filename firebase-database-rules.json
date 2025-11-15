@@ -204,6 +204,66 @@
                             ".validate": true
                         }
                     }
+                },
+                "events": {
+                    "$eventId": {
+                        ".write": "auth != null && auth.uid == $userId",
+                        ".validate": "newData.hasChildren(['title', 'event_date', 'event_type', 'created_by'])",
+                        "title": {
+                            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+                        },
+                        "description": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 1000)"
+                        },
+                        "notes": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 500)"
+                        },
+                        "event_date": {
+                            ".validate": "newData.isString()"
+                        },
+                        "event_time": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "duration": {
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() > 0)"
+                        },
+                        "event_type": {
+                            ".validate": "newData.isString() && (newData.val() == 'informational' || newData.val() == 'invitation' || newData.val() == 'solo_ok')"
+                        },
+                        "status": {
+                            ".validate": "newData.isString() && (newData.val() == 'pending' || newData.val() == 'acknowledged' || newData.val() == 'accepted' || newData.val() == 'declined' || newData.val() == 'disputed')"
+                        },
+                        "category": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "location": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 200)"
+                        },
+                        "created_by": {
+                            ".validate": "newData.isString() && (newData.val() == auth.uid || newData.val() == $userId)"
+                        },
+                        "created_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "updated_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "partner_response": {
+                            ".validate": "newData.val() == null || newData.hasChildren(['responded_by', 'responded_at', 'response'])"
+                        },
+                        "notification_sent": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "is_archived": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "archived_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "$other": {
+                            ".validate": true
+                        }
+                    }
                 }
             }
         },
@@ -390,6 +450,65 @@
                 "task_table_config": {
                     "$configId": {
                         ".validate": "newData.hasChildren(['task_name'])",
+                        "$other": {
+                            ".validate": true
+                        }
+                    }
+                },
+                "events": {
+                    "$eventId": {
+                        ".validate": "newData.hasChildren(['title', 'event_date', 'event_type', 'created_by'])",
+                        "title": {
+                            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+                        },
+                        "description": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 1000)"
+                        },
+                        "notes": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 500)"
+                        },
+                        "event_date": {
+                            ".validate": "newData.isString()"
+                        },
+                        "event_time": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "duration": {
+                            ".validate": "newData.val() == null || (newData.isNumber() && newData.val() > 0)"
+                        },
+                        "event_type": {
+                            ".validate": "newData.isString() && (newData.val() == 'informational' || newData.val() == 'invitation' || newData.val() == 'solo_ok')"
+                        },
+                        "status": {
+                            ".validate": "newData.isString() && (newData.val() == 'pending' || newData.val() == 'acknowledged' || newData.val() == 'accepted' || newData.val() == 'declined' || newData.val() == 'disputed')"
+                        },
+                        "category": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "location": {
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 200)"
+                        },
+                        "created_by": {
+                            ".validate": "newData.isString() && (root.child('shared').child($sharedSpaceId).child('members').child(newData.val()).exists() || newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/))"
+                        },
+                        "created_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "updated_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "partner_response": {
+                            ".validate": "newData.val() == null || newData.hasChildren(['responded_by', 'responded_at', 'response'])"
+                        },
+                        "notification_sent": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "is_archived": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "archived_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
                         "$other": {
                             ".validate": true
                         }

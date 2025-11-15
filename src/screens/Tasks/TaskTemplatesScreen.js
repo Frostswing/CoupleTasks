@@ -214,7 +214,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <ActivityIndicator size="large" color="#14B8A6" />
           <Text style={styles.loadingText}>Loading templates...</Text>
         </View>
       </SafeAreaView>
@@ -272,8 +272,8 @@ export default function TaskTemplatesScreen({ navigation, route }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={["#8B5CF6"]}
-            tintColor="#8B5CF6"
+            colors={["#14B8A6"]}
+            tintColor="#14B8A6"
           />
         }
         showsVerticalScrollIndicator={false}
@@ -281,7 +281,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
         {filteredTemplates.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="description" size={48} color="#8B5CF6" />
+              <Icon name="description" size={48} color="#14B8A6" />
             </View>
             <Text style={styles.emptyTitle}>
               {filter === 'all' ? 'No templates yet' : `No ${filter} templates`}
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   filterButtonActive: {
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
   },
   filterText: {
     fontSize: 14,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   filterTextActive: {
-    color: '#8B5CF6',
+    color: '#14B8A6',
   },
   scrollView: {
     flex: 1,
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 16,

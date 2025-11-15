@@ -10,7 +10,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const categoryColors = {
   household: { bg: '#DBEAFE', text: '#2563EB' },
   errands: { bg: '#DCFCE7', text: '#16A34A' },
-  planning: { bg: '#F3E8FF', text: '#9333EA' },
+  planning: { bg: '#E6FFFA', text: '#0D9488' },
   finance: { bg: '#FEF3C7', text: '#D97706' },
   health: { bg: '#FEE2E2', text: '#DC2626' },
   social: { bg: '#FCE7F3', text: '#EC4899' },
@@ -120,7 +120,7 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
             onPress={() => onEdit(template)}
             style={styles.actionButton}
           >
-            <Icon name="edit" size={24} color="#8B5CF6" />
+            <Icon name="edit" size={24} color="#14B8A6" />
           </TouchableOpacity>
         )}
         

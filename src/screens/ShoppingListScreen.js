@@ -468,7 +468,7 @@ export default function ShoppingListScreen({ navigation, route }) {
                 onPress={() => handleOpenLink(item.link)}
                 style={styles.linkContainer}
               >
-                <Icon name="link" size={14} color="#8B5CF6" />
+                <Icon name="link" size={14} color="#14B8A6" />
                 <Text style={styles.linkText} numberOfLines={1}>
                   {item.link}
                 </Text>
@@ -498,7 +498,7 @@ export default function ShoppingListScreen({ navigation, route }) {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
         <Text style={styles.loadingText}>Loading your shopping list...</Text>
       </SafeAreaView>
     );
@@ -594,7 +594,7 @@ export default function ShoppingListScreen({ navigation, route }) {
           {filteredItems.length === 0 && (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="shopping-cart" size={40} color="#8B5CF6" />
+                <Icon name="shopping-cart" size={40} color="#14B8A6" />
               </View>
               <Text style={styles.emptyTitle}>No items yet</Text>
               <Text style={styles.emptySubtitle}>Add items to your shopping list to get started</Text>
@@ -689,10 +689,10 @@ export default function ShoppingListScreen({ navigation, route }) {
                   disabled={uploadingImage}
                 >
                   {uploadingImage ? (
-                    <ActivityIndicator size="small" color="#8B5CF6" />
+                    <ActivityIndicator size="small" color="#14B8A6" />
                   ) : (
                     <>
-                      <Icon name="add-photo-alternate" size={20} color="#8B5CF6" />
+                      <Icon name="add-photo-alternate" size={20} color="#14B8A6" />
                       <Text style={styles.attachButtonText}>Attach Image</Text>
                     </>
                   )}
@@ -827,10 +827,10 @@ export default function ShoppingListScreen({ navigation, route }) {
                   disabled={uploadingImage}
                 >
                   {uploadingImage ? (
-                    <ActivityIndicator size="small" color="#8B5CF6" />
+                    <ActivityIndicator size="small" color="#14B8A6" />
                   ) : (
                     <>
-                      <Icon name="add-photo-alternate" size={20} color="#8B5CF6" />
+                      <Icon name="add-photo-alternate" size={20} color="#14B8A6" />
                       <Text style={styles.attachButtonText}>Attach Image</Text>
                     </>
                   )}
@@ -970,7 +970,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -1114,7 +1114,7 @@ const styles = StyleSheet.create({
   },
   autoAddedText: {
     fontSize: 12,
-    color: '#8B5CF6',
+    color: '#14B8A6',
     fontStyle: 'italic',
   },
   itemNotes: {
@@ -1137,7 +1137,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1159,7 +1159,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
@@ -1217,7 +1217,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   addItemButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -1240,7 +1240,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   attachButtonText: {
-    color: '#8B5CF6',
+    color: '#14B8A6',
     fontSize: 14,
     fontWeight: '500',
     marginLeft: 8,
@@ -1294,13 +1294,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     padding: 8,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
     borderRadius: 8,
   },
   linkText: {
     flex: 1,
     fontSize: 12,
-    color: '#8B5CF6',
+    color: '#14B8A6',
     marginLeft: 6,
   },
   imageModalContainer: {

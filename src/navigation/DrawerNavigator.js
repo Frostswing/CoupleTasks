@@ -28,6 +28,7 @@ import ShoppingModeScreen from "../screens/ShoppingModeScreen";
 import InventoryScreen from "../screens/InventoryScreen";
 import ArchiveScreen from "../screens/ArchiveScreen";
 import HistoryScreen from "../screens/HistoryScreen";
+import EventsScreen from "../screens/EventsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import SharingScreen from "../screens/SharingScreen";
 import AuthScreen from "../screens/AuthScreen";
@@ -43,7 +44,7 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
       initialRouteName="Home"
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#8B5CF6",
+          backgroundColor: "#14B8A6",
         },
         headerTintColor: "#fff",
         headerTitleStyle: {
@@ -123,6 +124,11 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
         name="History"
         component={HistoryScreen}
         options={{ title: i18n.t("navigation.drawer.history") }}
+      />
+      <Stack.Screen
+        name="Events"
+        component={EventsScreen}
+        options={{ title: i18n.t("navigation.drawer.events") }}
       />
       <Stack.Screen
         name="Settings"
@@ -289,6 +295,12 @@ const CustomDrawerContent = (props) => {
           icon: "history",
           screen: "History",
         },
+        {
+          name: "Events",
+          label: i18n.t("navigation.drawer.events"),
+          icon: "event",
+          screen: "Events",
+        },
       ],
     },
     {
@@ -373,7 +385,7 @@ const CustomDrawerContent = (props) => {
                   <MaterialIcons
                     name={item.icon}
                     size={24}
-                    color={isActive ? "#8B5CF6" : "#6B7280"}
+                    color={isActive ? "#14B8A6" : "#6B7280"}
                   />
                   <Text
                     style={[
@@ -417,7 +429,7 @@ const DrawerNavigator = () => {
           backgroundColor: "#FFFFFF",
           width: 280,
         },
-        drawerActiveTintColor: "#8B5CF6",
+        drawerActiveTintColor: "#14B8A6",
         drawerInactiveTintColor: "#6B7280",
       }}
     >
@@ -440,7 +452,7 @@ const styles = StyleSheet.create({
   drawerHeader: {
     padding: 20,
     paddingTop: 60,
-    backgroundColor: "#8B5CF6",
+    backgroundColor: "#14B8A6",
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
@@ -452,7 +464,7 @@ const styles = StyleSheet.create({
   },
   drawerSubtitle: {
     fontSize: 14,
-    color: "#E9D5FF",
+    color: "#B2F5EA",
     marginTop: 4,
   },
   drawerContent: {
@@ -481,7 +493,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   drawerItemActive: {
-    backgroundColor: "#F3E8FF",
+    backgroundColor: "#E6FFFA",
   },
   drawerItemText: {
     fontSize: 16,
@@ -489,7 +501,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   drawerItemTextActive: {
-    color: "#8B5CF6",
+    color: "#14B8A6",
     fontWeight: "600",
   },
   drawerFooter: {

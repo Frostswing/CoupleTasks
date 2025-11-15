@@ -413,7 +413,7 @@ export default function ArchiveScreen({ navigation }) {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
         <Text style={styles.loadingText}>Loading archived items...</Text>
       </SafeAreaView>
     );
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTabButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
   },
   tabText: {
     fontSize: 14,

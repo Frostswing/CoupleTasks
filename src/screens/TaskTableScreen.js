@@ -446,7 +446,7 @@ export default function TaskTableScreen({ navigation }) {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
         <Text style={styles.loadingText}>Loading task table...</Text>
       </SafeAreaView>
     );
@@ -509,7 +509,7 @@ export default function TaskTableScreen({ navigation }) {
         {tableRows.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="table-chart" size={48} color="#8B5CF6" />
+              <Icon name="table-chart" size={48} color="#14B8A6" />
             </View>
             <Text style={styles.emptyTitle}>No Tasks Yet</Text>
             <Text style={styles.emptySubtitle}>
@@ -553,7 +553,7 @@ export default function TaskTableScreen({ navigation }) {
 const getCategoryColor = (category) => {
   const colors = {
     'ניקיון': '#3B82F6',
-    'כביסה': '#8B5CF6',
+    'כביסה': '#14B8A6',
     'תחזוקה שוטפת': '#F59E0B',
     'רכב': '#EF4444',
     'חיות מחמד': '#10B981',
@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
   addButton: {
     flex: 0,
     width: 48,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
   },
   scrollView: {
     flex: 1,
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
   detailSectionTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#14B8A6',
     marginBottom: 6,
     textTransform: 'uppercase',
   },
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#8B5CF6',
+    borderLeftColor: '#14B8A6',
   },
   notesLabel: {
     fontSize: 12,
@@ -764,7 +764,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
@@ -837,12 +837,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#14B8A6',
     marginTop: 16,
     marginBottom: 12,
   },
   saveButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

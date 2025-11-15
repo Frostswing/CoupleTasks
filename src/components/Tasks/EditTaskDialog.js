@@ -95,7 +95,7 @@ export default function EditTaskDialog({ task, visible, onClose, onUpdateTask, n
           {task.template_id && template && (
             <View style={styles.templateBanner}>
               <View style={styles.templateBannerContent}>
-                <Icon name="auto-awesome" size={20} color="#8B5CF6" />
+                <Icon name="auto-awesome" size={20} color="#14B8A6" />
                 <Text style={styles.templateBannerText}>
                   This task is from template: {template.template_name}
                 </Text>
@@ -104,7 +104,7 @@ export default function EditTaskDialog({ task, visible, onClose, onUpdateTask, n
                 style={styles.editTemplateButton}
                 onPress={handleEditTemplate}
               >
-                <Icon name="edit" size={18} color="#8B5CF6" />
+                <Icon name="edit" size={18} color="#14B8A6" />
                 <Text style={styles.editTemplateButtonText}>Edit Template</Text>
               </TouchableOpacity>
             </View>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   templateBanner: {
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -168,12 +168,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#8B5CF6',
+    borderColor: '#14B8A6',
     gap: 6,
   },
   editTemplateButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#14B8A6',
   },
 }); 

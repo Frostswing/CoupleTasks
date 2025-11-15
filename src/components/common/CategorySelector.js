@@ -40,7 +40,7 @@ const CategorySelector = ({ value, onValueChange, placeholder = 'בחר קטגו
         </Text>
       </View>
       {item.id === value && (
-        <Icon name="check" size={20} color="#8B5CF6" />
+        <Icon name="check" size={20} color="#14B8A6" />
       )}
     </TouchableOpacity>
   );
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   selectedCategoryText: {
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#14B8A6',
   },
 });
 

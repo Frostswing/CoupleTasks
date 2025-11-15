@@ -63,6 +63,9 @@ CoupleTasks/
     │   │   ├── CategorySelector.js
     │   │   ├── RecentHistoryWidget.js
     │   │   └── UnitSelector.js
+    │   ├── Events/
+    │   │   ├── EventCard.js              # Event display card
+    │   │   └── EventForm.js              # Event creation/edit form
     │   ├── history/
     │   │   └── HistoryStatsCard.js
     │   ├── inventory/
@@ -87,6 +90,7 @@ CoupleTasks/
     │   └── categories.js         # Task/item categories
     │
     ├── entities/                  # Data models (Active Record pattern)
+    │   ├── Event.js              # Event model
     │   ├── InventoryItem.js      # Inventory item model
     │   ├── ShoppingListItem.js   # Shopping list item model
     │   ├── Task.js               # Task model (enhanced with template support)
@@ -117,6 +121,7 @@ CoupleTasks/
     │   ├── ArchiveScreen.js      # Archive viewer
     │   ├── AuthScreen.js         # Authentication (login/register)
     │   ├── DashboardScreen.js    # Main dashboard (tasks view)
+    │   ├── EventsScreen.js       # Events management
     │   ├── HistoryScreen.js      # Task history
     │   ├── InventoryScreen.js    # Inventory management
     │   ├── LanguageSelectionScreen.js  # Language picker
@@ -128,6 +133,7 @@ CoupleTasks/
     │   └── TasksScreen.js        # Tasks screen (legacy?)
     │
     └── services/                  # Business logic services
+        ├── eventNotificationService.js # Event notifications (expo-notifications)
         ├── googleAuthService.js   # Google authentication
         ├── historyService.js     # Task history tracking
         ├── imageService.js       # Image picker and Firebase Storage upload
@@ -287,6 +293,7 @@ firebase-root/
         ├── created_at
         ├── updated_at
         ├── tasks/                 # Shared tasks
+        ├── events/                # Shared events
         ├── shopping_list_items/   # Shared shopping list
         ├── inventory_items/       # Shared inventory
         └── history/               # Shared history
@@ -517,7 +524,45 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Category insights
 - Partner contribution tracking
 
-### 7. **Internationalization**
+### 7. **Events Management** (NEW)
+**Components:** EventCard, EventForm  
+**Screens:** EventsScreen  
+**Entity:** Event  
+**Service:** eventNotificationService  
+**Features:**
+- **Event Types:**
+  - **Informational** - Just informing partner (optional acknowledgment)
+  - **Invitation** - Asking if partner wants to join (requires response)
+  - **Solo OK** - Going alone is fine, but partner can acknowledge
+- **Response Statuses:**
+  - `pending` - Waiting for partner response (invitations)
+  - `acknowledged` - Partner saw and acknowledged
+  - `accepted` - Partner accepted invitation
+  - `declined` - Partner declined invitation
+  - `disputed` - Partner disputed/disagreed
+- **Event Details:**
+  - Title, description, and notes (for context)
+  - Event date and time
+  - Duration (optional)
+  - Category (social, work, personal, family, health, travel, other)
+  - Location (optional)
+- **Notifications:**
+  - Immediate notification for invitation-type events
+  - Partner receives notification when invited to an event
+  - Notification cancelled when partner responds
+- **Event Management:**
+  - Create, edit, and delete events
+  - Real-time sync between partners
+  - Events grouped by date (Today, Tomorrow, This Week, Later, Past)
+  - Filter by: All, Upcoming, Pending (invitations), Past
+  - Visual indicators for pending invitations
+  - Quick response buttons (Accept/Decline for invitations, Acknowledge for others)
+- **Availability Tracking:**
+  - Both partners can see each other's events
+  - Clear visibility of when partner is available/busy
+  - Helps coordinate schedules and plan together
+
+### 8. **Internationalization**
 **Screens:** LanguageSelectionScreen  
 **Service:** i18n  
 **Supported Languages:**
@@ -647,6 +692,7 @@ NavigationContainer (App.js)
         ├── Inventory
         ├── Archive
         ├── History
+        ├── Events
         ├── Settings
         ├── Sharing
         ├── Language
@@ -671,6 +717,7 @@ The drawer menu is organized into logical sections:
    - Inventory - Track household items
    - Archive - View archived items
    - History - Completion analytics
+   - Events - Manage partner events and availability
 5. **Settings Section**
    - Settings - App preferences
    - Partner Sharing - Link with partner
