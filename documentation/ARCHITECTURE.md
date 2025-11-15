@@ -287,9 +287,19 @@ This allows seamless switching between personal and shared modes.
 **Screens:** HomeScreen  
 **Features:**
 - Welcome screen with app branding
-- Quick access cards for Tasks and Shopping List
+- Quick access cards for all major features:
+  - Daily Tasks (large card) - See today's and upcoming tasks
+  - Task Planning (small card) - Calendar view for planning
+  - Add Task (small card) - Quick task creation
+  - Shopping List (large card) - Manage shopping items
+  - Inventory (small card) - Track household items
+  - History (small card) - View completion statistics
 - Direct navigation to most-used features without opening drawer
-- Clean, modern UI with card-based design
+- Clean, modern UI with flexible card-based design
+- ScrollView support for better mobile experience
+- Robust navigation with error handling
+- Cards organized in rows: large cards take full width, small cards are side-by-side
+- Each card has distinct color scheme for visual clarity
 - Serves as the initial route for authenticated users
 
 ### 1. **Task Management** (Renovated)
@@ -842,6 +852,7 @@ const styles = StyleSheet.create({
 - [CODE_REVIEW_AND_IMPROVEMENTS.md](./CODE_REVIEW_AND_IMPROVEMENTS.md) - Detailed improvement suggestions
 - [CONVERSION_SUMMARY.md](./CONVERSION_SUMMARY.md) - Web to React Native conversion notes
 - [HISTORY_SYSTEM_README.md](./HISTORY_SYSTEM_README.md) - History feature documentation
+- [HOME_SCREEN_REDESIGN.md](./HOME_SCREEN_REDESIGN.md) - Home screen redesign documentation (November 2024)
 - [README.md](../README.md) - Project overview
 
 ---
@@ -888,4 +899,15 @@ const styles = StyleSheet.create({
 3. **Better Organization**: Tasks grouped by urgency automatically
 4. **Flexibility**: Both templates and individual tasks are editable
 5. **Notifications**: Never miss a task with automatic reminders
+
+### Home Screen Redesign (November 2024)
+- **Complete Redesign**: Rebuilt from scratch with focus on robustness and proper navigation
+- **6 Quick Access Cards**: Daily Tasks, Task Planning, Add Task, Shopping List, Inventory, History
+- **Flexible Layout**: Large cards for primary features, small cards for secondary actions
+- **Modern Card Design**: Horizontal card layout with icons, descriptions, and visual hierarchy
+- **ScrollView Support**: Scrollable content for better mobile experience
+- **Proper Navigation**: Navigates to correct modern screens (DailyTasks, TaskPlanning) instead of outdated Dashboard
+- **Error Handling**: Robust navigation with try-catch error handling
+- **Visual Clarity**: Each card has unique color scheme matching app's design system
+- **Data-Driven**: Cards defined in configuration array for easy maintenance
 

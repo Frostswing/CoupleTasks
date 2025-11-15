@@ -97,7 +97,9 @@
         "welcome": "Welcome to CoupleTasks",
         "subtitle": "Manage your tasks and shopping together",
         "tasksDescription": "View and manage your tasks",
-        "shoppingDescription": "Manage your shopping list"
+        "shoppingDescription": "Manage your shopping list",
+        "addShoppingItem": "Add Shopping Item",
+        "addShoppingItemDescription": "Quickly add item to list"
     },
     "dashboard": {
         "welcomeBack": "Welcome back,",

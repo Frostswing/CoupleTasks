@@ -27,7 +27,7 @@ import { pickImage, uploadImage } from "../services/imageService";
 
 const { width } = Dimensions.get('window');
 
-export default function ShoppingListScreen({ navigation }) {
+export default function ShoppingListScreen({ navigation, route }) {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -51,7 +51,15 @@ export default function ShoppingListScreen({ navigation }) {
   useEffect(() => {
     loadData(true); // Show loading on initial mount
     checkAutoAddItems();
-  }, []);
+    
+    // Check if we should auto-open add dialog (from home screen shortcut)
+    if (route?.params?.openAddDialog) {
+      // Small delay to ensure screen is fully loaded
+      setTimeout(() => {
+        setShowAddDialog(true);
+      }, 300);
+    }
+  }, [route?.params?.openAddDialog]);
 
   // Refresh data when screen comes into focus (e.g., after returning from shopping mode)
   // Don't show loading indicator on refresh to avoid flashing
