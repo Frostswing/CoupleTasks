@@ -133,12 +133,14 @@ CoupleTasks/
     │   └── TasksScreen.js        # Tasks screen (legacy?)
     │
     └── services/                  # Business logic services
+        ├── dataSourceCache.js    # Data source caching (5 min expiry)
         ├── eventNotificationService.js # Event notifications (expo-notifications)
         ├── googleAuthService.js   # Google authentication
         ├── historyService.js     # Task history tracking
         ├── imageService.js       # Image picker and Firebase Storage upload
         ├── notificationService.js # Task notifications (expo-notifications)
         ├── shoppingListService.js # Shopping list operations
+        ├── taskCache.js          # Task caching service (AsyncStorage, 5 min expiry)
         ├── taskGenerationService.js # Auto-generate tasks from templates
         ├── taskSchedulingService.js # Task scheduling and date calculations
         ├── taskService.js        # Task operations (deprecated)
@@ -171,13 +173,32 @@ Screen Component
                  └─> Firebase Realtime Database
 ```
 
-### Real-time Data Sync
+### Real-time Data Sync with Caching
 ```
-Entity.onSnapshot(callback)
-  └─> Firebase onValue listener
-       └─> Auto-update component state
-            └─> Re-render UI
+Screen Component
+  ├─> Load cached data (AsyncStorage) → Instant display
+  └─> Entity.onSnapshot(callback)
+       └─> Firebase onValue listener
+            ├─> Update cache with fresh data
+            └─> Auto-update component state
+                 └─> Re-render UI
 ```
+
+### Caching Strategy
+- **Task Cache:** AsyncStorage-based cache with incremental sync
+  - Loads cached tasks immediately on screen mount for instant display
+  - **Incremental Sync:** Only fetches tasks that have changed since last sync
+    - Checks `hasUpdatesSince()` before fetching
+    - If no updates, skips fetch entirely (uses cache)
+    - If updates exist, fetches only updated tasks using `getUpdatedSince()`
+    - Merges updated tasks with cached tasks
+  - Updates cache when fresh data arrives from Firebase
+  - Clears cache on task modifications (create/update/delete)
+  - Tracks last sync timestamp per user
+  - Cache key: `@task_cache_{userId}`, Last sync: `@task_last_sync_{userId}`
+- **DataSource Cache:** In-memory cache with 5-minute expiry
+  - Prevents repeated calls to getDataSource()
+  - Cache key: userId
 
 ---
 
@@ -834,14 +855,26 @@ The drawer menu is organized into logical sections:
 
 ## 📊 Performance Considerations
 
+### Caching Implementation
+- **Task Caching:** Implemented AsyncStorage-based caching with incremental sync
+  - Reduces initial load time by showing cached data immediately
+  - **Smart Sync:** Only fetches tasks that have changed since last sync
+    - Checks for updates before fetching (avoids unnecessary network calls)
+    - Fetches only updated tasks, not all tasks
+    - Merges updates with cached data efficiently
+  - Cache expires after 5 minutes to balance freshness and performance
+  - Automatically invalidated on task modifications
+  - Significantly improves perceived performance, especially on slow networks
+  - Reduces bandwidth usage and Firebase read operations
+
 ### Current Issues
-1. Auto-refresh polling (30s intervals)
+1. ~~Auto-refresh polling (30s intervals)~~ ✅ Replaced with real-time listeners
 2. Fetching all data then filtering in-memory
 3. Multiple state updates causing re-renders
 4. No code splitting or lazy loading
 
 ### Optimization Strategies
-1. Replace polling with real-time listeners
+1. ~~Replace polling with real-time listeners~~ ✅ Implemented
 2. Use Firebase queries for server-side filtering
 3. Implement `useMemo` and `useCallback` where appropriate
 4. Add pagination for large lists
@@ -975,7 +1008,7 @@ const styles = StyleSheet.create({
 ### Long Term
 1. Microservices architecture for backend
 2. GraphQL API layer
-3. Advanced caching strategy
+3. ~~Advanced caching strategy~~ ✅ Implemented (taskCache.js)
 4. Real-time collaboration features
 5. AI-powered task suggestions
 
