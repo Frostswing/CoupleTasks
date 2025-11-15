@@ -542,6 +542,19 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Real-time sync between partners
 - Remove sharing relationship
 
+### 4.1. **User Authentication Service**
+**Service:** userService  
+**Functions:**
+- `registerUser(email, password, name)` - Register new user with email/password
+- `loginUser(email, password)` - Sign in existing user
+- `logoutUser()` - Sign out current user
+- `resetPassword(email)` - Send password reset email via Firebase Auth
+  - Validates email format
+  - Uses Firebase `sendPasswordResetEmail`
+  - Returns success/error status
+- `subscribeToAuthChanges(callback)` - Listen to auth state changes
+- `getCurrentUser()` - Get currently authenticated user
+
 ### 5. **Archive**
 **Screens:** ArchiveScreen  
 **Features:**
@@ -677,34 +690,107 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Hebrew (עברית) - RTL
 - English - LTR
 
-### 9. **Web Interface** (NEW)
+### 9. **Web Interface** (NEW - Complete Feature Set)
 **Location:** `/web-interface/`  
 **Technology:** React 18, Vite, Docker, Nginx  
-**Components:** Login, Register, Dashboard
+**Components:** 
+- Login, Register, Dashboard
+- TaskTemplates (with Excel-like table editor)
+- Tasks (list view with filters)
+- TaskPlanning (calendar view)
+- ShoppingList
+- Inventory
+- Archive
+- Events
+- Management (statistics dashboard)
 
 **Features:**
-- **User Authentication:**
-  - Login with email/password
-  - Registration with full name
-  - Firebase Auth integration (same project as mobile app)
-- **Profile Management:**
-  - View user profile (email, name, language, partner email)
-  - Edit profile information
-  - Real-time profile updates via Firebase Realtime Database
-  - Profile creation on first login
-- **Deployment:**
-  - Docker containerized application
-  - Docker Compose for easy deployment
-  - Nginx web server for production
-  - Optimized build with Vite
-  - Static asset caching
+
+#### User Authentication
+- Login with email/password
+- Registration with full name
+- Forgot Password functionality
+  - Password reset via email
+  - Email validation
+  - Success/error messaging
+- Firebase Auth integration (same project as mobile app)
+
+#### Profile Management
+- View user profile (email, name, language, partner email)
+- Edit profile information
+- Real-time profile updates via Firebase Realtime Database
+- Profile creation on first login
+
+#### Task Templates (Excel-like Table Editor) ⭐
+- **Table View:** Excel-like spreadsheet interface for managing templates
+  - Add/edit/delete templates directly in table cells
+  - All template fields editable: name, description, category, frequency, assignment, duration, priority, etc.
+  - Inline editing with save/cancel actions
+  - Real-time synchronization with Firebase
+- **List View:** Card-based view of all templates
+- **Features:**
+  - Create multiple templates quickly by adding rows
+  - Bulk operations (save all, delete multiple)
+  - Visual indicators for active/inactive templates
+  - Auto-generation toggle per template
+  - Frequency types: daily, weekly, times per week, monthly, custom
+
+#### Task Management
+- **Tasks List:** View all tasks with filtering
+  - Filter by status (all, pending, completed, overdue)
+  - Filter by category
+  - Complete/delete tasks
+  - View task details (due date, assignment, duration, etc.)
+- **Task Planning:** Calendar view
+  - Monthly calendar display
+  - Tasks shown on their due dates
+  - Visual indicators for task priority
+  - Navigate between months
+  - Today highlighting
+
+#### Shopping List
+- Add items with quantity
+- Mark items as purchased
+- Delete items
+- Real-time synchronization
+
+#### Inventory
+- Track household items
+- Set current amounts
+- Update quantities inline
+- Low stock indicators
+
+#### Archive
+- View completed tasks
+- View purchased shopping items
+- Tabbed interface for different archive types
+- Filter by date and type
+
+#### Events
+- Create events with date and time
+- View all events in card layout
+- Delete events
+- Event status tracking
+
+#### Management & Statistics
+- Comprehensive task analytics
+- Partner statistics
+- Category breakdowns
+- Completion rates
 
 **Routes:**
 - `/` - Redirects to login or dashboard
 - `/login` - User login page
 - `/register` - User registration page
-- `/dashboard` - User profile management dashboard
-- `/management` - Management and statistics dashboard (task analytics)
+- `/dashboard` - Main dashboard with feature navigation
+- `/task-templates` - Task templates with Excel-like table editor ⭐
+- `/tasks` - Tasks list view
+- `/task-planning` - Calendar planning view
+- `/shopping-list` - Shopping list management
+- `/inventory` - Inventory tracking
+- `/archive` - Archive viewer
+- `/events` - Events management
+- `/management` - Management and statistics dashboard
 
 **Usage:**
 ```bash
@@ -718,9 +804,17 @@ docker compose up --build
 **Architecture:**
 - React Router DOM for client-side routing
 - Firebase Auth for authentication
-- Firebase Realtime Database for profile data
+- Firebase Realtime Database for all data
+- Web-compatible entity classes (Task, TaskTemplate, ShoppingListItem, etc.)
 - Real-time listeners for live updates
 - Protected routes (redirects to login if not authenticated)
+- Responsive design for desktop and mobile browsers
+
+**Key Web-Specific Features:**
+- **Excel-like Table Editor:** The most important feature - allows users to fill in task templates row by row in a spreadsheet-like interface, making it easy to bulk-create templates with all their features
+- **Desktop-Optimized UI:** Larger screens allow for better table editing and data visualization
+- **Real-time Sync:** All changes sync in real-time with Firebase, same as mobile app
+- **Shared Data:** Uses same Firebase project, so data is shared between web and mobile interfaces
 
 ---
 
@@ -730,7 +824,11 @@ docker compose up --build
 1. **Email/Password** (Firebase Auth)
    - Registration with full name
    - Login
-   - Password reset (planned)
+   - Password reset (Forgot Password)
+     - Available on both mobile app and web interface
+     - Sends password reset email via Firebase Auth
+     - Email validation before sending reset link
+     - Success/error feedback to user
 
 2. **Google Sign-In** (Requires Dev Build)
    - Currently shows info message in Expo Go

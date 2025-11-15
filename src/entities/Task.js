@@ -45,6 +45,7 @@ export class Task {
     this.defer_until = data.defer_until || null;
     this.completed_by = data.completed_by || null;
     this.notification_offset_hours = data.notification_offset_hours || 6; // Default 6 hours before
+    this.selected_days = data.selected_days || null; // Array of day numbers (0-6, 0=Sunday) for specific days of week
   }
 
   static async create(taskData) {

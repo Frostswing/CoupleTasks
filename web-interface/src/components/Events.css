@@ -1,0 +1,103 @@
+.events-page {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.add-event-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    flex-wrap: wrap;
+}
+
+.event-input {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.event-input:first-child {
+    flex: 1;
+    min-width: 200px;
+}
+
+.events-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 15px;
+}
+
+.event-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.event-header h3 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 18px;
+}
+
+.event-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.event-description {
+    margin: 10px 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.badge.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.badge.status-accepted {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .events-page {
+        padding: 15px;
+    }
+
+    .add-event-form {
+        flex-direction: column;
+    }
+
+    .event-input {
+        width: 100%;
+    }
+
+    .events-list {
+        grid-template-columns: 1fr;
+    }
+}

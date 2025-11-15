@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
 import { auth } from '../firebase/config'
 import './Auth.css'
 
@@ -21,6 +21,33 @@ function Login() {
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Failed to sign in')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first')
+      return
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    setError('')
+    setLoading(true)
+
+    try {
+      await sendPasswordResetEmail(auth, email)
+      setError('')
+      alert('Password reset email sent! Please check your inbox.')
+    } catch (err) {
+      setError(err.message || 'Failed to send password reset email')
     } finally {
       setLoading(false)
     }
@@ -68,6 +95,11 @@ function Login() {
 
         <div className="auth-footer">
           <p>
+            <a href="#" onClick={(e) => { e.preventDefault(); handleForgotPassword(); }} style={{ color: '#667eea', textDecoration: 'none', fontWeight: 600 }}>
+              Forgot Password?
+            </a>
+          </p>
+          <p style={{ marginTop: '10px' }}>
             Don't have an account? <Link to="/register">Sign up</Link>
           </p>
         </div>

@@ -61,7 +61,9 @@
         "registrationSuccess": "הרשמה בוצעה בהצלחה",
         "loginError": "שגיאה בהתחברות",
         "registrationError": "שגיאה בהרשמה",
-        "logoutSuccess": "התנתקות בוצעה בהצלחה"
+        "logoutSuccess": "התנתקות בוצעה בהצלחה",
+        "enterEmailForReset": "אנא הזן כתובת דוא\"ל תחילה",
+        "passwordResetEmailSent": "אימייל לאיפוס סיסמה נשלח! אנא בדוק את תיבת הדואר הנכנס שלך."
     },
     "navigation": {
         "tasks": "מטלות",

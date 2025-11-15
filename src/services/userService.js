@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import {
   ref,
@@ -196,6 +197,24 @@ export const logoutUser = async () => {
     return { success: true };
   } catch (error) {
     console.error("שגיאה ביציאה מהמערכת:", error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * שליחת אימייל לאיפוס סיסמה
+ * @param {string} email - אימייל המשתמש
+ * @returns {Promise} - הבטחה שמתרחשת עם סיום הפעולה
+ */
+export const resetPassword = async (email) => {
+  try {
+    // וודא שהאימות מוכן
+    await waitForAuth();
+
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (error) {
+    console.error("שגיאה בשליחת אימייל לאיפוס סיסמה:", error);
     return { success: false, error };
   }
 };

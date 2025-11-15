@@ -85,7 +85,9 @@ const styles = StyleSheet.create({
   optionButtonMultiColumn: {
     flex: 1,
     minWidth: "48%",
+    maxWidth: "48%",
     marginRight: 8,
+    marginBottom: 8,
   },
   optionContent: {
     flexDirection: "row",

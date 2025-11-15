@@ -109,10 +109,10 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
       }
     }
 
-    // Validate selected_days for times_per_week
-    if (formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7) {
-      if (!formData.selected_days || formData.selected_days.length !== formData.frequency_interval) {
-        Alert.alert('Validation Error', `Please select exactly ${formData.frequency_interval} day${formData.frequency_interval !== 1 ? 's' : ''} of the week.`);
+    // Validate selected_days for times_per_week (only if days are selected)
+    if (formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7 && formData.selected_days) {
+      if (formData.selected_days.length !== formData.frequency_interval) {
+        Alert.alert('Validation Error', `Please select exactly ${formData.frequency_interval} day${formData.frequency_interval !== 1 ? 's' : ''} of the week, or leave days unselected.`);
         return;
       }
     }
@@ -284,71 +284,77 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           />
         )}
 
-        {/* Day selector for times_per_week (2-7 times) */}
-        {formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7 && (
-          <View style={styles.section}>
-            <Text style={styles.label}>Select Days of Week</Text>
-            <Text style={styles.subLabel}>Choose {formData.frequency_interval} day{formData.frequency_interval !== 1 ? 's' : ''} per week</Text>
-            <View style={styles.daysContainer}>
-              {[
-                { day: 0, label: 'Sun' },
-                { day: 1, label: 'Mon' },
-                { day: 2, label: 'Tue' },
-                { day: 3, label: 'Wed' },
-                { day: 4, label: 'Thu' },
-                { day: 5, label: 'Fri' },
-                { day: 6, label: 'Sat' },
-              ].map(({ day, label }) => {
-                const isSelected = formData.selected_days && formData.selected_days.includes(day);
-                const canSelect = !formData.selected_days || formData.selected_days.length < formData.frequency_interval || isSelected;
-                
-                return (
-                  <TouchableOpacity
-                    key={day}
-                    style={[
-                      styles.dayButton,
-                      isSelected && styles.dayButtonSelected,
-                      !canSelect && styles.dayButtonDisabled
-                    ]}
-                    onPress={() => {
-                      if (!canSelect) return;
-                      
-                      const currentDays = formData.selected_days || [];
-                      let newDays;
-                      
-                      if (isSelected) {
-                        // Deselect day
-                        newDays = currentDays.filter(d => d !== day);
+        {/* Day selector for all frequency types */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Select Days of Week (Optional)</Text>
+          <Text style={styles.subLabel}>
+            {formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7
+              ? `Choose ${formData.frequency_interval} day${formData.frequency_interval !== 1 ? 's' : ''} per week`
+              : 'Select specific days for this template'}
+          </Text>
+          <View style={styles.daysContainer}>
+            {[
+              { day: 0, label: 'Sun' },
+              { day: 1, label: 'Mon' },
+              { day: 2, label: 'Tue' },
+              { day: 3, label: 'Wed' },
+              { day: 4, label: 'Thu' },
+              { day: 5, label: 'Fri' },
+              { day: 6, label: 'Sat' },
+            ].map(({ day, label }) => {
+              const isSelected = formData.selected_days && formData.selected_days.includes(day);
+              // For times_per_week with specific interval, enforce limit; otherwise allow any selection
+              const isTimesPerWeek = formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7;
+              const canSelect = !isTimesPerWeek || !formData.selected_days || formData.selected_days.length < formData.frequency_interval || isSelected;
+              
+              return (
+                <TouchableOpacity
+                  key={day}
+                  style={[
+                    styles.dayButton,
+                    isSelected && styles.dayButtonSelected,
+                    !canSelect && styles.dayButtonDisabled
+                  ]}
+                  onPress={() => {
+                    if (!canSelect) return;
+                    
+                    const currentDays = formData.selected_days || [];
+                    let newDays;
+                    
+                    if (isSelected) {
+                      // Deselect day
+                      newDays = currentDays.filter(d => d !== day);
+                    } else {
+                      // Select day
+                      if (isTimesPerWeek && currentDays.length >= formData.frequency_interval) {
+                        // For times_per_week, replace if at max
+                        newDays = [day];
                       } else {
-                        // Select day (replace if already at max)
-                        if (currentDays.length >= formData.frequency_interval) {
-                          newDays = [day]; // Replace with just this day
-                        } else {
-                          newDays = [...currentDays, day];
-                        }
+                        // Otherwise, just add
+                        newDays = [...currentDays, day];
                       }
-                      
-                      handleInputChange('selected_days', newDays.length > 0 ? newDays : null);
-                    }}
-                    disabled={!canSelect}
-                  >
-                    <Text style={[
-                      styles.dayButtonText,
-                      isSelected && styles.dayButtonTextSelected
-                    ]}>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            {formData.selected_days && formData.selected_days.length !== formData.frequency_interval && (
-              <Text style={styles.warningText}>
-                Please select exactly {formData.frequency_interval} day{formData.frequency_interval !== 1 ? 's' : ''}
-              </Text>
-            )}
+                    }
+                    
+                    handleInputChange('selected_days', newDays.length > 0 ? newDays : null);
+                  }}
+                  disabled={!canSelect}
+                >
+                  <Text style={[
+                    styles.dayButtonText,
+                    isSelected && styles.dayButtonTextSelected
+                  ]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        )}
+          {formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7 && formData.selected_days && formData.selected_days.length !== formData.frequency_interval && (
+            <Text style={styles.warningText}>
+              Please select exactly {formData.frequency_interval} day{formData.frequency_interval !== 1 ? 's' : ''}
+            </Text>
+          )}
+        </View>
 
         {renderPickerModal(
           'Select Frequency',

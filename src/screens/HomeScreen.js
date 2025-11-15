@@ -76,6 +76,16 @@ export default function HomeScreen({ navigation }) {
       size: "small",
     },
     {
+      id: "shoppingMode",
+      title: i18n.t("navigation.drawer.shoppingMode"),
+      description: "Guided shopping flow",
+      icon: "shopping-bag",
+      color: "#7C3AED",
+      backgroundColor: "#EDE9FE",
+      screen: "ShoppingMode",
+      size: "small",
+    },
+    {
       id: "inventory",
       title: i18n.t("navigation.drawer.inventory"),
       description: "Track household items",
@@ -83,7 +93,7 @@ export default function HomeScreen({ navigation }) {
       color: "#16A34A",
       backgroundColor: "#DCFCE7",
       screen: "Inventory",
-      size: "small",
+      size: "large",
     },
     {
       id: "history",
@@ -121,6 +131,7 @@ export default function HomeScreen({ navigation }) {
 
   const renderCard = (action) => {
     const isLarge = action.size === "large";
+    const isInventory = action.id === "inventory";
     return (
       <TouchableOpacity
         key={action.id}
@@ -131,7 +142,7 @@ export default function HomeScreen({ navigation }) {
         onPress={() => handleNavigate(action.screen, action.params)}
         activeOpacity={0.7}
       >
-        {isLarge ? (
+        {isLarge && !isInventory ? (
           // Large card layout: centered icon and content with gradient
           <LinearGradient
             colors={["#EC4899", "#F472B6", "#A78BFA", "#8B5CF6"]}
@@ -162,6 +173,31 @@ export default function HomeScreen({ navigation }) {
               <Icon name="arrow-forward" size={20} color="#FFFFFF" />
             </View>
           </LinearGradient>
+        ) : isLarge && isInventory ? (
+          // Large card layout without gradient for inventory
+          <>
+            <View style={styles.cardLargeContainer}>
+              <View
+                style={[
+                  styles.cardIconContainer,
+                  { backgroundColor: action.backgroundColor },
+                ]}
+              >
+                <Icon name={action.icon} size={48} color={action.color} />
+              </View>
+              <View style={styles.cardContentLarge}>
+                <Text style={styles.cardTitleLarge} numberOfLines={2}>
+                  {action.title}
+                </Text>
+                <Text style={styles.cardDescriptionLarge} numberOfLines={2}>
+                  {action.description}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.cardArrow}>
+              <Icon name="arrow-forward" size={20} color={action.color} />
+            </View>
+          </>
         ) : (
           // Small card layout: original layout
           <>
@@ -232,20 +268,25 @@ export default function HomeScreen({ navigation }) {
             {renderCard(quickActions[4])}
           </View>
 
-          {/* Fourth Row - Shopping List + Inventory */}
+          {/* Fourth Row - Shopping List + Shopping Mode */}
           <View style={styles.row}>
             {renderCard(quickActions[5])}
             {renderCard(quickActions[6])}
           </View>
 
-          {/* Fifth Row - History */}
+          {/* Fifth Row - Inventory (Large, Full Width) */}
           <View style={styles.row}>
             {renderCard(quickActions[7])}
           </View>
 
-          {/* Sixth Row - Management (Large, Full Width) */}
+          {/* Sixth Row - History */}
           <View style={styles.row}>
             {renderCard(quickActions[8])}
+          </View>
+
+          {/* Seventh Row - Management (Large, Full Width) */}
+          <View style={styles.row}>
+            {renderCard(quickActions[9])}
           </View>
         </View>
       </ScrollView>
