@@ -71,7 +71,26 @@
         "archive": "ארכיון",
         "settings": "הגדרות",
         "profile": "פרופיל",
-        "sharing": "שיתוף רשימות"
+        "sharing": "שיתוף רשימות",
+        "language": "שפה",
+        "drawer": {
+            "home": "בית",
+            "dailyTasks": "מטלות יומיות",
+            "taskPlanning": "תכנון מטלות",
+            "taskTemplates": "תבניות מטלות",
+            "allTasks": "כל המטלות",
+            "addTask": "הוספת מטלה",
+            "shoppingList": "רשימת קניות",
+            "shoppingMode": "מצב קניות",
+            "inventory": "מלאי",
+            "archive": "ארכיון",
+            "history": "היסטוריה",
+            "settings": "הגדרות",
+            "sharing": "שיתוף שותף",
+            "language": "שפה",
+            "profile": "פרופיל",
+            "signOut": "התנתקות"
+        }
     },
     "home": {
         "title": "בית",

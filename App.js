@@ -19,9 +19,14 @@ import {
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DrawerNavigator from "./src/navigation/DrawerNavigator";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AuthScreen from "./src/screens/AuthScreen";
 import LanguageSelectionScreen from "./src/screens/LanguageSelectionScreen";
 import { subscribeToAuthChanges } from "./src/services/userService";
 import { loadLanguagePreference } from "./src/localization/i18n";
+import i18n from "./src/localization/i18n";
+
+const Stack = createNativeStackNavigator();
 
 // התעלמות משגיאות ידועות שקשורות ל-Firebase
 LogBox.ignoreLogs([
@@ -147,9 +152,36 @@ export default function App() {
     );
   }
 
+  // Root Navigator - shows DrawerNavigator for authenticated users, Auth stack for unauthenticated
+  const RootNavigator = () => {
+    if (!user) {
+      return (
+        <Stack.Navigator
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: "#8B5CF6",
+            },
+            headerTintColor: "#fff",
+            headerTitleStyle: {
+              fontWeight: "bold",
+            },
+          }}
+        >
+          <Stack.Screen
+            name="Auth"
+            component={AuthScreen}
+            options={{ title: i18n.t("auth.signIn") }}
+          />
+        </Stack.Navigator>
+      );
+    }
+
+    return <DrawerNavigator />;
+  };
+
   return (
     <NavigationContainer>
-      <DrawerNavigator />
+      <RootNavigator />
       <StatusBar style="auto" />
     </NavigationContainer>
   );

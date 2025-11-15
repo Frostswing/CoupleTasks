@@ -11,7 +11,7 @@ CoupleTasks is a React Native mobile application built with Expo, designed to he
 - **Framework:** React Native (0.79.5)
 - **Platform:** Expo (~53.0.8)
 - **Language:** JavaScript (ES6+)
-- **Navigation:** React Navigation 7 with Drawer Navigator
+- **Navigation:** React Navigation 7 (Drawer Navigator with nested Stack Navigator)
 - **State Management:** React Hooks (useState, useEffect, useCallback, useReducer)
 - **UI Components:** Native React Native components
 - **Icons:** react-native-vector-icons (Material Icons)
@@ -107,7 +107,8 @@ CoupleTasks/
     │       └── he.json           # Hebrew translations
     │
     ├── navigation/                # Navigation configuration
-    │   └── DrawerNavigator.js    # Main drawer navigation setup
+    │   ├── DrawerNavigator.js     # Main drawer navigator with organized menu
+    │   └── PlaceholderNavigator.js # Legacy placeholder (deprecated)
     │
     ├── screens/                   # Screen components
     │   ├── HomeScreen.js         # Home screen with quick access
@@ -147,7 +148,7 @@ App.js
   ├─> Check Firebase Status
   └─> Subscribe to Auth Changes
        ├─> No User → LanguageSelectionScreen → AuthScreen
-       └─> User Exists → DrawerNavigator → HomeScreen
+       └─> User Exists → PlaceholderNavigator → HomeScreen
 ```
 
 ### Data Access Pattern (Active Record)
@@ -537,20 +538,72 @@ useEffect(() => {
   - Round: 20-24px
 
 ### Navigation Pattern
-**Drawer Navigator** (right-side for RTL support)
-- **Home** (initial route) - Quick access to Tasks and Shopping
-- **Daily Tasks** (NEW) - Simple daily task view
-- Dashboard (Tasks view - Legacy)
-- **Task Planning** (NEW) - Calendar planning view
-- **Task Templates** (NEW) - Template management
-- Add Task
-- Shopping List
-- Shopping Mode
-- Inventory
-- Archive
-- Settings
-- Language
-- Profile/Auth
+**Drawer Navigation with Nested Stack Navigator**
+
+The app uses a Drawer Navigator (`DrawerNavigator.js`) that wraps a Stack Navigator for authenticated users. The drawer provides organized access to all screens with a custom-designed menu.
+
+#### Navigation Structure
+```
+NavigationContainer (App.js)
+├── Unauthenticated: Stack Navigator (Auth screen only)
+└── Authenticated: Drawer Navigator
+    └── Stack Navigator (all authenticated screens)
+        ├── Home
+        ├── Daily Tasks
+        ├── Task Planning
+        ├── Task Templates
+        ├── Dashboard (All Tasks)
+        ├── Add Task
+        ├── Shopping List
+        ├── Shopping Mode
+        ├── Inventory
+        ├── Archive
+        ├── History
+        ├── Settings
+        ├── Sharing
+        ├── Language
+        └── Auth (Profile)
+```
+
+#### Drawer Menu Organization
+The drawer menu is organized into logical sections:
+
+1. **Home** - Quick access to main screen
+2. **Tasks Section**
+   - Daily Tasks - Today and upcoming tasks
+   - Task Planning - Calendar view
+   - Task Templates - Template management
+   - All Tasks - Full task dashboard
+   - Add Task - Quick task creation
+3. **Shopping Section**
+   - Shopping List - Manage items
+   - Shopping Mode - Guided shopping flow
+4. **Other Features**
+   - Inventory - Track household items
+   - Archive - View archived items
+   - History - Completion analytics
+5. **Settings Section**
+   - Settings - App preferences
+   - Partner Sharing - Link with partner
+   - Language - Language selection
+   - Profile - User profile and auth
+
+#### Drawer Features
+- **Custom Drawer Content**: Beautiful custom-designed drawer with sections, icons, and active state highlighting
+- **User Info**: Shows user email in drawer header
+- **Sign Out**: Sign out button in drawer footer with confirmation dialog
+- **Active State**: Highlights currently active screen
+- **Material Icons**: Uses Material Icons for all menu items
+- **Internationalization**: All drawer labels support English and Hebrew
+
+#### Navigation Implementation Notes
+- Drawer Navigator wraps a Stack Navigator for authenticated users
+- Unauthenticated users see only the Auth screen (no drawer)
+- All screens are accessible via drawer menu items
+- Screens can be navigated to programmatically using `navigation.navigate()`
+- Drawer can be opened via hamburger menu button in header
+- Sign out triggers auth state change, which automatically switches to Auth stack
+- Navigation state properly tracks active screen for drawer highlighting
 
 ### Component Patterns
 1. **Screen Components** - Full-page views
@@ -634,7 +687,12 @@ useEffect(() => {
 ### External Services (Planned)
 - Analytics (Firebase Analytics / Mixpanel)
 - Error Tracking (Sentry)
-- Push Notifications (Firebase Cloud Messaging)
+- Push Notifications (Firebase Cloud Messaging) - Currently using local scheduled notifications
+
+### Notifications
+- **Current:** Local scheduled notifications via `expo-notifications`
+- **Limitation:** Push notifications not supported in Expo Go (requires development build)
+- **See:** [NOTIFICATIONS.md](./NOTIFICATIONS.md) for setup instructions
 
 ---
 
