@@ -66,6 +66,7 @@
     "navigation": {
         "tasks": "מטלות",
         "addTask": "הוספת מטלה",
+        "taskTable": "טבלת מטלות",
         "shoppingList": "רשימת קניות",
         "inventory": "מלאי",
         "archive": "ארכיון",
@@ -78,6 +79,7 @@
             "dailyTasks": "מטלות יומיות",
             "taskPlanning": "תכנון מטלות",
             "taskTemplates": "תבניות מטלות",
+            "taskTable": "טבלת מטלות",
             "allTasks": "כל המטלות",
             "addTask": "הוספת מטלה",
             "shoppingList": "רשימת קניות",

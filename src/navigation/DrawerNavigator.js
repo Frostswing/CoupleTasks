@@ -20,6 +20,7 @@ import DashboardScreen from "../screens/DashboardScreen";
 import DailyTasksScreen from "../screens/Tasks/DailyTasksScreen";
 import TaskPlanningScreen from "../screens/Tasks/TaskPlanningScreen";
 import TaskTemplatesScreen from "../screens/Tasks/TaskTemplatesScreen";
+import TaskTableScreen from "../screens/TaskTableScreen";
 import AddTaskScreen from "../screens/AddTaskScreen";
 import ShoppingListScreen from "../screens/ShoppingListScreen";
 import ShoppingModeScreen from "../screens/ShoppingModeScreen";
@@ -81,6 +82,11 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
         name="TaskTemplates"
         component={TaskTemplatesScreen}
         options={{ title: i18n.t("navigation.drawer.taskTemplates") }}
+      />
+      <Stack.Screen
+        name="TaskTable"
+        component={TaskTableScreen}
+        options={{ title: i18n.t("navigation.drawer.taskTable") }}
       />
       <Stack.Screen
         name="AddTask"
@@ -218,6 +224,12 @@ const CustomDrawerContent = (props) => {
           label: i18n.t("navigation.drawer.taskTemplates"),
           icon: "content-copy",
           screen: "TaskTemplates",
+        },
+        {
+          name: "TaskTable",
+          label: i18n.t("navigation.drawer.taskTable"),
+          icon: "table-chart",
+          screen: "TaskTable",
         },
         {
           name: "Dashboard",

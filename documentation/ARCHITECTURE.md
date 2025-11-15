@@ -91,6 +91,7 @@ CoupleTasks/
     │   ├── ShoppingListItem.js   # Shopping list item model
     │   ├── Task.js               # Task model (enhanced with template support)
     │   ├── TaskTemplate.js       # Task template model
+    │   ├── TaskTableConfig.js    # Task table configuration model
     │   └── User.js               # User model (partial implementation)
     │
     ├── firebase/                  # Firebase configuration and utilities
@@ -123,6 +124,7 @@ CoupleTasks/
     │   ├── SharingScreen.js      # Partner linking
     │   ├── ShoppingListScreen.js # Shopping list management
     │   ├── ShoppingModeScreen.js # Shopping mode
+    │   ├── TaskTableScreen.js    # Task table management and Excel import
     │   └── TasksScreen.js        # Tasks screen (legacy?)
     │
     └── services/                  # Business logic services
@@ -134,6 +136,8 @@ CoupleTasks/
         ├── taskGenerationService.js # Auto-generate tasks from templates
         ├── taskSchedulingService.js # Task scheduling and date calculations
         ├── taskService.js        # Task operations (deprecated)
+        ├── taskTableSyncService.js # Sync task table to templates and tasks
+        ├── excelImportService.js # Import and parse Excel task tables
         └── userService.js        # User operations
 ```
 
@@ -236,11 +240,27 @@ firebase-root/
 │       │       ├── generation_offset          # Days before due date
 │       │       ├── notification_offset_hours # Hours before task
 │       │       ├── room_location
-│       │       ├── is_active                 # Active template?
-│       │       ├── created_by
-│       │       ├── created_date
-│       │       └── updated_date
-│       ├── shopping_list_items/   # Personal shopping list
+        │       │       ├── is_active                 # Active template?
+        │       │       ├── created_by
+        │       │       ├── created_date
+        │       │       └── updated_date
+        │       ├── task_table_config/     # NEW: Task table configuration
+        │       │   └── {configId}/
+        │       │       ├── category
+        │       │       ├── subcategory
+        │       │       ├── task_name
+        │       │       ├── current_frequency
+        │       │       ├── current_duration
+        │       │       ├── current_performer
+        │       │       ├── planned_frequency
+        │       │       ├── planned_duration
+        │       │       ├── planned_performer
+        │       │       ├── is_synced
+        │       │       ├── last_sync_date
+        │       │       ├── created_by
+        │       │       ├── created_date
+        │       │       └── updated_date
+        │       ├── shopping_list_items/   # Personal shopping list
 │       │   └── {itemId}/
 │       │       ├── name
 │       │       ├── category
@@ -291,6 +311,7 @@ This allows seamless switching between personal and shared modes.
   - Daily Tasks (large card) - See today's and upcoming tasks
   - Task Planning (small card) - Calendar view for planning
   - Add Task (small card) - Quick task creation
+  - Task Table (optional) - Bulk task management via Excel
   - Shopping List (large card) - Manage shopping items
   - Inventory (small card) - Track household items
   - History (small card) - View completion statistics
@@ -301,6 +322,35 @@ This allows seamless switching between personal and shared modes.
 - Cards organized in rows: large cards take full width, small cards are side-by-side
 - Each card has distinct color scheme for visual clarity
 - Serves as the initial route for authenticated users
+
+### 0. **Task Table Management** (NEW)
+**Components:** None (screen-only feature)
+**Screens:** TaskTableScreen
+**Entities:** TaskTableConfig
+**Services:** excelImportService, taskTableSyncService
+
+**Features:**
+- **Excel Import:** Import household task tables from Excel files in Hebrew format
+- **Visual Table Editor:** View and edit task configurations in a clean table format
+- **Manual Entry:** Add/edit/delete individual task rows manually
+- **Batch Sync:** One-click sync to generate task templates and tasks from entire table
+- **Smart Parsing:** Automatically parse Hebrew frequency strings (יומי, שבועי, חודשי, etc.)
+- **Duration Parsing:** Parse duration strings (דקות, שעה, רבע שעה, etc.)
+- **Performer Parsing:** Parse performer assignments (ביחד, בנפרד, specific names)
+- **Category Mapping:** Map Hebrew categories to system categories
+- **Auto-cleanup:** Automatically removes old generated tasks before re-syncing
+- **Sync Status Tracking:** Track which table rows have been synced
+- **Template Generation:** Automatically creates task templates from table rows
+- **Task Generation:** Generates initial tasks from templates based on frequency
+
+**Excel Format (Right-to-Left Hebrew):**
+```
+קטגוריה | תת-קטגוריה | מטלה | מי מבצע | משך המטלה | תדירות | מי מבצע | משך המטלה | תדירות
+ניקיון | כללי | ניקוי רצפות | ביחד | רבע שעה | פעם בשבוע | ביחד | חצי שעה | פעם בשבועיים
+```
+
+**Use Case:**
+Couples can maintain a comprehensive household task table in Excel, import it into the app, and with one click generate recurring tasks for all household responsibilities. Changes to the table can be re-synced to update task templates and generated tasks.
 
 ### 1. **Task Management** (Renovated)
 **Components:** 
@@ -583,6 +633,7 @@ The drawer menu is organized into logical sections:
    - Daily Tasks - Today and upcoming tasks
    - Task Planning - Calendar view
    - Task Templates - Template management
+   - Task Table - Bulk task import and management
    - All Tasks - Full task dashboard
    - Add Task - Quick task creation
 3. **Shopping Section**
@@ -853,6 +904,7 @@ const styles = StyleSheet.create({
 - [CONVERSION_SUMMARY.md](./CONVERSION_SUMMARY.md) - Web to React Native conversion notes
 - [HISTORY_SYSTEM_README.md](./HISTORY_SYSTEM_README.md) - History feature documentation
 - [HOME_SCREEN_REDESIGN.md](./HOME_SCREEN_REDESIGN.md) - Home screen redesign documentation (November 2024)
+- [TASK_TABLE_FEATURE.md](./TASK_TABLE_FEATURE.md) - Task Table bulk import and sync feature (November 2024)
 - [README.md](../README.md) - Project overview
 
 ---

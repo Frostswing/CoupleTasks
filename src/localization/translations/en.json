@@ -66,6 +66,7 @@
     "navigation": {
         "tasks": "Tasks",
         "addTask": "Add Task",
+        "taskTable": "Task Table",
         "shoppingList": "Shopping List",
         "inventory": "Inventory",
         "archive": "Archive",
@@ -78,6 +79,7 @@
             "dailyTasks": "Daily Tasks",
             "taskPlanning": "Task Planning",
             "taskTemplates": "Task Templates",
+            "taskTable": "Task Table",
             "allTasks": "All Tasks",
             "addTask": "Add Task",
             "shoppingList": "Shopping List",
