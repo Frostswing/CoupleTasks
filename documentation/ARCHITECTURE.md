@@ -54,6 +54,28 @@ CoupleTasks/
 │   ├── CONVERSION_SUMMARY.md
 │   └── HISTORY_SYSTEM_README.md
 │
+├── web-interface/                 # Web-based user management interface
+│   ├── src/                       # React source code
+│   │   ├── components/           # React components
+│   │   │   ├── Login.jsx         # Login page
+│   │   │   ├── Register.jsx      # Registration page
+│   │   │   ├── Dashboard.jsx     # User profile dashboard
+│   │   │   ├── Auth.css          # Auth component styles
+│   │   │   └── Dashboard.css     # Dashboard styles
+│   │   ├── firebase/             # Firebase configuration
+│   │   │   └── config.js         # Firebase web config
+│   │   ├── App.jsx               # Main app component
+│   │   ├── main.jsx              # Entry point
+│   │   ├── index.css             # Global styles
+│   │   └── App.css               # App styles
+│   ├── Dockerfile                # Docker build configuration
+│   ├── docker-compose.yml        # Docker Compose configuration
+│   ├── nginx.conf                # Nginx server configuration
+│   ├── vite.config.js            # Vite build configuration
+│   ├── package.json              # Web dependencies
+│   ├── index.html                # HTML template
+│   └── README.md                 # Web interface documentation
+│
 ├── NewData/                       # Legacy/prototype components (not in use)
 │
 └── src/                           # Source code
@@ -590,6 +612,50 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Hebrew (עברית) - RTL
 - English - LTR
 
+### 9. **Web Interface** (NEW)
+**Location:** `/web-interface/`  
+**Technology:** React 18, Vite, Docker, Nginx  
+**Components:** Login, Register, Dashboard
+
+**Features:**
+- **User Authentication:**
+  - Login with email/password
+  - Registration with full name
+  - Firebase Auth integration (same project as mobile app)
+- **Profile Management:**
+  - View user profile (email, name, language, partner email)
+  - Edit profile information
+  - Real-time profile updates via Firebase Realtime Database
+  - Profile creation on first login
+- **Deployment:**
+  - Docker containerized application
+  - Docker Compose for easy deployment
+  - Nginx web server for production
+  - Optimized build with Vite
+  - Static asset caching
+
+**Routes:**
+- `/` - Redirects to login or dashboard
+- `/login` - User login page
+- `/register` - User registration page
+- `/dashboard` - User profile management dashboard
+
+**Usage:**
+```bash
+# Start web interface
+cd web-interface
+docker compose up --build
+
+# Access at http://localhost:3000
+```
+
+**Architecture:**
+- React Router DOM for client-side routing
+- Firebase Auth for authentication
+- Firebase Realtime Database for profile data
+- Real-time listeners for live updates
+- Protected routes (redirects to login if not authenticated)
+
 ---
 
 ## 🔐 Authentication & Security
@@ -846,6 +912,12 @@ The drawer menu is organized into logical sections:
 - Error Tracking (Sentry)
 - Push Notifications (Firebase Cloud Messaging) - Currently using local scheduled notifications
 
+### Web Interface
+- **React Web App** - User management interface
+- **Docker** - Containerized deployment
+- **Nginx** - Production web server
+- **Same Firebase Project** - Shared authentication and database with mobile app
+
 ### Notifications
 - **Current:** Local scheduled notifications via `expo-notifications`
 - **Limitation:** Push notifications not supported in Expo Go (requires development build)
@@ -1078,4 +1150,13 @@ const styles = StyleSheet.create({
 - **Error Handling**: Robust navigation with try-catch error handling
 - **Visual Clarity**: Each card has unique color scheme matching app's design system
 - **Data-Driven**: Cards defined in configuration array for easy maintenance
+
+### Web Interface (December 2024)
+- **React Web Application**: Full-featured web interface for user management
+- **Docker Deployment**: Containerized with Docker and Docker Compose
+- **User Authentication**: Login and registration using Firebase Auth
+- **Profile Management**: View and edit user profile (name, language, partner email)
+- **Real-time Updates**: Live profile synchronization with Firebase Realtime Database
+- **Modern UI**: Clean, responsive design with gradient backgrounds
+- **Production Ready**: Nginx server with optimized build and caching
 
