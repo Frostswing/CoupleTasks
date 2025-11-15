@@ -387,6 +387,9 @@ export const getRecentHistory = async (type = 'shopping', days = 30, limit_count
     const user = getCurrentUser();
     if (!user) return [];
 
+    // Cap the limit to prevent excessive data fetching
+    const safeLimit = Math.min(limit_count, 200);
+    
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
     
@@ -404,7 +407,7 @@ export const getRecentHistory = async (type = 'shopping', days = 30, limit_count
       where('user_id', '==', user.uid),
       where(dateField, '>=', Timestamp.fromDate(cutoffDate)),
       orderBy(dateField, 'desc'),
-      limit(limit_count)
+      limit(safeLimit)
     );
 
     const querySnapshot = await getDocs(q);
@@ -412,10 +415,11 @@ export const getRecentHistory = async (type = 'shopping', days = 30, limit_count
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      const dateValue = data[dateField];
       items.push({
         id: doc.id,
         ...data,
-        date: data[dateField]?.toDate() || new Date()
+        date: dateValue?.toDate ? dateValue.toDate() : (dateValue instanceof Date ? dateValue : new Date())
       });
     });
 

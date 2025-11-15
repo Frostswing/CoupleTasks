@@ -169,5 +169,48 @@
         "assignedTo": "הוקצה ל:",
         "all": "הכל",
         "me": "שלי"
+    },
+    "shopping": {
+        "addToShoppingList": "הוסף לרשימת קניות",
+        "itemName": "שם המוצר",
+        "whatToBuy": "מה צריך לקנות?",
+        "quantity": "כמות",
+        "unit": "יחידת מידה",
+        "category": "קטגוריה",
+        "addToList": "הוסף לרשימה",
+        "adding": "מוסיף...",
+        "pleaseEnterItemName": "אנא הזן שם למוצר",
+        "errorAddingItem": "אירעה שגיאה בהוספת המוצר"
+    },
+    "app": {
+        "loadingApp": "טוען את האפליקציה...",
+        "initializingFirebase": "מאתחל את Firebase...",
+        "firebaseStatus": "מצב Firebase:"
+    },
+    "history": {
+        "loadingStats": "טוען סטטיסטיקות...",
+        "taskStats": "סטטיסטיקות מטלות",
+        "shoppingStats": "סטטיסטיקות קניות",
+        "tasksCompleted": "מטלות הושלמו",
+        "itemsPurchased": "מוצרים נקנו",
+        "thisMonth": "החודש",
+        "thisWeek": "השבוע",
+        "mostPopular": "הכי פופולרי",
+        "times": "פעמים",
+        "recentShopping": "נקנה לאחרונה",
+        "recentTasks": "הושלם לאחרונה",
+        "noShoppingYet": "עדיין לא קנית כלום",
+        "noTasksYet": "עדיין לא השלמת מטלות",
+        "all": "הכל",
+        "loading": "טוען...",
+        "noHistory": "אין היסטוריה עדיין",
+        "noSuggestions": "אין הצעות",
+        "exportSuccess": "ההיסטוריה יוצאה בהצלחה",
+        "exportError": "שגיאה בייצוא ההיסטוריה",
+        "cleanupSuccess": "ההיסטוריה נוקתה בהצלחה",
+        "cleanupError": "שגיאה בניקוי ההיסטוריה",
+        "smartSuggestionBadge": "הצעה חכמה",
+        "popularItemBadge": "פופולרי",
+        "allTime": "בסך הכל"
     }
 }

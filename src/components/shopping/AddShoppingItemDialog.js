@@ -14,6 +14,7 @@ import CategorySelector from '../common/CategorySelector';
 import UnitSelector from '../common/UnitSelector';
 import AutoCompleteInput from '../common/AutoCompleteInput';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../../constants/categories';
+import i18n from '../../localization/i18n';
 
 const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
   const [formData, setFormData] = useState({
@@ -58,7 +59,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
-      Alert.alert('שגיאה', 'אנא הזן שם למוצר');
+      Alert.alert(i18n.t('common.error'), i18n.t('shopping.pleaseEnterItemName'));
       return;
     }
     
@@ -80,7 +81,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
       onOpenChange(false);
     } catch (error) {
       console.error('Error adding item:', error);
-      Alert.alert('שגיאה', 'אירעה שגיאה בהוספת המוצר');
+      Alert.alert(i18n.t('common.error'), i18n.t('shopping.errorAddingItem'));
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +107,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>הוסף לרשימת קניות</Text>
+            <Text style={styles.title}>{i18n.t('shopping.addToShoppingList')}</Text>
             <TouchableOpacity onPress={handleCancel} style={styles.closeButton}>
               <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
@@ -118,11 +119,11 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.formGroup}>
-              <Text style={styles.label}>שם המוצר</Text>
+              <Text style={styles.label}>{i18n.t('shopping.itemName')}</Text>
               <View style={styles.inputWrapper}>
                 <AutoCompleteInput
                   style={styles.textInput}
-                  placeholder="מה צריך לקנות?"
+                  placeholder={i18n.t('shopping.whatToBuy')}
                   value={formData.name}
                   onChangeText={handleNameChange}
                   onSelectSuggestion={handleSelectSuggestion}
@@ -135,7 +136,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
 
             <View style={styles.rowGroup}>
               <View style={styles.halfWidth}>
-                <Text style={styles.label}>כמות</Text>
+                <Text style={styles.label}>{i18n.t('shopping.quantity')}</Text>
                 <TextInput
                   style={styles.textInput}
                   placeholder="1"
@@ -147,7 +148,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
               </View>
               
               <View style={styles.halfWidth}>
-                <Text style={styles.label}>יחידת מידה</Text>
+                <Text style={styles.label}>{i18n.t('shopping.unit')}</Text>
                 <UnitSelector
                   value={formData.unit}
                   onValueChange={(value) => handleInputChange('unit', value)}
@@ -156,7 +157,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>קטגוריה</Text>
+              <Text style={styles.label}>{i18n.t('shopping.category')}</Text>
               <CategorySelector
                 value={formData.category}
                 onValueChange={(value) => handleInputChange('category', value)}
@@ -170,7 +171,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
               style={[styles.button, styles.cancelButton]}
               onPress={handleCancel}
             >
-              <Text style={styles.cancelButtonText}>ביטול</Text>
+              <Text style={styles.cancelButtonText}>{i18n.t('common.cancel')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -183,7 +184,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
               disabled={isLoading || !formData.name.trim()}
             >
               <Text style={styles.submitButtonText}>
-                {isLoading ? 'מוסיף...' : 'הוסף לרשימה'}
+                {isLoading ? i18n.t('shopping.adding') : i18n.t('shopping.addToList')}
               </Text>
             </TouchableOpacity>
           </View>
