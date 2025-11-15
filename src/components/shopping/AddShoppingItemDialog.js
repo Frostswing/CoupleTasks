@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   submitButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
   },
   submitButtonText: {
     fontSize: 16,

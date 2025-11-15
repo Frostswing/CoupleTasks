@@ -124,7 +124,7 @@ export default function App() {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F8FAFC" }}>
         <Text style={{ fontSize: 60, marginBottom: 20 }}>💜</Text>
         <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 10, color: "#1F2937" }}>CoupleTasks</Text>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
         <Text style={{ marginTop: 10, color: "#6B7280" }}>{i18n.t('app.loadingApp')}</Text>
         {!firebaseReady && (
           <View style={{ alignItems: 'center', marginTop: 10 }}>
@@ -159,7 +159,7 @@ export default function App() {
         <Stack.Navigator
           screenOptions={{
             headerStyle: {
-              backgroundColor: "#8B5CF6",
+              backgroundColor: "#14B8A6",
             },
             headerTintColor: "#fff",
             headerTitleStyle: {

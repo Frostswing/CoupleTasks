@@ -11,7 +11,7 @@ import { format, parseISO } from "date-fns";
 const categoryColors = {
   household: { bg: '#DBEAFE', text: '#2563EB' },
   errands: { bg: '#DCFCE7', text: '#16A34A' },
-  planning: { bg: '#F3E8FF', text: '#9333EA' },
+  planning: { bg: '#E6FFFA', text: '#0D9488' },
   finance: { bg: '#FEF3C7', text: '#D97706' },
   health: { bg: '#FEE2E2', text: '#DC2626' },
   social: { bg: '#FCE7F3', text: '#EC4899' },
@@ -85,7 +85,7 @@ export default function DailyTaskCard({ task, onComplete, onDefer, onPress, curr
           
           {isAssignedToMe && (
             <View style={styles.assignedBadge}>
-              <Icon name="favorite" size={12} color="#9333EA" />
+              <Icon name="favorite" size={12} color="#0D9488" />
             </View>
           )}
         </View>
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   assignedToMe: {
     borderLeftWidth: 3,
-    borderLeftColor: '#9333EA',
+    borderLeftColor: '#0D9488',
   },
   checkbox: {
     marginRight: 12,

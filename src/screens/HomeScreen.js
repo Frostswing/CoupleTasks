@@ -14,12 +14,22 @@ export default function HomeScreen({ navigation }) {
   // Quick action cards configuration - ordered by priority (most used at top)
   const quickActions = [
     {
+      id: "events",
+      title: i18n.t("navigation.drawer.events"),
+      description: "Manage partner events and availability",
+      icon: "event",
+      color: "#EC4899",
+      backgroundColor: "#FCE7F3",
+      screen: "Events",
+      size: "large",
+    },
+    {
       id: "dailyTasks",
       title: i18n.t("navigation.drawer.dailyTasks"),
       description: "See what's due today and this week",
       icon: "today",
-      color: "#8B5CF6",
-      backgroundColor: "#EDE9FE",
+      color: "#14B8A6",
+      backgroundColor: "#CCFBF1",
       screen: "DailyTasks",
       size: "small",
     },
@@ -39,8 +49,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.taskPlanning"),
       description: "Plan your tasks on calendar",
       icon: "event",
-      color: "#7C3AED",
-      backgroundColor: "#DDD6FE",
+      color: "#0D9488",
+      backgroundColor: "#B2F5EA",
       screen: "TaskPlanning",
       size: "small",
     },
@@ -49,8 +59,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.addTask"),
       description: "Create a new task quickly",
       icon: "add-circle",
-      color: "#A855F7",
-      backgroundColor: "#F3E8FF",
+      color: "#2DD4BF",
+      backgroundColor: "#E6FFFA",
       screen: "AddTask",
       size: "small",
     },
@@ -110,25 +120,56 @@ export default function HomeScreen({ navigation }) {
         onPress={() => handleNavigate(action.screen, action.params)}
         activeOpacity={0.7}
       >
-        <View
-          style={[
-            styles.cardIconContainer,
-            { backgroundColor: action.backgroundColor },
-          ]}
-        >
-          <Icon name={action.icon} size={isLarge ? 48 : 40} color={action.color} />
-        </View>
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {action.title}
-          </Text>
-          <Text style={styles.cardDescription} numberOfLines={2}>
-            {action.description}
-          </Text>
-        </View>
-        <View style={styles.cardArrow}>
-          <Icon name="arrow-forward" size={20} color={action.color} />
-        </View>
+        {isLarge ? (
+          // Large card layout: centered icon and content
+          <>
+            <View style={styles.cardLargeContainer}>
+              <View
+                style={[
+                  styles.cardIconContainer,
+                  styles.cardIconContainerLarge,
+                  { backgroundColor: action.backgroundColor },
+                ]}
+              >
+                <Icon name={action.icon} size={48} color={action.color} />
+              </View>
+              <View style={styles.cardContentLarge}>
+                <Text style={styles.cardTitleLarge} numberOfLines={2}>
+                  {action.title}
+                </Text>
+                <Text style={styles.cardDescriptionLarge} numberOfLines={2}>
+                  {action.description}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.cardArrow}>
+              <Icon name="arrow-forward" size={20} color={action.color} />
+            </View>
+          </>
+        ) : (
+          // Small card layout: original layout
+          <>
+            <View
+              style={[
+                styles.cardIconContainer,
+                { backgroundColor: action.backgroundColor },
+              ]}
+            >
+              <Icon name={action.icon} size={40} color={action.color} />
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle} numberOfLines={2}>
+                {action.title}
+              </Text>
+              <Text style={styles.cardDescription} numberOfLines={2}>
+                {action.description}
+              </Text>
+            </View>
+            <View style={styles.cardArrow}>
+              <Icon name="arrow-forward" size={20} color={action.color} />
+            </View>
+          </>
+        )}
       </TouchableOpacity>
     );
   };
@@ -153,27 +194,32 @@ export default function HomeScreen({ navigation }) {
 
         {/* Quick Access Cards */}
         <View style={styles.cardsContainer}>
-          {/* First Row - Daily Tasks (Large) + Add Shopping Item (Small) - MOST USED */}
+          {/* First Row - Events (Large, Full Width) */}
           <View style={styles.row}>
             {renderCard(quickActions[0])}
+          </View>
+
+          {/* Second Row - Daily Tasks + Add Shopping Item */}
+          <View style={styles.row}>
             {renderCard(quickActions[1])}
-          </View>
-
-          {/* Second Row - Task Planning + Add Task */}
-          <View style={styles.row}>
             {renderCard(quickActions[2])}
+          </View>
+
+          {/* Third Row - Task Planning + Add Task */}
+          <View style={styles.row}>
             {renderCard(quickActions[3])}
-          </View>
-
-          {/* Third Row - Shopping List + Inventory */}
-          <View style={styles.row}>
             {renderCard(quickActions[4])}
-            {renderCard(quickActions[5])}
           </View>
 
-          {/* Fourth Row - History */}
+          {/* Fourth Row - Shopping List + Inventory */}
           <View style={styles.row}>
+            {renderCard(quickActions[5])}
             {renderCard(quickActions[6])}
+          </View>
+
+          {/* Fifth Row - History */}
+          <View style={styles.row}>
+            {renderCard(quickActions[7])}
           </View>
         </View>
       </ScrollView>
@@ -243,7 +289,8 @@ const styles = StyleSheet.create({
   },
   cardLarge: {
     flex: 1,
-    minHeight: 140,
+    minHeight: 100,
+    alignItems: "center",
   },
   cardSmall: {
     flex: 1,
@@ -280,6 +327,30 @@ const styles = StyleSheet.create({
     bottom: 16,
     right: 16,
     opacity: 0.6,
+  },
+  cardLargeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingRight: 32,
+  },
+  cardIconContainerLarge: {
+    marginRight: 16,
+    marginBottom: 0,
+  },
+  cardContentLarge: {
+    flex: 1,
+  },
+  cardTitleLarge: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+  cardDescriptionLarge: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
   },
 });
 

@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   selectedLanguage: {
-    borderColor: '#8B5CF6',
+    borderColor: '#14B8A6',
     backgroundColor: '#F3F4F6',
   },
   languageContent: {
@@ -272,20 +272,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   selectedLanguageText: {
-    color: '#8B5CF6',
+    color: '#14B8A6',
   },
   languageSubtext: {
     fontSize: 14,
     color: '#6B7280',
   },
   selectedLanguageSubtext: {
-    color: '#8B5CF6',
+    color: '#14B8A6',
   },
   checkmark: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   continueButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 32,

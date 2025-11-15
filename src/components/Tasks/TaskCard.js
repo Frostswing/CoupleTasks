@@ -14,7 +14,7 @@ const { width } = Dimensions.get('window');
 const categoryColors = {
   household: { bg: '#DBEAFE', text: '#2563EB', border: '#93C5FD' },
   errands: { bg: '#DCFCE7', text: '#16A34A', border: '#86EFAC' },
-  planning: { bg: '#F3E8FF', text: '#9333EA', border: '#C4B5FD' },
+  planning: { bg: '#E6FFFA', text: '#0D9488', border: '#7DD3FC' },
   finance: { bg: '#FEF3C7', text: '#D97706', border: '#FCD34D' },
   health: { bg: '#FEE2E2', text: '#DC2626', border: '#FCA5A5' },
   social: { bg: '#FCE7F3', text: '#EC4899', border: '#F9A8D4' },
@@ -101,9 +101,9 @@ export default function TaskCard({ task, onStatusChange, onEdit, onSubtaskToggle
               </View>
               
               {isAssignedToMe && (
-                <View style={[styles.badge, { backgroundColor: '#F3E8FF' }]}>
-                  <Icon name="favorite" size={12} color="#9333EA" />
-                  <Text style={[styles.badgeText, { color: '#9333EA', marginLeft: 4 }]}>
+                <View style={[styles.badge, { backgroundColor: '#E6FFFA' }]}>
+                  <Icon name="favorite" size={12} color="#0D9488" />
+                  <Text style={[styles.badgeText, { color: '#0D9488', marginLeft: 4 }]}>
                     For you
                   </Text>
                 </View>
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   },
   assignedToMe: {
     borderWidth: 2,
-    borderColor: '#C4B5FD',
+    borderColor: '#7DD3FC',
   },
   header: {
     flexDirection: 'row',
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -43,7 +43,7 @@ export default function AddTaskScreen({ navigation }) {
             style={styles.backButton}
             onPress={handleCancel}
           >
-            <Icon name="arrow-back" size={24} color="#8B5CF6" />
+            <Icon name="arrow-back" size={24} color="#14B8A6" />
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.title}>Add New Task</Text>
@@ -67,7 +67,7 @@ export default function AddTaskScreen({ navigation }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#8B5CF6" />
+            <ActivityIndicator size="large" color="#14B8A6" />
             <Text style={styles.loadingText}>Creating your task...</Text>
           </View>
         </View>

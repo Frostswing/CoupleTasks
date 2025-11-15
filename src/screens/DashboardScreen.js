@@ -311,7 +311,7 @@ export default function DashboardScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <ActivityIndicator size="large" color="#14B8A6" />
           <Text style={styles.loadingText}>Loading your tasks...</Text>
         </View>
       </SafeAreaView>
@@ -326,8 +326,8 @@ export default function DashboardScreen({ navigation }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={["#8B5CF6"]}
-            tintColor="#8B5CF6"
+            colors={["#14B8A6"]}
+            tintColor="#14B8A6"
           />
         }
         showsVerticalScrollIndicator={false}
@@ -378,8 +378,8 @@ export default function DashboardScreen({ navigation }) {
           
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#F3E8FF' }]}>
-                <Icon name="person" size={20} color="#9333EA" />
+              <View style={[styles.statIcon, { backgroundColor: '#E6FFFA' }]}>
+                <Icon name="person" size={20} color="#0D9488" />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Your Tasks</Text>
@@ -414,7 +414,7 @@ export default function DashboardScreen({ navigation }) {
           {filteredTasks.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="favorite" size={40} color="#8B5CF6" />
+                <Icon name="favorite" size={40} color="#14B8A6" />
               </View>
               <Text style={styles.emptyTitle}>No tasks found</Text>
               <Text style={styles.emptySubtitle}>
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#E6FFFA',
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,

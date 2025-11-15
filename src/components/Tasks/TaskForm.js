@@ -6,16 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Modal,
   Platform,
   Dimensions,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { parseISO } from "date-fns";
 import { User as UserEntity } from "../../entities/User";
 import AutoCompleteInput from "../common/AutoCompleteInput";
+import InlineSelector from "../common/InlineSelector";
 
 const { width } = Dimensions.get('window');
 
@@ -54,10 +53,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
   const [newSubtask, setNewSubtask] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showPriorityPicker, setShowPriorityPicker] = useState(false);
-  const [showAssignedToPicker, setShowAssignedToPicker] = useState(false);
-  const [showRecurrencePicker, setShowRecurrencePicker] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -186,36 +181,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
     { label: 'Monthly', value: 'monthly' },
   ];
 
-  const PickerModal = ({ visible, onClose, options, selectedValue, onSelect, title }) => (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.pickerModal}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Icon name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-          <Picker
-            selectedValue={selectedValue}
-            onValueChange={(value) => {
-              onSelect(value);
-              onClose();
-            }}
-            style={styles.picker}
-          >
-            {options.map((option) => (
-              <Picker.Item
-                key={option.value}
-                label={option.label}
-                value={option.value}
-              />
-            ))}
-          </Picker>
-        </View>
-      </View>
-    </Modal>
-  );
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -291,7 +256,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
                 placeholderTextColor="#9CA3AF"
               />
               <TouchableOpacity style={styles.addSubtaskButton} onPress={addSubtask}>
-                <Icon name="add" size={20} color="#8B5CF6" />
+                <Icon name="add" size={20} color="#14B8A6" />
                 <Text style={styles.addSubtaskButtonText}>Add</Text>
               </TouchableOpacity>
             </View>
@@ -325,65 +290,49 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
             </View>
           </View>
 
-          {/* Category, Priority, Assigned To Row */}
-          <View style={styles.rowContainer}>
-            <View style={[styles.inputGroup, styles.thirdWidth]}>
-              <Text style={styles.label}>Category</Text>
-              <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => setShowCategoryPicker(true)}
-              >
-                <Text style={styles.selectButtonText}>
-                  {categoryOptions.find(opt => opt.value === formData.category)?.label}
-                </Text>
-                <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.inputGroup, styles.thirdWidth]}>
-              <Text style={styles.label}>Priority</Text>
-              <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => setShowPriorityPicker(true)}
-              >
-                <Text style={styles.selectButtonText}>
-                  {priorityOptions.find(opt => opt.value === formData.priority)?.label}
-                </Text>
-                <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.inputGroup, styles.thirdWidth]}>
-              <Text style={styles.label}>Assigned To</Text>
-              <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => setShowAssignedToPicker(true)}
-              >
-                <Text style={styles.selectButtonText}>
-                  {!formData.assigned_to || formData.assigned_to === '' 
-                    ? 'None (Unassigned)'
-                    : formData.assigned_to === 'together'
-                    ? 'Together (Both)'
-                    : users.find(user => user.email === formData.assigned_to)?.full_name || 
-                      users.find(user => user.email === formData.assigned_to)?.email || 
-                      'Select partner'}
-                </Text>
-                <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
+          {/* Category */}
+          <InlineSelector
+            label="Category"
+            options={categoryOptions}
+            selectedValue={formData.category}
+            onSelect={(value) => handleInputChange('category', value)}
+            multiColumn={true}
+          />
+
+          {/* Priority */}
+          <InlineSelector
+            label="Priority"
+            options={priorityOptions}
+            selectedValue={formData.priority}
+            onSelect={(value) => handleInputChange('priority', value)}
+            multiColumn={true}
+          />
+
+          {/* Assigned To */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Assigned To</Text>
+            <InlineSelector
+              options={[
+                { label: 'None (Unassigned)', value: '' },
+                { label: 'Together (Both Partners)', value: 'together' },
+                ...users.map(user => ({ 
+                  label: user.full_name || user.email, 
+                  value: user.email 
+                }))
+              ]}
+              selectedValue={formData.assigned_to || ''}
+              onSelect={(value) => handleInputChange('assigned_to', value || '')}
+            />
           </View>
 
           {/* Recurrence */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Recurrence</Text>
-            <TouchableOpacity
-              style={styles.selectButton}
-              onPress={() => setShowRecurrencePicker(true)}
-            >
-              <Text style={styles.selectButtonText}>
-                {recurrenceOptions.find(opt => opt.value === formData.recurrence_rule)?.label}
-              </Text>
-              <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+          <InlineSelector
+            label="Recurrence"
+            options={recurrenceOptions}
+            selectedValue={formData.recurrence_rule}
+            onSelect={(value) => handleInputChange('recurrence_rule', value)}
+            multiColumn={true}
+          />
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
@@ -432,52 +381,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
         />
       )}
 
-      {/* Category Picker */}
-      <PickerModal
-        visible={showCategoryPicker}
-        onClose={() => setShowCategoryPicker(false)}
-        options={categoryOptions}
-        selectedValue={formData.category}
-        onSelect={(value) => handleInputChange('category', value)}
-        title="Select Category"
-      />
-
-      {/* Priority Picker */}
-      <PickerModal
-        visible={showPriorityPicker}
-        onClose={() => setShowPriorityPicker(false)}
-        options={priorityOptions}
-        selectedValue={formData.priority}
-        onSelect={(value) => handleInputChange('priority', value)}
-        title="Select Priority"
-      />
-
-      {/* Assigned To Picker */}
-      <PickerModal
-        visible={showAssignedToPicker}
-        onClose={() => setShowAssignedToPicker(false)}
-        options={[
-          { label: 'None (Unassigned)', value: '' },
-          { label: 'Together (Both Partners)', value: 'together' },
-          ...users.map(user => ({ 
-            label: user.full_name || user.email, 
-            value: user.email 
-          }))
-        ]}
-        selectedValue={formData.assigned_to || ''}
-        onSelect={(value) => handleInputChange('assigned_to', value || '')}
-        title="Assign To"
-      />
-
-      {/* Recurrence Picker */}
-      <PickerModal
-        visible={showRecurrencePicker}
-        onClose={() => setShowRecurrencePicker(false)}
-        options={recurrenceOptions}
-        selectedValue={formData.recurrence_rule}
-        onSelect={(value) => handleInputChange('recurrence_rule', value)}
-        title="Select Recurrence"
-      />
     </ScrollView>
   );
 }
@@ -584,7 +487,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   addSubtaskButtonText: {
-    color: '#8B5CF6',
+    color: '#14B8A6',
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -601,21 +504,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
     marginLeft: 8,
-    flex: 1,
-  },
-  selectButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  selectButtonText: {
-    fontSize: 16,
-    color: '#374151',
     flex: 1,
   },
   buttonContainer: {
@@ -640,40 +528,11 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   submitButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#14B8A6',
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  pickerModal: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '50%',
-  },
-  pickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  pickerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  picker: {
-    height: 200,
   },
 }); 

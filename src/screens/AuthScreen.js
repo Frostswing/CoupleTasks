@@ -188,7 +188,7 @@ const AuthScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
         <Text style={styles.loadingText}>{i18n.t('common.loading')}</Text>
       </View>
     );
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   authButton: {
-    backgroundColor: "#8B5CF6",
+    backgroundColor: "#14B8A6",
     height: 56,
     borderRadius: 12,
     justifyContent: "center",
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   toggleButtonAction: {
-    color: "#8B5CF6",
+    color: "#14B8A6",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   forgotPasswordText: {
-    color: "#8B5CF6",
+    color: "#14B8A6",
     fontSize: 14,
     textDecorationLine: 'underline',
   },
