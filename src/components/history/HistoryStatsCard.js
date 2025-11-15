@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getRecentHistory, getPopularItems } from '../../services/historyService';
+import i18n from '../../localization/i18n';
 
 const { width } = Dimensions.get('window');
 
@@ -25,15 +26,20 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
 
   const loadStats = async () => {
     try {
-      const [allTime, lastWeek, lastMonth, popular] = await Promise.all([
-        getRecentHistory(type, 365, 1000),
-        getRecentHistory(type, 7, 1000),
-        getRecentHistory(type, 30, 1000),
+      // Optimize: Only fetch counts, not full data
+      // Use smaller limits and only get what we need
+      const [lastWeek, lastMonth, popular] = await Promise.all([
+        getRecentHistory(type, 7, 100), // Only need count, limit to 100
+        getRecentHistory(type, 30, 100), // Only need count, limit to 100
         getPopularItems(type, 1)
       ]);
 
+      // For allTime, we can estimate or fetch with a reasonable limit
+      // Since we only need the count, we can use a smaller sample
+      const allTimeSample = await getRecentHistory(type, 365, 200);
+
       setStats({
-        totalItems: allTime.length,
+        totalItems: allTimeSample.length >= 200 ? '200+' : allTimeSample.length, // Show approximate if hitting limit
         thisWeek: lastWeek.length,
         thisMonth: lastMonth.length,
         mostPopular: popular[0] || null,
@@ -48,7 +54,7 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>טוען סטטיסטיקות...</Text>
+        <Text style={styles.loadingText}>{i18n.t('history.loadingStats')}</Text>
       </View>
     );
   }
@@ -66,7 +72,7 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
           />
         </View>
         <Text style={styles.headerTitle}>
-          {isTask ? 'סטטיסטיקות מטלות' : 'סטטיסטיקות קניות'}
+          {isTask ? i18n.t('history.taskStats') : i18n.t('history.shoppingStats')}
         </Text>
       </View>
 
@@ -74,18 +80,18 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>{stats.totalItems}</Text>
           <Text style={styles.statLabel}>
-            {isTask ? 'מטלות הושלמו' : 'מוצרים נקנו'}
+            {isTask ? i18n.t('history.tasksCompleted') : i18n.t('history.itemsPurchased')}
           </Text>
         </View>
 
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>{stats.thisMonth}</Text>
-          <Text style={styles.statLabel}>החודש</Text>
+          <Text style={styles.statLabel}>{i18n.t('history.thisMonth')}</Text>
         </View>
 
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>{stats.thisWeek}</Text>
-          <Text style={styles.statLabel}>השבוע</Text>
+          <Text style={styles.statLabel}>{i18n.t('history.thisWeek')}</Text>
         </View>
       </View>
 
@@ -93,13 +99,13 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
         <View style={styles.popularSection}>
           <View style={styles.popularBadge}>
             <Icon name="star" size={14} color="#F59E0B" />
-            <Text style={styles.popularBadgeText}>הכי פופולרי</Text>
+            <Text style={styles.popularBadgeText}>{i18n.t('history.mostPopular')}</Text>
           </View>
           <Text style={styles.popularName}>
             {stats.mostPopular.name}
           </Text>
           <Text style={styles.popularCount}>
-            {stats.mostPopular.frequency} פעמים
+            {stats.mostPopular.frequency} {i18n.t('history.times')}
           </Text>
         </View>
       )}

@@ -169,5 +169,48 @@
         "assignedTo": "Assigned to:",
         "all": "All",
         "me": "Me"
+    },
+    "shopping": {
+        "addToShoppingList": "Add to Shopping List",
+        "itemName": "Item Name",
+        "whatToBuy": "What do you need to buy?",
+        "quantity": "Quantity",
+        "unit": "Unit",
+        "category": "Category",
+        "addToList": "Add to List",
+        "adding": "Adding...",
+        "pleaseEnterItemName": "Please enter an item name",
+        "errorAddingItem": "An error occurred while adding the item"
+    },
+    "app": {
+        "loadingApp": "Loading the app...",
+        "initializingFirebase": "Initializing Firebase...",
+        "firebaseStatus": "Firebase Status:"
+    },
+    "history": {
+        "loadingStats": "Loading statistics...",
+        "taskStats": "Task Statistics",
+        "shoppingStats": "Shopping Statistics",
+        "tasksCompleted": "Tasks Completed",
+        "itemsPurchased": "Items Purchased",
+        "thisMonth": "This Month",
+        "thisWeek": "This Week",
+        "mostPopular": "Most Popular",
+        "times": "times",
+        "recentShopping": "Recently Purchased",
+        "recentTasks": "Recently Completed",
+        "noShoppingYet": "Haven't purchased anything yet",
+        "noTasksYet": "Haven't completed any tasks yet",
+        "all": "All",
+        "loading": "Loading...",
+        "noHistory": "No history yet",
+        "noSuggestions": "No suggestions",
+        "exportSuccess": "History exported successfully",
+        "exportError": "Error exporting history",
+        "cleanupSuccess": "History cleaned up successfully",
+        "cleanupError": "Error cleaning up history",
+        "smartSuggestionBadge": "Smart Suggestion",
+        "popularItemBadge": "Popular",
+        "allTime": "All Time"
     }
 }

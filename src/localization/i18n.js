@@ -7,17 +7,17 @@ import en from './translations/en.json';
 
 const i18n = new I18n({ he, en });
 
-// קביעת locale בטוח
+// Safe locale determination - default to English
 const getSafeLocale = () => {
   if (Localization && typeof Localization.locale === 'string' && Localization.locale.length > 0) {
     return Localization.locale;
   }
-  return 'he';
+  return 'en';
 };
 
 i18n.locale = getSafeLocale();
 i18n.enableFallback = true;
-i18n.defaultLocale = 'he';
+i18n.defaultLocale = 'en';
 
 export const changeLanguage = async (languageCode) => {
   i18n.locale = languageCode;
@@ -32,15 +32,15 @@ export const loadLanguagePreference = async () => {
       return savedLanguage;
     } else {
       const deviceLocale = getSafeLocale().split('-')[0];
-      const supportedLocale = ['he', 'en'].includes(deviceLocale) ? deviceLocale : 'he';
+      const supportedLocale = ['he', 'en'].includes(deviceLocale) ? deviceLocale : 'en';
       i18n.locale = supportedLocale;
       await AsyncStorage.setItem('userLanguage', supportedLocale);
       return supportedLocale;
     }
   } catch (error) {
     console.error('Error loading language preference:', error);
-    i18n.locale = 'he';
-    return 'he';
+    i18n.locale = 'en';
+    return 'en';
   }
 };
 

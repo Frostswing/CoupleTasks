@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,35 +26,67 @@ const HistoryScreen = () => {
   const [popularItems, setPopularItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showExportModal, setShowExportModal] = useState(false);
+  
+  // Cache to avoid refetching when switching tabs
+  const [dataCache, setDataCache] = useState({
+    shopping: { history: null, popular: null },
+    tasks: { history: null, popular: null }
+  });
 
-  useEffect(() => {
-    loadHistoryData();
-  }, [activeTab]);
+  const loadHistoryData = useCallback(async (forceRefresh = false) => {
+    // Check cache first (unless forcing refresh)
+    if (!forceRefresh) {
+      const cached = dataCache[activeTab];
+      if (cached.history && cached.popular) {
+        if (activeTab === 'shopping') {
+          setShoppingHistory(cached.history);
+          setPopularItems(cached.popular);
+        } else {
+          setTaskHistory(cached.history);
+          setPopularItems(cached.popular);
+        }
+        setIsLoading(false);
+        return;
+      }
+    }
 
-  const loadHistoryData = async () => {
     setIsLoading(true);
     try {
       if (activeTab === 'shopping') {
         const [history, popular] = await Promise.all([
-          getRecentHistory('shopping', 90), // Last 3 months
-          getPopularItems('shopping', 15)
+          getRecentHistory('shopping', 30, 30), // Last month, limit 30 items
+          getPopularItems('shopping', 10) // Reduced from 15
         ]);
         setShoppingHistory(history);
         setPopularItems(popular);
+        // Update cache
+        setDataCache(prev => ({
+          ...prev,
+          shopping: { history, popular }
+        }));
       } else {
         const [history, popular] = await Promise.all([
-          getRecentHistory('tasks', 90),
-          getPopularItems('tasks', 15)
+          getRecentHistory('tasks', 30, 30), // Last month, limit 30 items
+          getPopularItems('tasks', 10) // Reduced from 15
         ]);
         setTaskHistory(history);
         setPopularItems(popular);
+        // Update cache
+        setDataCache(prev => ({
+          ...prev,
+          tasks: { history, popular }
+        }));
       }
     } catch (error) {
       console.error('Error loading history:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab]); // Remove dataCache from dependencies to avoid infinite loops
+
+  useEffect(() => {
+    loadHistoryData();
+  }, [loadHistoryData]);
 
   const handleExportHistory = async () => {
     try {
@@ -88,6 +120,11 @@ const HistoryScreen = () => {
           style: 'destructive',
           onPress: async () => {
             await cleanupOldHistory();
+            // Clear cache and reload
+            setDataCache({
+              shopping: { history: null, popular: null },
+              tasks: { history: null, popular: null }
+            });
             loadHistoryData();
           }
         }
@@ -95,7 +132,17 @@ const HistoryScreen = () => {
     );
   };
 
-  const renderShoppingItem = ({ item }) => {
+  // Refresh function to clear cache and reload
+  const refreshHistory = useCallback(() => {
+    setDataCache({
+      shopping: { history: null, popular: null },
+      tasks: { history: null, popular: null }
+    });
+    // Force reload with refresh flag
+    loadHistoryData(true);
+  }, [loadHistoryData]);
+
+  const renderShoppingItem = useCallback(({ item }) => {
     const category = getCategoryById(item.category);
     const unit = getUnitById(item.unit);
     
@@ -117,9 +164,9 @@ const HistoryScreen = () => {
         </Text>
       </View>
     );
-  };
+  }, []);
 
-  const renderTaskItem = ({ item }) => {
+  const renderTaskItem = useCallback(({ item }) => {
     const priorityColors = {
       low: '#10B981',
       medium: '#F59E0B',
@@ -148,9 +195,9 @@ const HistoryScreen = () => {
         </Text>
       </View>
     );
-  };
+  }, []);
 
-  const renderPopularItem = ({ item }) => {
+  const renderPopularItem = useCallback(({ item }) => {
     return (
       <View style={styles.popularItem}>
         <View style={styles.popularItemContent}>
@@ -164,7 +211,16 @@ const HistoryScreen = () => {
         </View>
       </View>
     );
-  };
+  }, []);
+
+  // Memoize current history data
+  const currentHistory = useMemo(() => {
+    return activeTab === 'shopping' ? shoppingHistory : taskHistory;
+  }, [activeTab, shoppingHistory, taskHistory]);
+
+  const historyCount = useMemo(() => {
+    return currentHistory.length;
+  }, [currentHistory]);
 
   if (isLoading) {
     return (
@@ -218,6 +274,9 @@ const HistoryScreen = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.popularList}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={5}
+            windowSize={3}
           />
         </View>
 
@@ -226,16 +285,19 @@ const HistoryScreen = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>היסטוריה אחרונה</Text>
             <Text style={styles.sectionSubtitle}>
-              {activeTab === 'shopping' ? shoppingHistory.length : taskHistory.length} פריטים ב-3 החודשים האחרונים
+              {historyCount} פריטים בחודש האחרון
             </Text>
           </View>
           
           <FlatList
-            data={activeTab === 'shopping' ? shoppingHistory : taskHistory}
+            data={currentHistory}
             renderItem={activeTab === 'shopping' ? renderShoppingItem : renderTaskItem}
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             style={styles.historyList}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
           />
         </View>
 

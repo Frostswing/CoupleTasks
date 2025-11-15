@@ -118,22 +118,22 @@ export default function App() {
     setShowLanguageSelection(false);
   };
 
-  // מסך טעינה בזמן אתחול האימות
+  // Loading screen during authentication initialization
   if (!languageLoaded || initializing || !firebaseReady) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F8FAFC" }}>
         <Text style={{ fontSize: 60, marginBottom: 20 }}>💜</Text>
         <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 10, color: "#1F2937" }}>CoupleTasks</Text>
         <ActivityIndicator size="large" color="#8B5CF6" />
-        <Text style={{ marginTop: 10, color: "#6B7280" }}>טוען את האפליקציה...</Text>
+        <Text style={{ marginTop: 10, color: "#6B7280" }}>{i18n.t('app.loadingApp')}</Text>
         {!firebaseReady && (
           <View style={{ alignItems: 'center', marginTop: 10 }}>
             <Text style={{ marginTop: 5, color: "#EF4444" }}>
-              מאתחל את Firebase...
+              {i18n.t('app.initializingFirebase')}
             </Text>
             {firebaseStatus && (
               <Text style={{ marginTop: 5, fontSize: 12, color: "#9CA3AF", textAlign: 'center' }}>
-                מצב Firebase: {JSON.stringify(firebaseStatus)}
+                {i18n.t('app.firebaseStatus')} {JSON.stringify(firebaseStatus)}
               </Text>
             )}
           </View>

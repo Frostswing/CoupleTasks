@@ -9,6 +9,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getRecentHistory } from '../../services/historyService';
 import { getCategoryById } from '../../constants/categories';
+import i18n from '../../localization/i18n';
 
 const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
   const [recentItems, setRecentItems] = useState([]);
@@ -63,11 +64,11 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            {type === 'shopping' ? 'נקנה לאחרונה' : 'הושלם לאחרונה'}
+            {type === 'shopping' ? i18n.t('history.recentShopping') : i18n.t('history.recentTasks')}
           </Text>
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>טוען...</Text>
+          <Text style={styles.loadingText}>{i18n.t('history.loading')}</Text>
         </View>
       </View>
     );
@@ -78,7 +79,7 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            {type === 'shopping' ? 'נקנה לאחרונה' : 'הושלם לאחרונה'}
+            {type === 'shopping' ? i18n.t('history.recentShopping') : i18n.t('history.recentTasks')}
           </Text>
         </View>
         <View style={styles.emptyContainer}>
@@ -88,7 +89,7 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
             color="#D1D5DB" 
           />
           <Text style={styles.emptyText}>
-            {type === 'shopping' ? 'עדיין לא קנית כלום' : 'עדיין לא השלמת מטלות'}
+            {type === 'shopping' ? i18n.t('history.noShoppingYet') : i18n.t('history.noTasksYet')}
           </Text>
         </View>
       </View>
@@ -99,10 +100,10 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>
-          {type === 'shopping' ? 'נקנה לאחרונה' : 'הושלם לאחרונה'}
+          {type === 'shopping' ? i18n.t('history.recentShopping') : i18n.t('history.recentTasks')}
         </Text>
         <TouchableOpacity onPress={onSeeAll} style={styles.seeAllButton}>
-          <Text style={styles.seeAllText}>הכל</Text>
+          <Text style={styles.seeAllText}>{i18n.t('history.all')}</Text>
           <Icon name="chevron-left" size={16} color="#8B5CF6" />
         </TouchableOpacity>
       </View>
