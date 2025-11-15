@@ -21,6 +21,7 @@
     "expo": "~53.0.8",
     "expo-auth-session": "~6.2.1",
     "expo-crypto": "~14.1.1",
+    "expo-document-picker": "^14.0.7",
     "expo-image": "^3.0.10",
     "expo-image-picker": "^17.0.8",
     "expo-localization": "~16.1.6",
@@ -36,7 +37,8 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
     "react-native-vector-icons": "^10.2.0",
-    "updates": "^16.9.1"
+    "updates": "^16.9.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
