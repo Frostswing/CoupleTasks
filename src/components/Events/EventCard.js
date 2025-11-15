@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { format, parseISO } from "date-fns";
 
@@ -97,11 +98,12 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
 
   return (
     <TouchableOpacity 
-      style={[styles.card, !isCreator && event.status === 'pending' && event.event_type === 'invitation' && styles.pendingInvitation]}
       onPress={onPress}
       activeOpacity={0.7}
+      style={styles.cardContainer}
     >
-      <View style={styles.header}>
+      <View style={[styles.card, !isCreator && event.status === 'pending' && event.event_type === 'invitation' && styles.pendingInvitation]}>
+        <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: `${getEventTypeColor()}20` }]}>
           <Icon name={getEventTypeIcon()} size={24} color={getEventTypeColor()} />
         </View>
@@ -183,16 +185,28 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
           </TouchableOpacity>
         )}
       </View>
+      </View>
+      {/* Iridescent border gradient */}
+      <LinearGradient
+        colors={["#14B8A6", "#06B6D4", "#3B82F6", "#8B5CF6"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradientBorder}
+      />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    marginBottom: 12,
+    position: 'relative',
+  },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    paddingLeft: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -201,8 +215,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    borderLeftWidth: 4,
-    borderLeftColor: '#14B8A6',
+  },
+  gradientBorder: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
   pendingInvitation: {
     borderLeftColor: '#F59E0B',

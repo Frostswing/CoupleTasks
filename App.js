@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   LogBox,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DrawerNavigator from "./src/navigation/DrawerNavigator";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -159,8 +160,16 @@ export default function App() {
         <Stack.Navigator
           screenOptions={{
             headerStyle: {
-              backgroundColor: "#14B8A6",
+              backgroundColor: "transparent",
             },
+            headerBackground: () => (
+              <LinearGradient
+                colors={["#0D9488", "#14B8A6", "#06B6D4"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ flex: 1 }}
+              />
+            ),
             headerTintColor: "#fff",
             headerTitleStyle: {
               fontWeight: "bold",
