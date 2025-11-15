@@ -26,7 +26,7 @@ import i18n from "../localization/i18n";
 
 const { width } = Dimensions.get('window');
 
-const AuthScreen = () => {
+const AuthScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -88,6 +88,10 @@ const AuthScreen = () => {
         showSuccess(
           isLogin ? i18n.t('auth.loginSuccess') : i18n.t('auth.registrationSuccess')
         );
+        // Navigate to Home after successful login/registration
+        if (navigation) {
+          navigation.navigate('Home');
+        }
       } else {
         handleError(result.error, isLogin ? 'loginUser' : 'registerUser');
       }
@@ -119,11 +123,19 @@ const AuthScreen = () => {
         
         if (firebaseResult.success) {
           showSuccess(i18n.t('auth.loginSuccess'));
+          // Navigate to Home after successful Google sign in
+          if (navigation) {
+            navigation.navigate('Home');
+          }
         } else {
           // If user already exists, try to login
           const loginResult = await loginUser(googleUser.email, 'google-auth-' + googleUser.id);
           if (loginResult.success) {
             showSuccess(i18n.t('auth.loginSuccess'));
+            // Navigate to Home after successful Google sign in
+            if (navigation) {
+              navigation.navigate('Home');
+            }
           } else {
             handleError(loginResult.error, 'googleSignIn');
           }

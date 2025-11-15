@@ -5,11 +5,30 @@ import { differenceInHours, addHours } from 'date-fns';
 
 /**
  * Service for managing task notifications
+ * 
+ * IMPORTANT: As of Expo SDK 53, push notifications are NOT supported in Expo Go on Android/iOS.
+ * This service uses LOCAL scheduled notifications, which should work in Expo Go.
+ * However, for full notification support and reliability, create a development build:
+ * 
+ * 1. Install EAS CLI: npm install -g eas-cli
+ * 2. Run: eas build --profile development --platform android
+ * 3. Install the development build on your device
+ * 
+ * See documentation/NOTIFICATIONS.md for more details.
  */
 class NotificationService {
   constructor() {
     this.notificationHandlers = [];
     this.isInitialized = false;
+  }
+
+  /**
+   * Check if notifications are supported in the current environment
+   */
+  isSupported() {
+    // In Expo Go, local notifications should work, but push notifications don't
+    // This service uses local scheduled notifications, which should work
+    return true;
   }
 
   /**
@@ -48,6 +67,8 @@ class NotificationService {
       return true;
     } catch (error) {
       console.error('Error initializing notifications:', error);
+      // Gracefully handle errors - notifications may not work in Expo Go
+      console.warn('Notifications may not be fully supported in Expo Go. For full support, use a development build.');
       return false;
     }
   }
@@ -57,8 +78,16 @@ class NotificationService {
    */
   async scheduleTaskNotification(task) {
     try {
+      if (!this.isSupported()) {
+        console.warn('Notifications not supported in current environment');
+        return null;
+      }
+
       if (!this.isInitialized) {
-        await this.initialize();
+        const initialized = await this.initialize();
+        if (!initialized) {
+          return null;
+        }
       }
 
       const notificationTime = taskSchedulingService.calculateNotificationTime(task);
@@ -87,6 +116,8 @@ class NotificationService {
       return notificationId;
     } catch (error) {
       console.error('Error scheduling notification:', error);
+      // Gracefully handle errors - may fail in Expo Go
+      console.warn('Notification scheduling failed. This may be due to Expo Go limitations. Use a development build for full support.');
       return null;
     }
   }

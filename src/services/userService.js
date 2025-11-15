@@ -105,11 +105,6 @@ export const registerUser = async (email, password, name) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
-    // אתחול מסד הנתונים אם נדרש (non-blocking - don't fail if it errors)
-    initializeDatabase().catch(err => {
-      console.warn("Database initialization failed (non-critical):", err.message);
-    });
-
     // לוג של מצב Firebase לפני הרישום
     console.log("Firebase status before registration:", checkFirebaseStatus());
 
@@ -132,6 +127,12 @@ export const registerUser = async (email, password, name) => {
       console.error("Error creating user profile:", profileResult.error);
     }
 
+    // אתחול מסד הנתונים אחרי שהמשתמש נרשם והתחבר (non-blocking - don't fail if it errors)
+    // This must happen AFTER authentication so the security rules allow access
+    initializeDatabase().catch(err => {
+      console.warn("Database initialization failed (non-critical):", err.message);
+    });
+
     return { success: true, user };
   } catch (error) {
     console.error("שגיאה ברישום משתמש:", error);
@@ -151,11 +152,6 @@ export const loginUser = async (email, password) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
-    // אתחול מסד הנתונים אם נדרש (non-blocking - don't fail if it errors)
-    initializeDatabase().catch(err => {
-      console.warn("Database initialization failed (non-critical):", err.message);
-    });
-
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -173,6 +169,12 @@ export const loginUser = async (email, password) => {
         full_name: userCredential.user.displayName || 'User'
       });
     }
+    
+    // אתחול מסד הנתונים אחרי שהמשתמש התחבר (non-blocking - don't fail if it errors)
+    // This must happen AFTER authentication so the security rules allow access
+    initializeDatabase().catch(err => {
+      console.warn("Database initialization failed (non-critical):", err.message);
+    });
     
     return { success: true, user: userCredential.user };
   } catch (error) {

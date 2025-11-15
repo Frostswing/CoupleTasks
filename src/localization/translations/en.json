@@ -71,7 +71,26 @@
         "archive": "Archive",
         "settings": "Settings",
         "profile": "Profile",
-        "sharing": "Share Lists"
+        "sharing": "Share Lists",
+        "language": "Language",
+        "drawer": {
+            "home": "Home",
+            "dailyTasks": "Daily Tasks",
+            "taskPlanning": "Task Planning",
+            "taskTemplates": "Task Templates",
+            "allTasks": "All Tasks",
+            "addTask": "Add Task",
+            "shoppingList": "Shopping List",
+            "shoppingMode": "Shopping Mode",
+            "inventory": "Inventory",
+            "archive": "Archive",
+            "history": "History",
+            "settings": "Settings",
+            "sharing": "Partner Sharing",
+            "language": "Language",
+            "profile": "Profile",
+            "signOut": "Sign Out"
+        }
     },
     "home": {
         "title": "Home",

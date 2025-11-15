@@ -33,7 +33,15 @@
     },
     "plugins": [
       "expo-localization",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#8B5CF6",
+          "sounds": []
+        }
+      ]
     ]
   }
 }
