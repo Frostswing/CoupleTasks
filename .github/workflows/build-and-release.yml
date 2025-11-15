@@ -27,7 +27,16 @@ jobs:
         run: npm install -g eas-cli@latest
 
       - name: Setup EAS
-        run: eas whoami || echo "EAS not logged in, will use token"
+        run: |
+          # Verify EAS CLI is available
+          eas --version
+          
+          # Check if eas.json exists, if not initialize project
+          if [ ! -f "eas.json" ]; then
+            echo "Initializing EAS project..."
+            APP_SLUG=$(node -p "require('./app.json').expo.slug || 'coupletasks'")
+            eas init --id "$APP_SLUG" --non-interactive
+          fi
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -35,6 +44,8 @@ jobs:
         id: build
         run: |
           echo "Starting EAS build..."
+          # EAS will automatically use remote credentials stored on Expo servers
+          # If credentials don't exist, the build will fail with instructions
           eas build --platform android --profile production --non-interactive --wait
           echo "Build completed!"
         env:
@@ -51,10 +62,17 @@ jobs:
           echo "Downloading APK from: $DOWNLOAD_URL"
           
           if [ "$DOWNLOAD_URL" != "null" ] && [ -n "$DOWNLOAD_URL" ]; then
-            wget -O app-release.apk "$DOWNLOAD_URL"
-            echo "APK downloaded successfully"
+            wget -O app-release.apk "$DOWNLOAD_URL" || curl -L -o app-release.apk "$DOWNLOAD_URL"
+            if [ -f app-release.apk ]; then
+              echo "APK downloaded successfully"
+              ls -lh app-release.apk
+            else
+              echo "Error: APK download failed"
+              exit 1
+            fi
           else
             echo "Error: Could not get download URL"
+            echo "Build JSON: $BUILD_JSON"
             exit 1
           fi
 

@@ -40,6 +40,16 @@ if ! git diff-index --quiet HEAD --; then
     fi
 fi
 
+# Optional: Check if EAS project is configured (helpful reminder)
+if command -v eas &> /dev/null && [ -f "eas.json" ]; then
+    print_info "EAS project is configured"
+else
+    print_warning "Note: Make sure EAS project is initialized and Android credentials are set up"
+    print_warning "before creating a release, or the GitHub Actions build will fail."
+    print_info "Run: eas init && eas credentials --platform android"
+    echo ""
+fi
+
 # Get current version from package.json
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 print_info "Current version: $CURRENT_VERSION"

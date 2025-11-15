@@ -46,6 +46,27 @@ npm run web        # Run on web (limited support)
 
 The project uses automated CI/CD for building and releasing Android APKs via GitHub Actions and EAS Build.
 
+### Testing Builds Locally (Recommended)
+
+Before creating a release, test the build locally to ensure everything works:
+
+```bash
+./scripts/build-local.sh
+```
+
+This script will:
+- Build an APK using EAS Build (same as CI/CD)
+- Let you choose between preview or production profile
+- Optionally wait for the build and download the APK
+- Save the APK locally for testing
+
+**Prerequisites:**
+- EAS CLI installed: `npm install -g eas-cli`
+- Logged in to EAS: `eas login`
+- EAS project initialized: `eas init` (run once, script will prompt if needed)
+- Android credentials set up: `eas credentials --platform android` (run once, script will prompt if needed)
+- Expo account with build credits
+
 ### Quick Release Steps
 
 1. **Run the release script:**

@@ -28,12 +28,107 @@ This guide explains how to set up and use the automated release process for Coup
 
 Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions, no need to add it manually.
 
-### 3. Verify EAS Configuration
+### 3. Initialize EAS Project
+
+Before building, you need to link your local project to an Expo project:
+
+```bash
+eas init
+```
+
+This will:
+- Link your local project to an Expo project (or create a new one)
+- Set up the project configuration
+- Only needs to be run once per project
+
+**Note:** If you see "EAS project not configured" error, run `eas init` to link the project.
+
+### 4. Set Up Android Credentials
+
+Before building Android APKs, you need to set up credentials (keystore):
+
+```bash
+eas credentials --platform android
+```
+
+This will:
+- Generate or use existing Android keystore
+- Store credentials securely on Expo servers
+- Only needs to be run once (or when credentials expire)
+
+**Options:**
+- **Generate new keystore**: Let EAS create one for you (recommended)
+- **Use existing keystore**: Upload your own keystore file
+
+The build script will check for credentials and prompt you to set them up if needed.
+
+### 5. Verify EAS Configuration
 
 The `eas.json` file is already configured with three build profiles:
 - **development**: For development builds
 - **preview**: For preview/testing builds
 - **production**: For release builds (used by CI/CD)
+
+## Testing Builds Locally
+
+Before creating a release, it's recommended to test the build locally to ensure everything works correctly.
+
+### Local Build Script
+
+Run the local build script:
+
+```bash
+./scripts/build-local.sh
+```
+
+The script will:
+1. Check EAS CLI installation and authentication
+2. Show current version
+3. Prompt for build profile (preview or production)
+4. Ask if you want to wait for build completion
+5. Build the APK using EAS Build
+6. Download the APK if you chose to wait
+
+**Example output:**
+```
+[INFO] Current version: 1.0.0
+[INFO] Using build profile: production
+[STEP] Starting EAS build...
+...
+[INFO] Build completed successfully!
+[INFO] APK downloaded successfully: app-production-1.0.0.apk
+```
+
+### Manual EAS Build Commands
+
+You can also use EAS CLI directly:
+
+```bash
+# Build and wait for completion
+eas build --platform android --profile production --wait
+
+# Build in background
+eas build --platform android --profile production --no-wait
+
+# Check build status
+eas build:list
+
+# View specific build
+eas build:view [BUILD_ID]
+
+# Download build artifact
+eas build:download [BUILD_ID]
+```
+
+### Verifying the Build
+
+After downloading the APK:
+1. Install it on an Android device or emulator
+2. Test all major features
+3. Verify version number matches expected version
+4. Check for any runtime errors
+
+Once verified, proceed with creating the release.
 
 ## Creating a Release
 
