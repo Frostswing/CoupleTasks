@@ -2,7 +2,7 @@
   "expo": {
     "name": "CoupleTasks",
     "slug": "CoupleTasks",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -29,7 +29,10 @@
     },
     "scheme": "coupletasks",
     "extra": {
-      "googleClientId": "454424635796-1shld82shvpp46trb6q566crjp48qtf9.apps.googleusercontent.com"
+      "googleClientId": "454424635796-1shld82shvpp46trb6q566crjp48qtf9.apps.googleusercontent.com",
+      "eas": {
+        "projectId": "469e5736-3abf-4e07-9603-d9629dad9909"
+      }
     },
     "plugins": [
       "expo-localization",
@@ -42,6 +45,7 @@
           "sounds": []
         }
       ]
-    ]
+    ],
+    "owner": "edenah"
   }
 }
