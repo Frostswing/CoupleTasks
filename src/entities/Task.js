@@ -64,7 +64,7 @@ export class Task {
 
       const taskWithDefaults = {
         ...taskData,
-        created_by: user.uid,
+        created_by: user.email, // Use email instead of uid to match filtering logic in screens
         created_date: new Date().toISOString(),
         updated_date: new Date().toISOString(),
         status: taskData.status || 'pending',
@@ -120,9 +120,21 @@ export class Task {
         throw new Error(dataSource.error);
       }
 
+      // Automatically archive task when status is set to 'completed'
+      const finalUpdates = { ...updates };
+      if (updates.status === 'completed') {
+        finalUpdates.is_archived = true;
+        finalUpdates.archived_date = new Date().toISOString();
+        finalUpdates.completion_date = new Date().toISOString();
+        // Set completed_by if not already set
+        if (!finalUpdates.completed_by) {
+          finalUpdates.completed_by = user.email;
+        }
+      }
+
       const taskRef = ref(database, `${dataSource.path}/tasks/${id}`);
       await update(taskRef, {
-        ...updates,
+        ...finalUpdates,
         updated_date: new Date().toISOString(),
         updated_by: user.uid
       });

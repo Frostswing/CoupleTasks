@@ -394,13 +394,34 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 #### Task Templates System
 - **Template-based task generation**
 - Create reusable task templates with:
-  - Frequency (daily, weekly, monthly, custom)
+  - Frequency types:
+    - Daily (every X days)
+    - Weekly (every X weeks)
+    - **Times per Week** (1-7 times per week with smart scheduling)
+    - Monthly (every X months)
+    - Custom (free-form description)
   - Assignment (specific user, together, separately)
   - Estimated duration
   - Auto-generation settings
   - Generation offset (days before due date)
   - Notification offset (hours before task)
 - **Auto-generation**: Automatically create tasks from active templates
+  - **Monthly Planning**: Generates tasks for the upcoming 30 days when templates are activated
+  - **Smart Generation**: Only generates tasks for missing dates (e.g., if tasks exist for next 20 days, only generates for remaining 10 days)
+  - **Background Processing**: Task generation runs in background thread, doesn't block UI
+  - **Sync Indicator**: Visual indicator in top-right header shows when tasks are being generated
+  - Tasks are generated automatically when:
+    - App starts (Daily Tasks or Task Planning screens)
+    - Template is activated
+    - Template is created/updated with auto_generate enabled
+- **Smart Scheduling for Times per Week**:
+  - 1 time/week = every 7 days
+  - 2 times/week = alternates between 3-4 days apart
+  - 3 times/week = alternates between 2-3 days apart
+  - 4 times/week = alternates between 1-2 days apart
+  - 5 times/week = mostly every 1 day, occasionally 2 days
+  - 6 times/week = mostly every day with occasional skip
+  - 7 times/week = every day
 - Templates can be activated/deactivated
 - Edit templates and generated tasks independently
 
@@ -413,6 +434,13 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Defer functionality with defer count tracking
 - Completed by tracking
 - Configurable notification offset (default: 6 hours before)
+- **Automatic Archiving**: Tasks are automatically archived when marked as completed
+  - Sets `is_archived: true`, `archived_date`, `completion_date`, and `completed_by`
+  - Happens automatically in `Task.update()` when status changes to 'completed'
+- **Automatic Cleanup**: Archived tasks older than 60 days are automatically deleted
+  - Runs on app start (Daily Tasks screen)
+  - Prevents database bloat by removing old completed tasks
+  - Tasks are permanently deleted after 60 days in archive
 
 #### Notifications
 - **Automatic notifications** for tasks with due dates and times
@@ -872,6 +900,14 @@ const styles = StyleSheet.create({
 10. ✅ Shopping items archived after purchase (for suggestions)
 11. ✅ Smart suggestions from archived items that start with same letter
 12. ✅ Shopping lists grouped by date in archive (shopping_trip_date)
+13. ✅ Task Planning screen now auto-generates tasks from active templates on load (November 2024)
+14. ✅ "Create from Template" modal now shows only active templates using real-time listener (November 2024)
+15. ✅ Task Planning screen now uses real-time template updates instead of one-time fetch (November 2024)
+16. ✅ Monthly task generation: Active templates automatically generate tasks for upcoming 30 days (December 2024)
+17. ✅ Times per Week frequency option added with smart scheduling (1-7 times/week) (December 2024)
+18. ✅ Tasks auto-generate when templates are activated or created with auto_generate enabled (December 2024)
+19. ✅ Automatic task archiving: Tasks automatically archived when completed (December 2024)
+20. ✅ Automatic cleanup: Archived tasks older than 60 days automatically deleted to save storage (December 2024)
 
 ### Medium Priority
 1. User entity partially implemented (works but could be enhanced)

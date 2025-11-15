@@ -17,8 +17,9 @@ import { User } from "../../entities/User";
 import TaskTemplateCard from "../../components/Tasks/TaskTemplateCard";
 import TaskTemplateForm from "../../components/Tasks/TaskTemplateForm";
 import { handleError, showSuccess } from "../../services/errorHandlingService";
+import taskGenerationService from "../../services/taskGenerationService";
 
-export default function TaskTemplatesScreen({ navigation }) {
+export default function TaskTemplatesScreen({ navigation, route }) {
   const [templates, setTemplates] = useState([]);
   const [filteredTemplates, setFilteredTemplates] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -27,6 +28,19 @@ export default function TaskTemplatesScreen({ navigation }) {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'active', 'inactive', 'auto'
+
+  // Handle navigation params to open template for editing
+  useEffect(() => {
+    if (route?.params?.editTemplateId && templates.length > 0) {
+      const templateToEdit = templates.find(t => t.id === route.params.editTemplateId);
+      if (templateToEdit) {
+        setEditingTemplate(templateToEdit);
+        setShowFormModal(true);
+        // Clear the param to avoid reopening on re-render
+        navigation.setParams({ editTemplateId: undefined });
+      }
+    }
+  }, [route?.params?.editTemplateId, templates]);
 
   // Load user data
   useEffect(() => {
@@ -147,12 +161,20 @@ export default function TaskTemplatesScreen({ navigation }) {
 
   const handleToggleActive = async (template) => {
     try {
+      const newActiveState = !template.is_active;
       await TaskTemplate.update(template.id, {
-        is_active: !template.is_active
+        is_active: newActiveState
       });
       showSuccess(
-        `Template ${!template.is_active ? 'activated' : 'deactivated'}`
+        `Template ${newActiveState ? 'activated' : 'deactivated'}`
       );
+      
+      // If template was activated and has auto_generate, generate tasks for upcoming month (background)
+      if (newActiveState && template.auto_generate) {
+        taskGenerationService.generateTasksForUpcomingMonth().catch(error => {
+          console.error('Error generating tasks after template activation:', error);
+        });
+      }
     } catch (error) {
       handleError(error, 'toggleTemplateActive');
     }
@@ -163,9 +185,23 @@ export default function TaskTemplatesScreen({ navigation }) {
       if (editingTemplate) {
         await TaskTemplate.update(editingTemplate.id, templateData);
         showSuccess('Template updated successfully');
+        
+        // If template is active and has auto_generate, generate tasks (background)
+        if (templateData.is_active && templateData.auto_generate) {
+          taskGenerationService.generateTasksForUpcomingMonth().catch(error => {
+            console.error('Error generating tasks after template update:', error);
+          });
+        }
       } else {
         await TaskTemplate.create(templateData);
         showSuccess('Template created successfully');
+        
+        // If new template is active and has auto_generate, generate tasks (background)
+        if (templateData.is_active && templateData.auto_generate) {
+          taskGenerationService.generateTasksForUpcomingMonth().catch(error => {
+            console.error('Error generating tasks after template creation:', error);
+          });
+        }
       }
       setShowFormModal(false);
       setEditingTemplate(null);

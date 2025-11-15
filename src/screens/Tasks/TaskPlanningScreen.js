@@ -32,6 +32,9 @@ export default function TaskPlanningScreen({ navigation }) {
   const [creatingTask, setCreatingTask] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [showDayTasksModal, setShowDayTasksModal] = useState(false);
+  const [selectedDayTasks, setSelectedDayTasks] = useState([]);
+  const [selectedDayDate, setSelectedDayDate] = useState(null);
 
   // Load user data
   useEffect(() => {
@@ -57,6 +60,7 @@ export default function TaskPlanningScreen({ navigation }) {
     let isMounted = true;
     
     const userEmails = [currentUser.email];
+    const userUids = [currentUser.uid];
     if (currentUser.partner_email) {
       userEmails.push(currentUser.partner_email);
     }
@@ -73,10 +77,25 @@ export default function TaskPlanningScreen({ navigation }) {
         
         clearTimeout(loadingTimeout);
         
-        const filtered = taskList.filter(t => 
-          userEmails.includes(t.created_by) && 
-          !t.is_archived
-        );
+        // Filter tasks: show tasks assigned to current user, "together", or unassigned (empty/none)
+        // Also include tasks created by user (for backward compatibility)
+        const filtered = taskList.filter(t => {
+          if (t.is_archived) return false;
+          
+          // Show if assigned to current user
+          if (userEmails.includes(t.assigned_to)) return true;
+          
+          // Show if assigned to "together" (both partners)
+          if (t.assigned_to === 'together') return true;
+          
+          // Show if unassigned (empty string or null)
+          if (!t.assigned_to || t.assigned_to === '') return true;
+          
+          // Backward compatibility: show tasks created by user
+          if (userEmails.includes(t.created_by) || userUids.includes(t.created_by)) return true;
+          
+          return false;
+        });
         
         setTasks(filtered);
         setIsLoading(false);
@@ -91,25 +110,47 @@ export default function TaskPlanningScreen({ navigation }) {
     };
   }, [currentUser?.uid]);
 
-  // Load templates
+  // Set up real-time template listener and auto-generate tasks
   useEffect(() => {
-    const loadTemplates = async () => {
-      try {
-        const allTemplates = await TaskTemplate.getAll();
-        setTemplates(allTemplates);
-      } catch (error) {
-        console.error('Error loading templates:', error);
-      }
-    };
-    
-    if (currentUser?.uid) {
-      loadTemplates();
+    if (!currentUser?.uid) {
+      return;
     }
+
+    // Auto-generate tasks from active templates for upcoming month (runs in background)
+    taskGenerationService.generateTasksForUpcomingMonth().catch(error => {
+      console.error('Error auto-generating tasks:', error);
+      handleError(error, 'autoGenerateTasks');
+    });
+
+    // Set up real-time listener for ALL templates
+    const unsubscribe = TaskTemplate.onSnapshot(
+      (templateList) => {
+        // Filter to only show active templates in the "Create from Template" modal
+        // Treat undefined/null as active (for backwards compatibility with old templates)
+        const activeTemplates = templateList.filter(t => {
+          // Explicitly check: show if is_active is true OR undefined/null
+          return t.is_active !== false;
+        });
+        setTemplates(activeTemplates);
+      }
+      // No server-side filter - get all templates, then filter client-side
+      // This ensures we see templates even if there's a data inconsistency
+    );
+
+    return () => unsubscribe();
   }, [currentUser?.uid]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    setCreatingTask(true);
+    // Get all tasks for this date
+    const dayTasks = tasks.filter(task => {
+      if (!task.due_date) return false;
+      const taskDate = parseISO(task.due_date);
+      return format(taskDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+    });
+    setSelectedDayTasks(dayTasks);
+    setSelectedDayDate(date);
+    setShowDayTasksModal(true);
   };
 
   const handleTaskPress = (task) => {
@@ -218,6 +259,7 @@ export default function TaskPlanningScreen({ navigation }) {
         onDateSelect={handleDateSelect}
         onTaskPress={handleTaskPress}
         onTaskMove={handleTaskMove}
+        key={`${viewMode}-${selectedDate.getTime()}`}
       />
 
       {/* Create Task Modal */}
@@ -310,6 +352,122 @@ export default function TaskPlanningScreen({ navigation }) {
         </View>
       </Modal>
 
+      {/* Day Tasks Modal */}
+      <Modal
+        visible={showDayTasksModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDayTasksModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>
+                  {selectedDayDate ? format(selectedDayDate, 'EEEE, MMMM d') : 'Tasks'}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  {selectedDayTasks.length} task{selectedDayTasks.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowDayTasksModal(false)}
+                style={styles.closeButton}
+              >
+                <Icon name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dayTasksList}>
+              {selectedDayTasks.length === 0 ? (
+                <View style={styles.emptyDayTasks}>
+                  <Icon name="event-busy" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyText}>No tasks for this day</Text>
+                  <TouchableOpacity
+                    style={styles.addTaskButton}
+                    onPress={() => {
+                      setShowDayTasksModal(false);
+                      setCreatingTask(true);
+                    }}
+                  >
+                    <Icon name="add" size={20} color="#FFFFFF" />
+                    <Text style={styles.addTaskButtonText}>Add Task</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                selectedDayTasks.map((task) => (
+                  <TouchableOpacity
+                    key={task.id}
+                    style={[
+                      styles.dayTaskItem,
+                      task.status === 'completed' && styles.completedTaskItem
+                    ]}
+                    onPress={() => {
+                      setShowDayTasksModal(false);
+                      handleTaskPress(task);
+                    }}
+                  >
+                    <View style={styles.dayTaskContent}>
+                      <View style={styles.dayTaskHeader}>
+                        <Text style={[
+                          styles.dayTaskTitle,
+                          task.status === 'completed' && styles.completedTaskText
+                        ]}>
+                          {task.title}
+                        </Text>
+                        {task.status === 'completed' && (
+                          <Icon name="check-circle" size={20} color="#10B981" />
+                        )}
+                      </View>
+                      {task.description && (
+                        <Text style={styles.dayTaskDescription} numberOfLines={2}>
+                          {task.description}
+                        </Text>
+                      )}
+                      <View style={styles.dayTaskMeta}>
+                        <View style={[
+                          styles.priorityBadge,
+                          task.priority === 'high' && styles.priorityHigh,
+                          task.priority === 'low' && styles.priorityLow
+                        ]}>
+                          <Text style={styles.priorityText}>{task.priority || 'medium'}</Text>
+                        </View>
+                        {task.estimated_duration && (
+                          <View style={styles.durationText}>
+                            <Icon name="schedule" size={14} color="#6B7280" />
+                            <Text style={styles.metaText}> {task.estimated_duration} min</Text>
+                          </View>
+                        )}
+                        {task.assigned_to && (
+                          <View style={styles.assignedText}>
+                            <Icon name="person" size={14} color="#6B7280" />
+                            <Text style={styles.metaText}> {task.assigned_to}</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={24} color="#9CA3AF" />
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+            {selectedDayTasks.length > 0 && (
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={styles.addTaskButton}
+                  onPress={() => {
+                    setShowDayTasksModal(false);
+                    setCreatingTask(true);
+                  }}
+                >
+                  <Icon name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.addTaskButtonText}>Add Task</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       {/* Edit Task Dialog */}
       <EditTaskDialog
         task={editingTask}
@@ -319,6 +477,7 @@ export default function TaskPlanningScreen({ navigation }) {
           setSelectedTask(null);
         }}
         onUpdateTask={handleUpdateTask}
+        navigation={navigation}
       />
     </SafeAreaView>
   );
@@ -465,6 +624,110 @@ const styles = StyleSheet.create({
   templateFrequency: {
     fontSize: 12,
     color: '#9CA3AF',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  dayTasksList: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  emptyDayTasks: {
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  dayTaskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  completedTaskItem: {
+    opacity: 0.6,
+  },
+  dayTaskContent: {
+    flex: 1,
+  },
+  dayTaskHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  dayTaskTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    flex: 1,
+  },
+  completedTaskText: {
+    textDecorationLine: 'line-through',
+    color: '#6B7280',
+  },
+  dayTaskDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  dayTaskMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  priorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#F3F4F6',
+  },
+  priorityHigh: {
+    backgroundColor: '#FEE2E2',
+  },
+  priorityLow: {
+    backgroundColor: '#D1FAE5',
+  },
+  priorityText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#374151',
+    textTransform: 'capitalize',
+  },
+  durationText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  assignedText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  modalFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  addTaskButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 8,
+  },
+  addTaskButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

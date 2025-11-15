@@ -17,9 +17,10 @@ export class TaskTemplate {
     this.description = data.description || '';
     this.category = data.category || 'household';
     this.subcategory = data.subcategory || '';
-    this.frequency_type = data.frequency_type || 'weekly'; // 'daily', 'weekly', 'monthly', 'custom'
-    this.frequency_interval = data.frequency_interval || 1; // Every X days/weeks/months
+    this.frequency_type = data.frequency_type || 'weekly'; // 'daily', 'weekly', 'monthly', 'times_per_week', 'custom'
+    this.frequency_interval = data.frequency_interval || 1; // Every X days/weeks/months OR times per week (1-7)
     this.frequency_custom = data.frequency_custom || null; // Custom frequency description
+    this.selected_days = data.selected_days || null; // Array of day numbers (0-6, 0=Sunday) for times_per_week
     this.assigned_to = data.assigned_to || ''; // User email or 'together' or 'separately'
     this.estimated_duration = data.estimated_duration || null;
     this.priority = data.priority || 'medium';
@@ -92,7 +93,7 @@ export class TaskTemplate {
     }
   }
 
-  static async update(id, updates) {
+  static async update(id, updates, options = {}) {
     try {
       const user = getCurrentUser();
       if (!user) {
@@ -109,6 +110,21 @@ export class TaskTemplate {
         ...updates,
         updated_date: new Date().toISOString(),
       });
+      
+      // If updateTasks is true (default), update all tasks generated from this template
+      const shouldUpdateTasks = options.updateTasks !== false; // Default to true
+      if (shouldUpdateTasks) {
+        // Import here to avoid circular dependency - use dynamic import
+        import('../services/taskGenerationService').then(module => {
+          const taskGenerationService = module.default;
+          // Run in background to avoid blocking
+          taskGenerationService.updateTasksFromTemplate(id, updates).catch(error => {
+            console.error('Error updating tasks from template:', error);
+          });
+        }).catch(error => {
+          console.error('Error loading taskGenerationService:', error);
+        });
+      }
       
       return true;
     } catch (error) {

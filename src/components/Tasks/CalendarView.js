@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -20,7 +20,63 @@ export default function CalendarView({
   onTaskPress,
   onTaskMove,
 }) {
-  const [selectedDate, setSelectedDate] = useState(currentDate);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // For week view, always start from current week
+    if (viewMode === 'week') {
+      return new Date(); // Start from today (current week)
+    }
+    return currentDate;
+  });
+
+  const prevViewModeRef = useRef(viewMode);
+
+  // Update selectedDate when currentDate prop changes or when switching to week view
+  useEffect(() => {
+    const today = new Date();
+    const currentWeekStart = startOfWeek(today, { weekStartsOn: 0 });
+    
+    if (viewMode === 'week') {
+      // When switching to week view, ensure we show current week
+      if (prevViewModeRef.current !== 'week') {
+        setSelectedDate(today);
+        prevViewModeRef.current = viewMode;
+        return;
+      }
+      
+      // Check if selectedDate is in current week
+      setSelectedDate(prevDate => {
+        const prevWeekStart = startOfWeek(prevDate, { weekStartsOn: 0 });
+        const currentDateWeekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+        
+        // If not in current week, reset to today
+        if (currentWeekStart.getTime() !== prevWeekStart.getTime()) {
+          // Only reset if currentDate is today or in current week
+          if (currentDateWeekStart.getTime() === currentWeekStart.getTime()) {
+            return currentDate;
+          }
+          return today;
+        }
+        
+        // If in current week, update to currentDate if it's different and also in current week
+        if (currentDateWeekStart.getTime() === currentWeekStart.getTime() && 
+            currentDate.getTime() !== prevDate.getTime()) {
+          return currentDate;
+        }
+        
+        return prevDate;
+      });
+    } else {
+      // For month view, use currentDate prop
+      setSelectedDate(prevDate => {
+        if (currentDate.getTime() !== prevDate.getTime()) {
+          return currentDate;
+        }
+        return prevDate;
+      });
+    }
+    
+    prevViewModeRef.current = viewMode;
+  }, [currentDate, viewMode]);
 
   const getWeekDays = (date) => {
     const weekStart = startOfWeek(date, { weekStartsOn: 0 }); // Sunday
@@ -79,8 +135,11 @@ export default function CalendarView({
   };
 
   const renderWeekView = () => {
+    // Ensure we show the week containing the selected date
     const weekDays = getWeekDays(selectedDate);
     const today = new Date();
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
+    const weekEnd = addDays(weekStart, 6);
 
     return (
       <View style={styles.weekContainer}>
@@ -89,7 +148,9 @@ export default function CalendarView({
             <Icon name="chevron-left" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.monthYearText}>
-            {format(selectedDate, 'MMMM yyyy')}
+            {weekStart.getMonth() === weekEnd.getMonth() 
+              ? format(weekStart, 'MMMM yyyy')
+              : `${format(weekStart, 'MMM')} - ${format(weekEnd, 'MMM yyyy')}`}
           </Text>
           <TouchableOpacity onPress={() => navigateWeek('next')} style={styles.navButton}>
             <Icon name="chevron-right" size={24} color="#8B5CF6" />
@@ -210,6 +271,7 @@ export default function CalendarView({
       </View>
     );
   };
+
 
   return (
     <View style={styles.container}>
