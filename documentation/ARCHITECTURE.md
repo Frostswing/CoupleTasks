@@ -1144,6 +1144,61 @@ npm run web        # Run on web (limited support)
 - **Update dependencies:** `npm update`
 - **Check for issues:** `expo doctor`
 
+### Release Process
+
+The project uses automated CI/CD for building and releasing Android APKs via GitHub Actions and EAS Build.
+
+#### Creating a Release
+
+1. **Run the release script:**
+   ```bash
+   ./scripts/release.sh
+   ```
+
+2. **Select version bump type:**
+   - `1` - Patch (x.x.X): Bug fixes and minor changes
+   - `2` - Minor (x.X.x): New features, backwards compatible
+   - `3` - Major (X.x.x): Breaking changes
+
+3. **The script will:**
+   - Update version in `package.json` and `app.json`
+   - Generate release notes from recent commits
+   - Commit the version changes
+   - Create a git tag (e.g., `v1.0.1`)
+   - Push commits and tag to GitHub
+
+4. **GitHub Actions automatically:**
+   - Triggers on tag push
+   - Builds Android APK using EAS Build
+   - Downloads the APK artifact
+   - Creates a GitHub Release with the APK attached
+   - Includes auto-generated release notes
+
+#### Required Setup
+
+**GitHub Secrets:**
+- `EXPO_TOKEN`: Your Expo access token (get from https://expo.dev/accounts/[your-account]/settings/access-tokens)
+- `GITHUB_TOKEN`: Automatically provided by GitHub Actions
+
+**EAS Configuration:**
+- `eas.json`: Contains build profiles (development, preview, production)
+- Ensure EAS CLI is installed: `npm install -g eas-cli`
+- Login to EAS: `eas login`
+
+#### Build Profiles
+
+- **development**: Development client build for internal testing
+- **preview**: Preview APK for internal distribution
+- **production**: Production APK for releases (used by CI/CD)
+
+#### Workflow Files
+
+- `.github/workflows/build-and-release.yml`: GitHub Actions workflow for automated builds
+- `scripts/release.sh`: Local script for version bumping and release creation
+- `eas.json`: EAS Build configuration
+
+For detailed setup instructions, see [RELEASE_SETUP.md](./RELEASE_SETUP.md).
+
 ---
 
 ## 📝 Coding Conventions
