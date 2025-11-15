@@ -88,10 +88,8 @@ const AuthScreen = ({ navigation }) => {
         showSuccess(
           isLogin ? i18n.t('auth.loginSuccess') : i18n.t('auth.registrationSuccess')
         );
-        // Navigate to Home after successful login/registration
-        if (navigation) {
-          navigation.navigate('Home');
-        }
+        // Navigation will happen automatically when auth state changes in App.js
+        // No need to manually navigate - the DrawerNavigator will be shown automatically
       } else {
         handleError(result.error, isLogin ? 'loginUser' : 'registerUser');
       }
@@ -123,19 +121,13 @@ const AuthScreen = ({ navigation }) => {
         
         if (firebaseResult.success) {
           showSuccess(i18n.t('auth.loginSuccess'));
-          // Navigate to Home after successful Google sign in
-          if (navigation) {
-            navigation.navigate('Home');
-          }
+          // Navigation will happen automatically when auth state changes in App.js
         } else {
           // If user already exists, try to login
           const loginResult = await loginUser(googleUser.email, 'google-auth-' + googleUser.id);
           if (loginResult.success) {
             showSuccess(i18n.t('auth.loginSuccess'));
-            // Navigate to Home after successful Google sign in
-            if (navigation) {
-              navigation.navigate('Home');
-            }
+            // Navigation will happen automatically when auth state changes in App.js
           } else {
             handleError(loginResult.error, 'googleSignIn');
           }

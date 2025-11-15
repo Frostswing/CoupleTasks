@@ -28,6 +28,8 @@ export class TaskTableConfig {
     this.planned_performer = data.planned_performer || '';
     this.planned_duration = data.planned_duration || '';
     this.planned_frequency = data.planned_frequency || '';
+    // Notes/comments
+    this.notes = data.notes || '';
     // Metadata
     this.created_by = data.created_by || '';
     this.created_date = data.created_date || new Date().toISOString();

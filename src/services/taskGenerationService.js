@@ -75,11 +75,16 @@ class TaskGenerationService {
 
   /**
    * Generate a task from a template
+   * @param {Object} template - The task template
+   * @param {Date|null|undefined} dueDate - Explicit due date. If undefined, auto-calculates. If provided (even if future), always generates.
    */
-  async generateTaskFromTemplate(template, dueDate = null) {
+  async generateTaskFromTemplate(template, dueDate = undefined) {
     try {
+      // Check if dueDate was explicitly provided (not undefined)
+      const explicitDueDate = dueDate !== undefined;
+      
       // Calculate due date if not provided
-      if (!dueDate) {
+      if (!explicitDueDate || !dueDate) {
         // Find last completed task from this template
         const existingTasks = await Task.filter({ template_id: template.id });
         const completedTasks = existingTasks
@@ -96,13 +101,16 @@ class TaskGenerationService {
       // Apply generation offset (create task X days before due date)
       const scheduledDate = addDays(dueDate, -template.generation_offset || 0);
 
-      // Only create if scheduled date is today or in the past
-      const today = startOfDay(new Date());
-      const scheduled = startOfDay(scheduledDate);
-      
-      if (isAfter(scheduled, today)) {
-        // Too early to generate - will be generated later
-        return null;
+      // Only check future date restriction if dueDate was auto-calculated
+      // If explicitly provided, always generate (for initial sync, calendar planning, etc.)
+      if (!explicitDueDate) {
+        const today = startOfDay(new Date());
+        const scheduled = startOfDay(scheduledDate);
+        
+        if (isAfter(scheduled, today)) {
+          // Too early to generate - will be generated later
+          return null;
+        }
       }
 
       const taskData = {

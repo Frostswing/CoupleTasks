@@ -57,7 +57,7 @@
                             ".validate": "newData.val() == null || newData.isString()"
                         },
                         "assigned_to": {
-                            ".validate": "newData.val() == null || (newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/))"
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 100)"
                         },
                         "created_by": {
                             ".validate": "newData.isString() && (newData.val() == auth.uid || newData.val() == $userId)"
@@ -70,6 +70,54 @@
                         },
                         "is_archived": {
                             ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "due_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "due_time": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "recurrence_rule": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "subtasks": {
+                            ".validate": "newData.val() == null || newData.hasChildren()"
+                        },
+                        "template_id": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "auto_generated": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "scheduled_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "estimated_duration": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "actual_duration": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "room_location": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "defer_count": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "defer_until": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "completed_by": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "notification_offset_hours": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "archived_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "completion_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "$other": {
                             ".validate": true
@@ -138,6 +186,24 @@
                     "$other": {
                         ".validate": true
                     }
+                },
+                "task_templates": {
+                    "$templateId": {
+                        ".write": "auth != null && auth.uid == $userId",
+                        ".validate": "newData.hasChildren(['template_name', 'category'])",
+                        "$other": {
+                            ".validate": true
+                        }
+                    }
+                },
+                "task_table_config": {
+                    "$configId": {
+                        ".write": "auth != null && auth.uid == $userId",
+                        ".validate": "newData.hasChildren(['task_name'])",
+                        "$other": {
+                            ".validate": true
+                        }
+                    }
                 }
             }
         },
@@ -181,10 +247,67 @@
                             ".validate": "newData.val() == null || newData.isString()"
                         },
                         "assigned_to": {
-                            ".validate": "newData.val() == null || (newData.isString() && newData.val().matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/))"
+                            ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 100)"
                         },
                         "created_by": {
                             ".validate": "newData.isString() && root.child('shared').child($sharedSpaceId).child('members').child(newData.val()).exists()"
+                        },
+                        "created_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "updated_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "is_archived": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "due_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "due_time": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "recurrence_rule": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "subtasks": {
+                            ".validate": "newData.val() == null || newData.hasChildren()"
+                        },
+                        "template_id": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "auto_generated": {
+                            ".validate": "newData.val() == null || newData.isBoolean()"
+                        },
+                        "scheduled_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "estimated_duration": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "actual_duration": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "room_location": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "defer_count": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "defer_until": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "completed_by": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "notification_offset_hours": {
+                            ".validate": "newData.val() == null || newData.isNumber()"
+                        },
+                        "archived_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
+                        },
+                        "completion_date": {
+                            ".validate": "newData.val() == null || newData.isString()"
                         },
                         "$other": {
                             ".validate": true
@@ -254,6 +377,22 @@
                 "history": {
                     "$other": {
                         ".validate": true
+                    }
+                },
+                "task_templates": {
+                    "$templateId": {
+                        ".validate": "newData.hasChildren(['template_name', 'category'])",
+                        "$other": {
+                            ".validate": true
+                        }
+                    }
+                },
+                "task_table_config": {
+                    "$configId": {
+                        ".validate": "newData.hasChildren(['task_name'])",
+                        "$other": {
+                            ".validate": true
+                        }
                     }
                 },
                 "$other": {

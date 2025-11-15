@@ -4,29 +4,32 @@
 
 This document provides a template and examples for creating Excel files that can be imported into the CoupleTasks Task Table feature.
 
+**⚠️ Having trouble?** See [EXCEL_TEMPLATE_ENGLISH.md](./EXCEL_TEMPLATE_ENGLISH.md) for a clearer English version with step-by-step instructions.
+
 ## Template Structure
 
-Create an Excel file (`.xlsx` or `.xls`) with the following 9 columns in this exact order (from right to left in Hebrew):
+Create an Excel file (`.xlsx` or `.xls`) with the following 10 columns in this exact order (from right to left in Hebrew):
 
 | Column # | Hebrew Name | English Translation | Description | Example Values |
 |----------|-------------|-------------------|-------------|----------------|
 | 9 | קטגוריה | Category | Main task category | ניקיון, כביסה, תחזוקה שוטפת |
 | 8 | תת-קטגוריה | Subcategory | Specific area or room | כללי, מטבח, שירותים |
 | 7 | מטלה | Task Name | Name of the task | שטיפת רצפה, הפעלת מכונה |
-| 6 | מי מבצע | Performer (Planned) | Who will do it | ביחד, עדן הבן, עדן הבת |
-| 5 | משך המטלה | Duration (Planned) | How long it takes | רבע שעה, חצי שעה, 10 דקות |
-| 4 | תדירות | Frequency (Planned) | How often | פעם בשבוע, יומיומי |
-| 3 | מי מבצע | Performer (Current) | Who currently does it | ביחד, עדן הבן, עדן הבת |
-| 2 | משך המטלה | Duration (Current) | Current duration | רבע שעה, חצי שעה |
-| 1 | תדירות | Frequency (Current) | Current frequency | פעם בשבוע, יומיומי |
+| 6 | מי מבצע | Performer (Current) | Who currently does it | ביחד, עדן הבן, עדן הבת |
+| 5 | משך המטלה | Duration (Current) | Current duration | רבע שעה, חצי שעה |
+| 4 | תדירות | Frequency (Current) | Current frequency | פעם בשבוע, יומיומי |
+| 3 | מי מבצע | Performer (Planned) | Who will do it | ביחד, עדן הבן, עדן הבת |
+| 2 | משך המטלה | Duration (Planned) | How long it takes | רבע שעה, חצי שעה, 10 דקות |
+| 1 | תדירות | Frequency (Planned) | How often | פעם בשבוע, יומיומי |
+| 0 | הערות | Notes/Comments | Additional notes | Any comments or reminders |
 
-**Note:** The system uses the **Planned** columns (4, 5, 6) for generating tasks. Current columns (1, 2, 3) are for documentation only.
+**Note:** The system uses the **Planned** columns (1, 2, 3) for generating tasks. Current columns (4, 5, 6) are for documentation only. Notes (column 0) are stored but not used for task generation.
 
 ## Complete Example Table
 
 ```
-קטגוריה | תת-קטגוריה | מטלה | מי מבצע (תכנון) | משך המטלה (תכנון) | תדירות (תכנון) | מי מבצע (נוכחי) | משך המטלה (נוכחי) | תדירות (נוכחי)
----------|-------------|------|-----------------|-------------------|----------------|-----------------|-------------------|------------------
+קטגוריה | תת-קטגוריה | מטלה | מי מבצע (נוכחי) | משך המטלה (נוכחי) | תדירות (נוכחי) | מי מבצע (תכנון) | משך המטלה (תכנון) | תדירות (תכנון) | הערות
+---------|-------------|------|-----------------|-------------------|----------------|-----------------|-------------------|----------------|--------
 רכב | כללי | תחזוקת המכונית | ביחד | | פעם בכמה חודשים | ביחד | | פעם בכמה חודשים
 ניקיון | כללי | תחזוקת שואב אבק רובוטי | עדן הבן | עשר דקות-חצי שעה | | עדן הבן | | ניקוי שבועי וניקוי חודשי
 ניקיון | כללי | שטיפת רצפה | ביחד | עדן הבן: רבע שעה, עדן הבת: חצי שעה | פעם בשבוע-שבועיים | עדן הבן | | פעם בשבוע
