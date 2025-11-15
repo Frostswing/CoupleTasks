@@ -29,9 +29,27 @@ export default function CalendarView({
   });
 
   const prevViewModeRef = useRef(viewMode);
+  const prevCurrentDateRef = useRef(null);
+  const isInitialMountRef = useRef(true);
+
+  // Stabilize currentDate to prevent unnecessary re-renders
+  const currentDateTimestamp = currentDate?.getTime();
 
   // Update selectedDate when currentDate prop changes or when switching to week view
   useEffect(() => {
+    // Skip on initial mount - useState already handles initialization
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      prevCurrentDateRef.current = currentDateTimestamp;
+      prevViewModeRef.current = viewMode;
+      return;
+    }
+    
+    // Skip if currentDate hasn't actually changed and viewMode hasn't changed
+    if (currentDateTimestamp === prevCurrentDateRef.current && prevViewModeRef.current === viewMode) {
+      return;
+    }
+    
     const today = new Date();
     const currentWeekStart = startOfWeek(today, { weekStartsOn: 0 });
     
@@ -40,27 +58,30 @@ export default function CalendarView({
       if (prevViewModeRef.current !== 'week') {
         setSelectedDate(today);
         prevViewModeRef.current = viewMode;
+        prevCurrentDateRef.current = currentDateTimestamp;
         return;
       }
       
       // Check if selectedDate is in current week
       setSelectedDate(prevDate => {
         const prevWeekStart = startOfWeek(prevDate, { weekStartsOn: 0 });
-        const currentDateWeekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+        const currentDateObj = currentDateTimestamp ? new Date(currentDateTimestamp) : null;
+        const currentDateWeekStart = currentDateObj ? startOfWeek(currentDateObj, { weekStartsOn: 0 }) : null;
         
         // If not in current week, reset to today
         if (currentWeekStart.getTime() !== prevWeekStart.getTime()) {
           // Only reset if currentDate is today or in current week
-          if (currentDateWeekStart.getTime() === currentWeekStart.getTime()) {
-            return currentDate;
+          if (currentDateWeekStart && currentDateWeekStart.getTime() === currentWeekStart.getTime()) {
+            return currentDateObj;
           }
           return today;
         }
         
         // If in current week, update to currentDate if it's different and also in current week
-        if (currentDateWeekStart.getTime() === currentWeekStart.getTime() && 
-            currentDate.getTime() !== prevDate.getTime()) {
-          return currentDate;
+        if (currentDateWeekStart && 
+            currentDateWeekStart.getTime() === currentWeekStart.getTime() && 
+            currentDateTimestamp !== prevDate.getTime()) {
+          return currentDateObj;
         }
         
         return prevDate;
@@ -68,15 +89,16 @@ export default function CalendarView({
     } else {
       // For month view, use currentDate prop
       setSelectedDate(prevDate => {
-        if (currentDate.getTime() !== prevDate.getTime()) {
-          return currentDate;
+        if (currentDateTimestamp && currentDateTimestamp !== prevDate.getTime()) {
+          return new Date(currentDateTimestamp);
         }
         return prevDate;
       });
     }
     
     prevViewModeRef.current = viewMode;
-  }, [currentDate, viewMode]);
+    prevCurrentDateRef.current = currentDateTimestamp;
+  }, [currentDateTimestamp, viewMode]);
 
   const getWeekDays = (date) => {
     const weekStart = startOfWeek(date, { weekStartsOn: 0 }); // Sunday

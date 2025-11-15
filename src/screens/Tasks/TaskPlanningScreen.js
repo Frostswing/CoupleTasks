@@ -259,7 +259,6 @@ export default function TaskPlanningScreen({ navigation }) {
         onDateSelect={handleDateSelect}
         onTaskPress={handleTaskPress}
         onTaskMove={handleTaskMove}
-        key={`${viewMode}-${selectedDate.getTime()}`}
       />
 
       {/* Create Task Modal */}
