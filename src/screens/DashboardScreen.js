@@ -81,11 +81,25 @@ export default function DashboardScreen({ navigation }) {
         
         clearTimeout(loadingTimeout);
         
-        // Filter tasks by user emails
-        const filtered = taskList.filter(t => 
-          userEmails.includes(t.created_by) && 
-          !t.is_archived
-        );
+        // Filter tasks: show tasks assigned to current user, "together", or unassigned (empty/none)
+        // Also include tasks created by user (for backward compatibility)
+        const filtered = taskList.filter(t => {
+          if (t.is_archived) return false;
+          
+          // Show if assigned to current user
+          if (userEmails.includes(t.assigned_to)) return true;
+          
+          // Show if assigned to "together" (both partners)
+          if (t.assigned_to === 'together') return true;
+          
+          // Show if unassigned (empty string or null)
+          if (!t.assigned_to || t.assigned_to === '') return true;
+          
+          // Backward compatibility: show tasks created by user
+          if (userEmails.includes(t.created_by)) return true;
+          
+          return false;
+        });
         
         setTasks(filtered);
         setIsLoading(false);
@@ -113,7 +127,22 @@ export default function DashboardScreen({ navigation }) {
       if (user.partner_email) {
         userEmails.push(user.partner_email);
       }
-      const filtered = allTasks.filter(t => userEmails.includes(t.created_by));
+      // Filter tasks: show tasks assigned to current user, "together", or unassigned
+      const filtered = allTasks.filter(t => {
+        // Show if assigned to current user
+        if (userEmails.includes(t.assigned_to)) return true;
+        
+        // Show if assigned to "together" (both partners)
+        if (t.assigned_to === 'together') return true;
+        
+        // Show if unassigned (empty string or null)
+        if (!t.assigned_to || t.assigned_to === '') return true;
+        
+        // Backward compatibility: show tasks created by user
+        if (userEmails.includes(t.created_by)) return true;
+        
+        return false;
+      });
       setTasks(filtered);
     } catch (error) {
       handleError(error, 'refreshTasks');

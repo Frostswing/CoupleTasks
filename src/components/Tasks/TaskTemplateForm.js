@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -33,6 +34,7 @@ const priorities = [
 const frequencyTypes = [
   { label: 'Daily', value: 'daily' },
   { label: 'Weekly', value: 'weekly' },
+  { label: 'Times per Week', value: 'times_per_week' },
   { label: 'Monthly', value: 'monthly' },
   { label: 'Custom', value: 'custom' },
 ];
@@ -46,6 +48,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
     frequency_type: "weekly",
     frequency_interval: 1,
     frequency_custom: "",
+    selected_days: null, // Array of day numbers (0-6) for times_per_week
     assigned_to: "",
     estimated_duration: "",
     priority: "medium",
@@ -103,6 +106,14 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
       formData.frequency_interval = parsed.frequency_interval;
       if (parsed.frequency_custom) {
         formData.frequency_custom = parsed.frequency_custom;
+      }
+    }
+
+    // Validate selected_days for times_per_week
+    if (formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7) {
+      if (!formData.selected_days || formData.selected_days.length !== formData.frequency_interval) {
+        Alert.alert('Validation Error', `Please select exactly ${formData.frequency_interval} day${formData.frequency_interval !== 1 ? 's' : ''} of the week.`);
+        return;
       }
     }
 
@@ -221,19 +232,45 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
         
         {formData.frequency_type !== 'custom' && (
           <View style={styles.frequencyInterval}>
-            <Text style={styles.label}>Every</Text>
-            <TextInput
-              style={[styles.input, styles.numberInput]}
-              value={formData.frequency_interval.toString()}
-              onChangeText={(value) => handleInputChange('frequency_interval', parseInt(value) || 1)}
-              keyboardType="numeric"
-              placeholder="1"
-            />
-            <Text style={styles.label}>
-              {formData.frequency_type === 'daily' ? 'day(s)' :
-               formData.frequency_type === 'weekly' ? 'week(s)' :
-               formData.frequency_type === 'monthly' ? 'month(s)' : ''}
-            </Text>
+            {formData.frequency_type === 'times_per_week' ? (
+              <>
+                <Text style={styles.label}>Times per week</Text>
+                <TextInput
+                  style={[styles.input, styles.numberInput]}
+                  value={formData.frequency_interval.toString()}
+                  onChangeText={(value) => {
+                    const num = parseInt(value) || 1;
+                    const clamped = Math.min(Math.max(1, num), 7); // Clamp between 1-7
+                    handleInputChange('frequency_interval', clamped);
+                    
+                    // Reset selected_days if times changed and doesn't match
+                    if (formData.selected_days && formData.selected_days.length !== clamped) {
+                      handleInputChange('selected_days', null);
+                    }
+                  }}
+                  keyboardType="numeric"
+                  placeholder="1-7"
+                  maxLength={1}
+                />
+                <Text style={styles.label}>(1-7)</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.label}>Every</Text>
+                <TextInput
+                  style={[styles.input, styles.numberInput]}
+                  value={formData.frequency_interval.toString()}
+                  onChangeText={(value) => handleInputChange('frequency_interval', parseInt(value) || 1)}
+                  keyboardType="numeric"
+                  placeholder="1"
+                />
+                <Text style={styles.label}>
+                  {formData.frequency_type === 'daily' ? 'day(s)' :
+                   formData.frequency_type === 'weekly' ? 'week(s)' :
+                   formData.frequency_type === 'monthly' ? 'month(s)' : ''}
+                </Text>
+              </>
+            )}
           </View>
         )}
 
@@ -245,6 +282,72 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
             placeholder="e.g., Every 2-3 days, Once a month"
             placeholderTextColor="#9CA3AF"
           />
+        )}
+
+        {/* Day selector for times_per_week (2-7 times) */}
+        {formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7 && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Select Days of Week</Text>
+            <Text style={styles.subLabel}>Choose {formData.frequency_interval} day{formData.frequency_interval !== 1 ? 's' : ''} per week</Text>
+            <View style={styles.daysContainer}>
+              {[
+                { day: 0, label: 'Sun' },
+                { day: 1, label: 'Mon' },
+                { day: 2, label: 'Tue' },
+                { day: 3, label: 'Wed' },
+                { day: 4, label: 'Thu' },
+                { day: 5, label: 'Fri' },
+                { day: 6, label: 'Sat' },
+              ].map(({ day, label }) => {
+                const isSelected = formData.selected_days && formData.selected_days.includes(day);
+                const canSelect = !formData.selected_days || formData.selected_days.length < formData.frequency_interval || isSelected;
+                
+                return (
+                  <TouchableOpacity
+                    key={day}
+                    style={[
+                      styles.dayButton,
+                      isSelected && styles.dayButtonSelected,
+                      !canSelect && styles.dayButtonDisabled
+                    ]}
+                    onPress={() => {
+                      if (!canSelect) return;
+                      
+                      const currentDays = formData.selected_days || [];
+                      let newDays;
+                      
+                      if (isSelected) {
+                        // Deselect day
+                        newDays = currentDays.filter(d => d !== day);
+                      } else {
+                        // Select day (replace if already at max)
+                        if (currentDays.length >= formData.frequency_interval) {
+                          newDays = [day]; // Replace with just this day
+                        } else {
+                          newDays = [...currentDays, day];
+                        }
+                      }
+                      
+                      handleInputChange('selected_days', newDays.length > 0 ? newDays : null);
+                    }}
+                    disabled={!canSelect}
+                  >
+                    <Text style={[
+                      styles.dayButtonText,
+                      isSelected && styles.dayButtonTextSelected
+                    ]}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {formData.selected_days && formData.selected_days.length !== formData.frequency_interval && (
+              <Text style={styles.warningText}>
+                Please select exactly {formData.frequency_interval} day{formData.frequency_interval !== 1 ? 's' : ''}
+              </Text>
+            )}
+          </View>
         )}
 
         {renderPickerModal(
@@ -496,6 +599,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 4,
+  },
+  subLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  dayButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dayButtonSelected: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
+  },
+  dayButtonDisabled: {
+    opacity: 0.5,
+  },
+  dayButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  dayButtonTextSelected: {
+    color: '#FFFFFF',
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#EF4444',
+    marginTop: 8,
   },
   switch: {
     width: 48,

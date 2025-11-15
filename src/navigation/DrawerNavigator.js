@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getCurrentUser, signOut } from "../services/userService";
+import SyncIndicator from "../components/common/SyncIndicator";
 import i18n from "../localization/i18n";
 
 // Import all screens
@@ -55,6 +56,11 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
           >
             <MaterialIcons name="menu" size={24} color="#fff" />
           </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <View style={{ marginRight: 16 }}>
+            <SyncIndicator />
+          </View>
         ),
       }}
     >

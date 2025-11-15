@@ -13,12 +13,29 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { parseISO } from "date-fns";
 import { User as UserEntity } from "../../entities/User";
 import AutoCompleteInput from "../common/AutoCompleteInput";
 
 const { width } = Dimensions.get('window');
 
 export default function TaskForm({ task, onSubmit, onCancel, title = "Create New Task" }) {
+  // Convert task dates from strings to Date objects if needed
+  const normalizeTaskData = (taskData) => {
+    if (!taskData) return {};
+    
+    const normalized = { ...taskData };
+    
+    // Convert due_date from string to Date if needed
+    if (normalized.due_date) {
+      if (typeof normalized.due_date === 'string') {
+        normalized.due_date = parseISO(normalized.due_date);
+      }
+    }
+    
+    return normalized;
+  };
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -29,7 +46,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
     due_time: "",
     recurrence_rule: "none",
     subtasks: [],
-    ...task
+    ...normalizeTaskData(task)
   });
   
   const [users, setUsers] = useState([]);
@@ -62,10 +79,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
       
       setUsers(userList);
       
-      // If no assignment and this is a new task, assign to current user
-      if (!task && !formData.assigned_to) {
-        setFormData(prev => ({ ...prev, assigned_to: me.email }));
-      }
+      // Don't auto-assign - let user choose (including "none")
     } catch (error) {
       console.error("Error loading users:", error);
     }
@@ -110,7 +124,8 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.due_date;
     setShowDatePicker(Platform.OS === 'ios');
-    handleInputChange('due_date', currentDate);
+    // Ensure we store as Date object
+    handleInputChange('due_date', currentDate ? new Date(currentDate) : null);
   };
 
   const onTimeChange = (event, selectedTime) => {
@@ -124,7 +139,23 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
 
   const formatDate = (date) => {
     if (!date) return 'Select date';
-    return date.toLocaleDateString('en-US', {
+    
+    // Handle string dates from Firebase (ISO format)
+    let dateObj;
+    if (typeof date === 'string') {
+      dateObj = parseISO(date);
+    } else if (date instanceof Date) {
+      dateObj = date;
+    } else {
+      return 'Select date';
+    }
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Select date';
+    }
+    
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -327,9 +358,13 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
                 onPress={() => setShowAssignedToPicker(true)}
               >
                 <Text style={styles.selectButtonText}>
-                  {users.find(user => user.email === formData.assigned_to)?.full_name || 
-                   users.find(user => user.email === formData.assigned_to)?.email || 
-                   'Select partner'}
+                  {!formData.assigned_to || formData.assigned_to === '' 
+                    ? 'None (Unassigned)'
+                    : formData.assigned_to === 'together'
+                    ? 'Together (Both)'
+                    : users.find(user => user.email === formData.assigned_to)?.full_name || 
+                      users.find(user => user.email === formData.assigned_to)?.email || 
+                      'Select partner'}
                 </Text>
                 <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
               </TouchableOpacity>
@@ -373,7 +408,14 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
       {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={formData.due_date || new Date()}
+          value={(() => {
+            if (!formData.due_date) return new Date();
+            // Convert string to Date if needed
+            if (typeof formData.due_date === 'string') {
+              return parseISO(formData.due_date);
+            }
+            return formData.due_date instanceof Date ? formData.due_date : new Date(formData.due_date);
+          })()}
           mode="date"
           display="default"
           onChange={onDateChange}
@@ -414,12 +456,16 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
       <PickerModal
         visible={showAssignedToPicker}
         onClose={() => setShowAssignedToPicker(false)}
-        options={users.map(user => ({ 
-          label: user.full_name || user.email, 
-          value: user.email 
-        }))}
-        selectedValue={formData.assigned_to}
-        onSelect={(value) => handleInputChange('assigned_to', value)}
+        options={[
+          { label: 'None (Unassigned)', value: '' },
+          { label: 'Together (Both Partners)', value: 'together' },
+          ...users.map(user => ({ 
+            label: user.full_name || user.email, 
+            value: user.email 
+          }))
+        ]}
+        selectedValue={formData.assigned_to || ''}
+        onSelect={(value) => handleInputChange('assigned_to', value || '')}
         title="Assign To"
       />
 

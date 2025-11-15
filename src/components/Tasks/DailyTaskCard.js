@@ -19,7 +19,7 @@ const categoryColors = {
   other: { bg: '#F3F4F6', text: '#6B7280' }
 };
 
-export default function DailyTaskCard({ task, onComplete, onDefer, currentUser }) {
+export default function DailyTaskCard({ task, onComplete, onDefer, onPress, currentUser }) {
   const isAssignedToMe = task.assigned_to === currentUser?.email;
   const categoryStyle = categoryColors[task.category] || categoryColors.other;
   
@@ -55,7 +55,11 @@ export default function DailyTaskCard({ task, onComplete, onDefer, currentUser }
         />
       </TouchableOpacity>
       
-      <View style={styles.content}>
+      <TouchableOpacity
+        style={styles.content}
+        onPress={() => onPress && onPress(task)}
+        activeOpacity={0.7}
+      >
         <View style={styles.header}>
           <Text style={styles.title} numberOfLines={2}>
             {task.title}
@@ -85,7 +89,7 @@ export default function DailyTaskCard({ task, onComplete, onDefer, currentUser }
             </View>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
       
       {onDefer && (
         <TouchableOpacity

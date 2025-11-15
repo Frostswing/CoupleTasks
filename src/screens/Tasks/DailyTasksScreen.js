@@ -19,6 +19,7 @@ import EditTaskDialog from "../../components/Tasks/EditTaskDialog";
 import taskSchedulingService from "../../services/taskSchedulingService";
 import taskGenerationService from "../../services/taskGenerationService";
 import notificationService from "../../services/notificationService";
+import taskCleanupService from "../../services/taskCleanupService";
 import { handleError, showSuccess } from "../../services/errorHandlingService";
 import { getCurrentUser } from "../../services/userService";
 import { addDays, format } from "date-fns";
@@ -69,6 +70,7 @@ export default function DailyTasksScreen({ navigation }) {
     let isMounted = true;
     
     const userEmails = [currentUser.email];
+    const userUids = [currentUser.uid];
     if (currentUser.partner_email) {
       userEmails.push(currentUser.partner_email);
     }
@@ -85,10 +87,25 @@ export default function DailyTasksScreen({ navigation }) {
         
         clearTimeout(loadingTimeout);
         
-        const filtered = taskList.filter(t => 
-          userEmails.includes(t.created_by) && 
-          !t.is_archived
-        );
+        // Filter tasks: show tasks assigned to current user, "together", or unassigned (empty/none)
+        // Also include tasks created by user (for backward compatibility)
+        const filtered = taskList.filter(t => {
+          if (t.is_archived) return false;
+          
+          // Show if assigned to current user
+          if (userEmails.includes(t.assigned_to)) return true;
+          
+          // Show if assigned to "together" (both partners)
+          if (t.assigned_to === 'together') return true;
+          
+          // Show if unassigned (empty string or null)
+          if (!t.assigned_to || t.assigned_to === '') return true;
+          
+          // Backward compatibility: show tasks created by user
+          if (userEmails.includes(t.created_by) || userUids.includes(t.created_by)) return true;
+          
+          return false;
+        });
         
         setTasks(filtered);
         setIsLoading(false);
@@ -109,19 +126,25 @@ export default function DailyTasksScreen({ navigation }) {
     setGroupedTasks(grouped);
   }, [tasks]);
 
-  // Auto-generate tasks on mount and refresh
+  // Auto-generate tasks for upcoming month and cleanup old archived tasks on mount
   useEffect(() => {
-    const generateTasks = async () => {
+    const initializeTasks = async () => {
+      if (!currentUser?.uid) return;
+      
       try {
-        await taskGenerationService.generateTasksForAllTemplates();
+        // Generate tasks for upcoming month (runs in background, doesn't block)
+        taskGenerationService.generateTasksForUpcomingMonth();
+        
+        // Cleanup old archived tasks (60+ days old) - also runs in background
+        taskCleanupService.runAutomaticCleanup().catch(err => {
+          console.error('Cleanup error:', err);
+        });
       } catch (error) {
-        console.error('Error auto-generating tasks:', error);
+        console.error('Error initializing tasks:', error);
       }
     };
     
-    if (currentUser?.uid) {
-      generateTasks();
-    }
+    initializeTasks();
   }, [currentUser?.uid]);
 
   // Schedule notifications for tasks
@@ -145,8 +168,8 @@ export default function DailyTasksScreen({ navigation }) {
       const user = await User.me();
       setCurrentUser(user);
       
-      // Generate new tasks from templates
-      await taskGenerationService.generateTasksForAllTemplates();
+      // Generate new tasks from templates for upcoming month (runs in background)
+      taskGenerationService.generateTasksForUpcomingMonth();
       
       const allTasks = await Task.filter({ is_archived: { '$ne': true } });
       const userEmails = [user.email];
@@ -203,6 +226,10 @@ export default function DailyTasksScreen({ navigation }) {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleTaskPress = (task) => {
+    setEditingTask(task);
   };
 
   const handleDefer = (task) => {
@@ -263,6 +290,7 @@ export default function DailyTasksScreen({ navigation }) {
             task={task}
             onComplete={handleComplete}
             onDefer={handleDefer}
+            onPress={handleTaskPress}
             currentUser={currentUser}
           />
         ))}
@@ -389,6 +417,7 @@ export default function DailyTasksScreen({ navigation }) {
         visible={!!editingTask}
         onClose={() => setEditingTask(null)}
         onUpdateTask={handleUpdateTask}
+        navigation={navigation}
       />
     </SafeAreaView>
   );
