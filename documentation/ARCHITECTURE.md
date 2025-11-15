@@ -144,7 +144,8 @@ CoupleTasks/
     │   ├── AuthScreen.js         # Authentication (login/register)
     │   ├── DashboardScreen.js    # Main dashboard (tasks view)
     │   ├── EventsScreen.js       # Events management
-    │   ├── HistoryScreen.js      # Task history
+    │   ├── HistoryScreen.js       # Task history
+    │   ├── ManagementScreen.js    # Management and statistics dashboard
     │   ├── InventoryScreen.js    # Inventory management
     │   ├── LanguageSelectionScreen.js  # Language picker
     │   ├── SettingsScreen.js     # User settings
@@ -605,7 +606,71 @@ Couples can maintain a comprehensive household task table in Excel, import it in
   - Clear visibility of when partner is available/busy
   - Helps coordinate schedules and plan together
 
-### 8. **Internationalization**
+### 8. **Management & Statistics** (NEW)
+**Screens:** ManagementScreen (Mobile/Expo), Management.jsx (Web)  
+**Features:**
+- **Partner Selection:**
+  - View statistics for yourself, your partner, or both (all)
+  - Partner selector shows names (falls back to email if name not available)
+  - "All" option shows combined statistics for both partners
+  - Only visible when partner is linked (for partner option)
+- **Comprehensive Statistics (Last 60 Days):**
+  - **Overview Cards:**
+    - Completed tasks (archived within 60 days)
+    - Pending tasks (active, not completed)
+    - Overdue tasks (missed/not performed)
+    - Completion rate percentage
+  - **Detailed Statistics:**
+    - Total tasks count
+    - Tasks in progress
+    - Average completion time (days)
+  - **Category Breakdown:**
+    - Tasks grouped by category
+    - Shows completed, pending, and overdue counts per category
+    - Completion rate per category with progress bars
+  - **Priority Breakdown:**
+    - Tasks grouped by priority (low, medium, high)
+    - Shows completed, pending, and overdue counts per priority
+    - Completion rate per priority with progress bars
+  - **Recent Completions:**
+    - List of last 10 completed tasks
+    - Shows task title and completion date
+  - **Detailed Task Lists:**
+    - **Overdue Tasks:** Complete list of all overdue tasks with:
+      - Task title and description
+      - Due date and days overdue
+      - Category and priority badges
+      - Sorted by days overdue (most overdue first)
+    - **Incomplete Tasks:** List of all pending/in-progress tasks (excluding overdue) with:
+      - Task title and description
+      - Due date (if set)
+      - Category, priority, and status badges
+      - Sorted by due date (earliest first), then by priority
+- **Archive Integration:**
+  - Queries both active and archived tasks
+  - Filters archived tasks to last 60 days (matching archive retention policy)
+  - Includes tasks that were automatically deleted after 60 days
+- **Task Attribution:**
+  - Identifies tasks by `assigned_to`, `completed_by`, or `created_by` fields
+  - Handles "together" assignments (includes in both partners' stats)
+  - Filters tasks based on selected user (myself or partner)
+- **Real-time Updates:**
+  - Pull-to-refresh functionality
+  - Statistics recalculate when tasks change
+- **UI Features:**
+  - Clean, organized dashboard layout
+  - Color-coded statistics (green for completed, yellow for pending, red for overdue)
+  - Progress bars for completion rates
+  - Responsive design for both mobile and web
+  - Empty state when no data available
+- **Web Interface:**
+  - Full-featured Management page at `/management` route
+  - Same filtering capabilities (user and date range)
+  - Detailed task lists showing incomplete and overdue tasks
+  - Navigation links between Dashboard and Management
+  - Responsive web design matching mobile functionality
+
+### 9. **Internationalization**
 **Screens:** LanguageSelectionScreen  
 **Service:** i18n  
 **Supported Languages:**
@@ -639,6 +704,7 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - `/login` - User login page
 - `/register` - User registration page
 - `/dashboard` - User profile management dashboard
+- `/management` - Management and statistics dashboard (task analytics)
 
 **Usage:**
 ```bash
@@ -780,6 +846,7 @@ NavigationContainer (App.js)
         ├── Archive
         ├── History
         ├── Events
+        ├── Management
         ├── Settings
         ├── Sharing
         ├── Language
@@ -805,6 +872,7 @@ The drawer menu is organized into logical sections:
    - Archive - View archived items
    - History - Completion analytics
    - Events - Manage partner events and availability
+   - Management - Comprehensive statistics and analytics dashboard
 5. **Settings Section**
    - Settings - App preferences
    - Partner Sharing - Link with partner

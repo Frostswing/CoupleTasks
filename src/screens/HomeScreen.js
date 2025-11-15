@@ -95,6 +95,16 @@ export default function HomeScreen({ navigation }) {
       screen: "History",
       size: "small",
     },
+    {
+      id: "management",
+      title: i18n.t("navigation.drawer.management"),
+      description: "Comprehensive statistics and analytics dashboard",
+      icon: "analytics",
+      color: "#14B8A6",
+      backgroundColor: "#CCFBF1",
+      screen: "Management",
+      size: "large",
+    },
   ];
 
   const handleNavigate = (screen, params) => {
@@ -231,6 +241,11 @@ export default function HomeScreen({ navigation }) {
           {/* Fifth Row - History */}
           <View style={styles.row}>
             {renderCard(quickActions[7])}
+          </View>
+
+          {/* Sixth Row - Management (Large, Full Width) */}
+          <View style={styles.row}>
+            {renderCard(quickActions[8])}
           </View>
         </View>
       </ScrollView>

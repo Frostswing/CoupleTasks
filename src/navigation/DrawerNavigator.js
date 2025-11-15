@@ -30,6 +30,7 @@ import InventoryScreen from "../screens/InventoryScreen";
 import ArchiveScreen from "../screens/ArchiveScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import EventsScreen from "../screens/EventsScreen";
+import ManagementScreen from "../screens/ManagementScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import SharingScreen from "../screens/SharingScreen";
 import AuthScreen from "../screens/AuthScreen";
@@ -148,6 +149,11 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
         name="Events"
         component={EventsScreen}
         options={{ title: i18n.t("navigation.drawer.events") }}
+      />
+      <Stack.Screen
+        name="Management"
+        component={ManagementScreen}
+        options={{ title: i18n.t("navigation.drawer.management") }}
       />
       <Stack.Screen
         name="Settings"
@@ -319,6 +325,12 @@ const CustomDrawerContent = (props) => {
           label: i18n.t("navigation.drawer.events"),
           icon: "event",
           screen: "Events",
+        },
+        {
+          name: "Management",
+          label: i18n.t("navigation.drawer.management"),
+          icon: "analytics",
+          screen: "Management",
         },
       ],
     },

@@ -1,0 +1,515 @@
+.management-container {
+    min-height: 100vh;
+    padding: 20px;
+    color: white;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.management-header h1 {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.nav-link {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-block;
+}
+
+.nav-link:hover {
+    background: white;
+    color: #667eea;
+}
+
+.logout-button {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-button:hover {
+    background: white;
+    color: #667eea;
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+.filters-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+.filter-section {
+    margin-bottom: 24px;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    border: 2px solid #E5E7EB;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-button:hover {
+    border-color: #14B8A6;
+}
+
+.filter-button.active {
+    background: #14B8A6;
+    border-color: #14B8A6;
+    color: #FFFFFF;
+}
+
+.date-range-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.date-range-button {
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    border: 2px solid #E5E7EB;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.date-range-button:hover {
+    border-color: #14B8A6;
+}
+
+.date-range-button.active {
+    background: #14B8A6;
+    border-color: #14B8A6;
+    color: #FFFFFF;
+}
+
+.custom-date-container {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.custom-date-input {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.custom-date-input label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+}
+
+.custom-date-input input {
+    padding: 10px;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.custom-date-input input:focus {
+    outline: none;
+    border-color: #14B8A6;
+}
+
+.stats-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border-left: 4px solid;
+    color: #333;
+}
+
+.stat-card.completed {
+    border-left-color: #16A34A;
+}
+
+.stat-card.pending {
+    border-left-color: #F59E0B;
+}
+
+.stat-card.overdue {
+    border-left-color: #DC2626;
+}
+
+.stat-card.rate {
+    border-left-color: #14B8A6;
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.stat-icon {
+    font-size: 20px;
+}
+
+.stat-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.stat-card.completed .stat-value {
+    color: #16A34A;
+}
+
+.stat-card.pending .stat-value {
+    color: #F59E0B;
+}
+
+.stat-card.overdue .stat-value {
+    color: #DC2626;
+}
+
+.stat-card.rate .stat-value {
+    color: #14B8A6;
+}
+
+.stat-subtitle {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+.detailed-stats-card,
+.tasks-list-card,
+.completions-list-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+.detailed-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.detailed-stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-value-small {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.task-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.task-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.overdue-icon {
+    color: #DC2626;
+}
+
+.task-item-content {
+    flex: 1;
+}
+
+.task-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 8px;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.task-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #F3F4F6;
+    font-size: 12px;
+    color: #6B7280;
+    text-transform: capitalize;
+}
+
+.task-badge.priority-high {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+.task-badge.priority-medium {
+    background: #FEF3C7;
+    color: #F59E0B;
+}
+
+.task-badge.priority-low {
+    background: #DCFCE7;
+    color: #16A34A;
+}
+
+.overdue-badge {
+    margin-left: 8px;
+    font-weight: 600;
+    color: #DC2626;
+}
+
+.task-description {
+    font-size: 14px;
+    color: #6B7280;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
+.category-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.category-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1F2937;
+    text-transform: capitalize;
+}
+
+.category-total {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.category-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.category-stat {
+    font-size: 12px;
+    color: #6B7280;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #F3F4F6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #16A34A;
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 12px;
+    color: #6B7280;
+    text-align: right;
+}
+
+.completion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.completion-item:last-child {
+    border-bottom: none;
+}
+
+.completion-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.completion-content {
+    flex: 1;
+}
+
+.completion-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.completion-date {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+.empty-state {
+    background: white;
+    border-radius: 12px;
+    padding: 48px 20px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+.empty-state p {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 8px;
+}
+
+.empty-subtitle {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.loading-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
