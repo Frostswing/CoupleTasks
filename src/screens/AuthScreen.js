@@ -18,6 +18,7 @@ import {
   logoutUser,
   getCurrentUser,
   subscribeToAuthChanges,
+  resetPassword,
 } from "../services/userService";
 import { simpleGoogleSignIn } from "../services/googleAuthService";
 import { handleError, showSuccess } from "../services/errorHandlingService";
@@ -185,6 +186,44 @@ const AuthScreen = ({ navigation }) => {
     setName("");
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert(
+        i18n.t('common.error'),
+        i18n.t('auth.enterEmailForReset') || 'Please enter your email address first'
+      );
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert(
+        i18n.t('common.error'),
+        i18n.t('auth.invalidEmail')
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await resetPassword(email);
+      if (result.success) {
+        Alert.alert(
+          i18n.t('common.success') || 'Success',
+          i18n.t('auth.passwordResetEmailSent') || 'Password reset email sent! Please check your inbox.',
+          [{ text: 'OK', style: 'default' }]
+        );
+      } else {
+        handleError(result.error, 'resetPassword');
+      }
+    } catch (error) {
+      handleError(error, 'resetPassword');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -325,7 +364,11 @@ const AuthScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             {isLogin && (
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity 
+                style={styles.forgotPassword}
+                onPress={handleForgotPassword}
+                disabled={loading}
+              >
                 <Text style={styles.forgotPasswordText}>{i18n.t('auth.forgotPassword')}</Text>
               </TouchableOpacity>
             )}

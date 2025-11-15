@@ -6,6 +6,13 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from './components/Dashboard'
 import Management from './components/Management'
+import TaskTemplates from './components/TaskTemplates'
+import Tasks from './components/Tasks'
+import TaskPlanning from './components/TaskPlanning'
+import ShoppingList from './components/ShoppingList'
+import Inventory from './components/Inventory'
+import Archive from './components/Archive'
+import Events from './components/Events'
 import './App.css'
 
 function App() {
@@ -48,6 +55,34 @@ function App() {
         <Route 
           path="/management" 
           element={user ? <Management user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/task-templates" 
+          element={user ? <TaskTemplates user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/tasks" 
+          element={user ? <Tasks user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/task-planning" 
+          element={user ? <TaskPlanning user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/shopping-list" 
+          element={user ? <ShoppingList user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/inventory" 
+          element={user ? <Inventory user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/archive" 
+          element={user ? <Archive user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/events" 
+          element={user ? <Events user={user} /> : <Navigate to="/login" />} 
         />
         <Route 
           path="/" 

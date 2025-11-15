@@ -46,6 +46,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
     due_time: "",
     recurrence_rule: "none",
     subtasks: [],
+    selected_days: null, // Array of day numbers (0-6, 0=Sunday)
     ...normalizeTaskData(task)
   });
   
@@ -301,13 +302,15 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
           />
 
           {/* Priority */}
-          <InlineSelector
-            label="Priority"
-            options={priorityOptions}
-            selectedValue={formData.priority}
-            onSelect={(value) => handleInputChange('priority', value)}
-            multiColumn={true}
-          />
+          <View style={styles.inputGroup}>
+            <InlineSelector
+              label="Priority"
+              options={priorityOptions}
+              selectedValue={formData.priority}
+              onSelect={(value) => handleInputChange('priority', value)}
+              multiColumn={true}
+            />
+          </View>
 
           {/* Assigned To */}
           <View style={styles.inputGroup}>
@@ -334,6 +337,56 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
             onSelect={(value) => handleInputChange('recurrence_rule', value)}
             multiColumn={true}
           />
+
+          {/* Day Selection */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Days of Week (Optional)</Text>
+            <Text style={styles.subLabel}>Select specific days for this task</Text>
+            <View style={styles.daysContainer}>
+              {[
+                { day: 0, label: 'Sun' },
+                { day: 1, label: 'Mon' },
+                { day: 2, label: 'Tue' },
+                { day: 3, label: 'Wed' },
+                { day: 4, label: 'Thu' },
+                { day: 5, label: 'Fri' },
+                { day: 6, label: 'Sat' },
+              ].map(({ day, label }) => {
+                const isSelected = formData.selected_days && formData.selected_days.includes(day);
+                
+                return (
+                  <TouchableOpacity
+                    key={day}
+                    style={[
+                      styles.dayButton,
+                      isSelected && styles.dayButtonSelected,
+                    ]}
+                    onPress={() => {
+                      const currentDays = formData.selected_days || [];
+                      let newDays;
+                      
+                      if (isSelected) {
+                        // Deselect day
+                        newDays = currentDays.filter(d => d !== day);
+                      } else {
+                        // Select day
+                        newDays = [...currentDays, day];
+                      }
+                      
+                      handleInputChange('selected_days', newDays.length > 0 ? newDays : null);
+                    }}
+                  >
+                    <Text style={[
+                      styles.dayButtonText,
+                      isSelected && styles.dayButtonTextSelected
+                    ]}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
@@ -454,6 +507,11 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 8,
   },
+  subLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#E5E7EB',
@@ -513,6 +571,34 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginLeft: 8,
     flex: 1,
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  dayButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dayButtonSelected: {
+    backgroundColor: '#14B8A6',
+    borderColor: '#14B8A6',
+  },
+  dayButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  dayButtonTextSelected: {
+    color: '#FFFFFF',
   },
   buttonContainer: {
     flexDirection: 'row',

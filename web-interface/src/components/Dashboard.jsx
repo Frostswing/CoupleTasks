@@ -235,6 +235,72 @@ function Dashboard({ user }) {
           </div>
         </div>
 
+        <div className="features-grid">
+          <div className="feature-card">
+            <h3>📋 Task Templates</h3>
+            <p>Create and manage task templates with an Excel-like table editor</p>
+            <Link to="/task-templates" className="feature-link">
+              Go to Templates →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>✅ Tasks</h3>
+            <p>View and manage all your tasks</p>
+            <Link to="/tasks" className="feature-link">
+              View Tasks →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>📅 Task Planning</h3>
+            <p>Plan your tasks on a calendar view</p>
+            <Link to="/task-planning" className="feature-link">
+              Open Calendar →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>🛒 Shopping List</h3>
+            <p>Manage your shopping list items</p>
+            <Link to="/shopping-list" className="feature-link">
+              View Shopping List →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>📦 Inventory</h3>
+            <p>Track household inventory items</p>
+            <Link to="/inventory" className="feature-link">
+              View Inventory →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>📁 Archive</h3>
+            <p>View completed tasks and purchased items</p>
+            <Link to="/archive" className="feature-link">
+              View Archive →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>📅 Events</h3>
+            <p>Manage partner events and availability</p>
+            <Link to="/events" className="feature-link">
+              View Events →
+            </Link>
+          </div>
+
+          <div className="feature-card">
+            <h3>📊 Management</h3>
+            <p>View statistics and analytics</p>
+            <Link to="/management" className="feature-link">
+              View Statistics →
+            </Link>
+          </div>
+        </div>
+
         <div className="info-card">
           <h3>About CoupleTasks</h3>
           <p>
@@ -242,7 +308,8 @@ function Dashboard({ user }) {
             shopping lists, and inventory together in real-time.
           </p>
           <p>
-            This web interface allows you to manage your user profile and account settings.
+            This web interface provides full access to all features including task planning, 
+            templates, shopping lists, inventory, and more.
           </p>
         </div>
       </div>
