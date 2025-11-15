@@ -5,6 +5,7 @@ import { auth } from './firebase/config'
 import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from './components/Dashboard'
+import Management from './components/Management'
 import './App.css'
 
 function App() {
@@ -43,6 +44,10 @@ function App() {
         <Route 
           path="/dashboard" 
           element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/management" 
+          element={user ? <Management user={user} /> : <Navigate to="/login" />} 
         />
         <Route 
           path="/" 

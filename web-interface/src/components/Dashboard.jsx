@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { ref, get, update, onValue } from 'firebase/database'
 import { auth, database } from '../firebase/config'
@@ -127,9 +127,14 @@ function Dashboard({ user }) {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>💜 CoupleTasks</h1>
-        <button onClick={handleLogout} className="logout-button">
-          Sign Out
-        </button>
+        <div className="header-actions">
+          <Link to="/management" className="nav-link">
+            📊 Management
+          </Link>
+          <button onClick={handleLogout} className="logout-button">
+            Sign Out
+          </button>
+        </div>
       </div>
 
       <div className="dashboard-content">
