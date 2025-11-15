@@ -19,6 +19,7 @@ import TaskFilters from "../components/Tasks/TaskFilters";
 import EditTaskDialog from "../components/Tasks/EditTaskDialog";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { add, addDays, addMonths, addWeeks } from 'date-fns';
+import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from "../services/taskCache";
 
 const { width } = Dimensions.get('window');
 
@@ -50,14 +51,13 @@ export default function DashboardScreen({ navigation }) {
     loadUser();
   }, []);
 
-  // Set up real-time task listener
+  // Load cached tasks immediately, then set up real-time listener
   useEffect(() => {
     if (!currentUser?.uid) {
       setIsLoading(false); // Stop loading if no user
       return;
     }
 
-    setIsLoading(true);
     let isMounted = true;
     
     // Capture user emails to avoid dependency on currentUser object
@@ -65,6 +65,96 @@ export default function DashboardScreen({ navigation }) {
     if (currentUser.partner_email) {
       userEmails.push(currentUser.partner_email);
     }
+
+    // Filter function for tasks
+    const filterTasks = (taskList) => {
+      return taskList.filter(t => {
+        if (t.is_archived) return false;
+        
+        // Show if assigned to current user
+        if (userEmails.includes(t.assigned_to)) return true;
+        
+        // Show if assigned to "together" (both partners)
+        if (t.assigned_to === 'together') return true;
+        
+        // Show if unassigned (empty string or null)
+        if (!t.assigned_to || t.assigned_to === '') return true;
+        
+        // Backward compatibility: show tasks created by user
+        if (userEmails.includes(t.created_by)) return true;
+        
+        return false;
+      });
+    };
+
+    // Load cached tasks first for instant display, then check for updates
+    const loadCachedTasksAndSync = async () => {
+      try {
+        const cached = await getCachedTasks(currentUser.uid);
+        let cachedTaskList = [];
+        let lastSyncTimestamp = null;
+        
+        if (cached && cached.tasks) {
+          cachedTaskList = cached.tasks;
+          lastSyncTimestamp = cached.lastSyncTimestamp;
+          
+          // Show cached data immediately
+          if (isMounted) {
+            const filtered = filterTasks(cachedTaskList);
+            setTasks(filtered);
+            setIsLoading(false);
+          }
+        } else {
+          setIsLoading(true);
+        }
+
+        // Check if there are updates since last sync
+        if (lastSyncTimestamp) {
+          const hasUpdates = await Task.hasUpdatesSince(lastSyncTimestamp);
+          
+          if (!hasUpdates) {
+            // No updates, cache is still fresh - skip full fetch
+            console.log('No updates since last sync, using cache');
+            return;
+          }
+          
+          // Fetch only updated tasks and merge with cache
+          try {
+            const updatedTasks = await Task.getUpdatedSince(lastSyncTimestamp, { is_archived: { '$ne': true } });
+            
+            // Merge updated tasks with cached tasks
+            const taskMap = new Map();
+            
+            // Add all cached tasks to map
+            cachedTaskList.forEach(task => {
+              taskMap.set(task.id, task);
+            });
+            
+            // Update/overwrite with updated tasks
+            updatedTasks.forEach(task => {
+              taskMap.set(task.id, task);
+            });
+            
+            const mergedTasks = Array.from(taskMap.values());
+            const filtered = filterTasks(mergedTasks);
+            
+            if (isMounted) {
+              setTasks(filtered);
+              // Update cache with merged data
+              await cacheTasks(currentUser.uid, mergedTasks);
+            }
+          } catch (error) {
+            console.error('Error fetching updated tasks:', error);
+            // Fall through to full fetch
+          }
+        }
+      } catch (error) {
+        console.error('Error loading cached tasks:', error);
+        setIsLoading(true);
+      }
+    };
+
+    loadCachedTasksAndSync();
 
     // Set timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
@@ -74,31 +164,18 @@ export default function DashboardScreen({ navigation }) {
       }
     }, 10000); // 10 second timeout
 
-    // Use real-time listener instead of polling
+    // Set up real-time listener for future changes (only sends deltas)
     const unsubscribe = Task.onSnapshot(
       (taskList) => {
         if (!isMounted) return;
         
         clearTimeout(loadingTimeout);
         
-        // Filter tasks: show tasks assigned to current user, "together", or unassigned (empty/none)
-        // Also include tasks created by user (for backward compatibility)
-        const filtered = taskList.filter(t => {
-          if (t.is_archived) return false;
-          
-          // Show if assigned to current user
-          if (userEmails.includes(t.assigned_to)) return true;
-          
-          // Show if assigned to "together" (both partners)
-          if (t.assigned_to === 'together') return true;
-          
-          // Show if unassigned (empty string or null)
-          if (!t.assigned_to || t.assigned_to === '') return true;
-          
-          // Backward compatibility: show tasks created by user
-          if (userEmails.includes(t.created_by)) return true;
-          
-          return false;
+        const filtered = filterTasks(taskList);
+        
+        // Update cache with fresh data
+        cacheTasks(currentUser.uid, taskList).catch(err => {
+          console.error('Error caching tasks:', err);
         });
         
         setTasks(filtered);
@@ -122,6 +199,11 @@ export default function DashboardScreen({ navigation }) {
       const user = await User.me();
       setCurrentUser(user);
       
+      // Clear cache to force fresh data
+      if (user?.uid) {
+        await clearTaskCache(user.uid);
+      }
+      
       const allTasks = await Task.filter({ is_archived: { '$ne': true } }, '-updated_date');
       const userEmails = [user.email];
       if (user.partner_email) {
@@ -144,6 +226,11 @@ export default function DashboardScreen({ navigation }) {
         return false;
       });
       setTasks(filtered);
+      
+      // Update cache with fresh data
+      if (user?.uid) {
+        await cacheTasks(user.uid, allTasks);
+      }
     } catch (error) {
       handleError(error, 'refreshTasks');
     } finally {
@@ -196,6 +283,10 @@ export default function DashboardScreen({ navigation }) {
     if (newStatus !== 'completed') {
       try {
         await Task.update(task.id, { status: newStatus });
+        // Clear cache to force refresh
+        if (currentUser?.uid) {
+          await clearTaskCache(currentUser.uid);
+        }
         // Real-time listener will update automatically
       } catch (error) {
         handleError(error, 'updateTaskStatus');
@@ -233,6 +324,10 @@ export default function DashboardScreen({ navigation }) {
         await Task.create(newTask);
       }
       
+      // Clear cache to force refresh
+      if (currentUser?.uid) {
+        await clearTaskCache(currentUser.uid);
+      }
       // Real-time listener will update automatically
     } catch (error) {
       handleError(error, 'completeTask');
@@ -254,6 +349,10 @@ export default function DashboardScreen({ navigation }) {
     
     try {
       await Task.update(taskId, { subtasks: newSubtasks });
+      // Clear cache to force refresh
+      if (currentUser?.uid) {
+        await clearTaskCache(currentUser.uid);
+      }
       // Real-time listener will update automatically
     } catch (error) {
       handleError(error, 'updateSubtask');
@@ -266,6 +365,10 @@ export default function DashboardScreen({ navigation }) {
     setIsUpdating(true);
     try {
       await Task.update(editingTask.id, taskData);
+      // Clear cache to force refresh
+      if (currentUser?.uid) {
+        await clearTaskCache(currentUser.uid);
+      }
       setEditingTask(null);
       showSuccess('Task updated successfully');
       // Real-time listener will update automatically

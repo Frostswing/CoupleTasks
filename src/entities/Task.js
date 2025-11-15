@@ -267,6 +267,101 @@ export class Task {
     }
   }
 
+  /**
+   * Check if there are any tasks updated since the given timestamp
+   * Returns true if updates exist, false otherwise
+   * This is a lightweight check to avoid full fetches when nothing changed
+   */
+  static async hasUpdatesSince(timestamp) {
+    try {
+      const user = getCurrentUser();
+      if (!user || !timestamp) {
+        return true; // If no timestamp, assume updates exist
+      }
+
+      const dataSource = await getDataSource(user.uid);
+      if (!dataSource.success) {
+        return true; // Assume updates exist if we can't check
+      }
+
+      const tasksRef = ref(database, `${dataSource.path}/tasks`);
+      const snapshot = await get(tasksRef);
+      
+      if (!snapshot.exists()) {
+        return false; // No tasks at all
+      }
+
+      const data = snapshot.val() || {};
+      const timestampMs = new Date(timestamp).getTime();
+      
+      // Check if any task has been updated since timestamp
+      for (const [id, taskData] of Object.entries(data)) {
+        if (taskData.updated_date) {
+          const taskUpdateMs = new Date(taskData.updated_date).getTime();
+          if (!isNaN(taskUpdateMs) && taskUpdateMs > timestampMs) {
+            return true; // Found an update
+          }
+        }
+      }
+      
+      return false; // No updates found
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      return true; // On error, assume updates exist to be safe
+    }
+  }
+
+  /**
+   * Get only tasks that have been updated since the given timestamp
+   * More efficient than fetching all tasks when only checking for updates
+   */
+  static async getUpdatedSince(timestamp, filters = {}) {
+    try {
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error('Must be logged in to get updated tasks');
+      }
+
+      const dataSource = await getDataSource(user.uid);
+      if (!dataSource.success) {
+        throw new Error(dataSource.error);
+      }
+
+      const tasksRef = ref(database, `${dataSource.path}/tasks`);
+      const snapshot = await get(tasksRef);
+      
+      if (!snapshot.exists()) {
+        return [];
+      }
+
+      const data = snapshot.val() || {};
+      const timestampMs = new Date(timestamp).getTime();
+      
+      // Filter tasks updated since timestamp
+      let tasks = Object.entries(data)
+        .map(([id, taskData]) => new Task({ id, ...taskData }))
+        .filter(task => {
+          if (!task.updated_date) return false;
+          const taskUpdateMs = new Date(task.updated_date).getTime();
+          return !isNaN(taskUpdateMs) && taskUpdateMs > timestampMs;
+        });
+
+      // Apply additional filters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && typeof value === 'object' && value['$ne']) {
+          tasks = tasks.filter(task => task[key] !== value['$ne']);
+        } else if (value !== undefined && value !== null && value !== '') {
+          tasks = tasks.filter(task => task[key] === value);
+        }
+      });
+
+      return tasks;
+    } catch (error) {
+      console.error('Error getting updated tasks:', error);
+      throw error;
+    }
+  }
+
   static onSnapshot(callback, filters = {}) {
     try {
       const user = getCurrentUser();
