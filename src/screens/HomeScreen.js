@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import i18n from "../localization/i18n";
@@ -121,31 +122,36 @@ export default function HomeScreen({ navigation }) {
         activeOpacity={0.7}
       >
         {isLarge ? (
-          // Large card layout: centered icon and content
-          <>
+          // Large card layout: centered icon and content with gradient
+          <LinearGradient
+            colors={["#EC4899", "#F472B6", "#A78BFA", "#8B5CF6"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.cardGradient}
+          >
             <View style={styles.cardLargeContainer}>
               <View
                 style={[
                   styles.cardIconContainer,
                   styles.cardIconContainerLarge,
-                  { backgroundColor: action.backgroundColor },
+                  { backgroundColor: "rgba(255, 255, 255, 0.3)" },
                 ]}
               >
-                <Icon name={action.icon} size={48} color={action.color} />
+                <Icon name={action.icon} size={48} color="#FFFFFF" />
               </View>
               <View style={styles.cardContentLarge}>
-                <Text style={styles.cardTitleLarge} numberOfLines={2}>
+                <Text style={styles.cardTitleLargeWhite} numberOfLines={2}>
                   {action.title}
                 </Text>
-                <Text style={styles.cardDescriptionLarge} numberOfLines={2}>
+                <Text style={styles.cardDescriptionLargeWhite} numberOfLines={2}>
                   {action.description}
                 </Text>
               </View>
             </View>
             <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color={action.color} />
+              <Icon name="arrow-forward" size={20} color="#FFFFFF" />
             </View>
-          </>
+          </LinearGradient>
         ) : (
           // Small card layout: original layout
           <>
@@ -182,7 +188,12 @@ export default function HomeScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
+        <LinearGradient
+          colors={["#E6FFFA", "#CCFBF1", "#B2F5EA"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.welcomeSection}
+        >
           <Text style={styles.welcomeEmoji}>💜</Text>
           <Text style={styles.welcomeText}>
             {i18n.t("home.welcome")}
@@ -190,7 +201,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.subtitleText}>
             {i18n.t("home.subtitle")}
           </Text>
-        </View>
+        </LinearGradient>
 
         {/* Quick Access Cards */}
         <View style={styles.cardsContainer}>
@@ -242,7 +253,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 24,
     marginBottom: 32,
+    marginHorizontal: 16,
     paddingHorizontal: 24,
+    paddingVertical: 32,
+    borderRadius: 20,
+  },
+  cardGradient: {
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    position: "relative",
   },
   welcomeEmoji: {
     fontSize: 64,
@@ -347,9 +374,20 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     marginBottom: 4,
   },
+  cardTitleLargeWhite: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
   cardDescriptionLarge: {
     fontSize: 14,
     color: "#6B7280",
+    lineHeight: 20,
+  },
+  cardDescriptionLargeWhite: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
     lineHeight: 20,
   },
 });

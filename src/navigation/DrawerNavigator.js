@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getCurrentUser, signOut } from "../services/userService";
 import SyncIndicator from "../components/common/SyncIndicator";
@@ -39,23 +40,41 @@ const Stack = createNativeStackNavigator();
 
 // Stack Navigator for authenticated screens
 const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
+  const openDrawer = () => {
+    if (drawerNavigation?.openDrawer) {
+      drawerNavigation.openDrawer();
+    }
+  };
+  
   return (
     <Stack.Navigator
       initialRouteName="Home"
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#14B8A6",
+          backgroundColor: "transparent",
         },
+        headerBackground: () => (
+          <LinearGradient
+            colors={["#0D9488", "#14B8A6", "#06B6D4"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ flex: 1 }}
+            pointerEvents="none"
+          />
+        ),
         headerTintColor: "#fff",
         headerTitleStyle: {
           fontWeight: "bold",
         },
-        headerLeft: () => (
+        headerTitle: ({ children }) => (
           <TouchableOpacity
-            onPress={() => drawerNavigation?.openDrawer()}
-            style={{ marginLeft: 16 }}
+            onPress={openDrawer}
+            activeOpacity={0.7}
+            style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MaterialIcons name="menu" size={24} color="#fff" />
+            <MaterialIcons name="menu" size={24} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 18 }}>{children}</Text>
           </TouchableOpacity>
         ),
         headerRight: () => (
@@ -357,14 +376,19 @@ const CustomDrawerContent = (props) => {
 
   return (
     <View style={styles.drawerContainer}>
-      <View style={styles.drawerHeader}>
+      <LinearGradient
+        colors={["#0D9488", "#14B8A6", "#06B6D4", "#3B82F6"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.drawerHeader}
+      >
         <Text style={styles.drawerTitle}>💜 CoupleTasks</Text>
         {user && (
           <Text style={styles.drawerSubtitle}>
             {user.email || i18n.t("navigation.drawer.profile")}
           </Text>
         )}
-      </View>
+      </LinearGradient>
       <ScrollView style={styles.drawerContent}>
         {drawerItems.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
@@ -452,9 +476,8 @@ const styles = StyleSheet.create({
   drawerHeader: {
     padding: 20,
     paddingTop: 60,
-    backgroundColor: "#14B8A6",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },
   drawerTitle: {
     fontSize: 24,

@@ -737,7 +737,7 @@ The drawer menu is organized into logical sections:
 - Unauthenticated users see only the Auth screen (no drawer)
 - All screens are accessible via drawer menu items
 - Screens can be navigated to programmatically using `navigation.navigate()`
-- Drawer can be opened via hamburger menu button in header
+- **Hamburger Menu Button**: Uses `HamburgerMenuButton` component that properly accesses drawer navigation via `useNavigation()` hook and `navigation.getParent()` to get the drawer navigator. Includes fallback mechanisms (`toggleDrawer()`) and error handling to ensure reliable drawer opening
 - Sign out triggers auth state change, which automatically switches to Auth stack
 - Navigation state properly tracks active screen for drawer highlighting
 

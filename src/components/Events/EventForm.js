@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { parseISO } from "date-fns";
@@ -253,12 +254,19 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.submitButton]}
               onPress={handleSubmit}
+              style={styles.submitButtonContainer}
             >
-              <Text style={styles.submitButtonText}>
-                {event ? 'Update Event' : 'Create Event'}
-              </Text>
+              <LinearGradient
+                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.button, styles.submitButton]}
+              >
+                <Text style={styles.submitButtonText}>
+                  {event ? 'Update Event' : 'Create Event'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -395,8 +403,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6B7280',
   },
+  submitButtonContainer: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   submitButton: {
-    backgroundColor: '#14B8A6',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
   },
   submitButtonText: {
     fontSize: 16,
