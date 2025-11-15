@@ -3,6 +3,7 @@ import { TaskTemplate } from '../entities/TaskTemplate';
 import { Task } from '../entities/Task';
 import taskGenerationService from './taskGenerationService';
 import excelImportService from './excelImportService';
+import { addDays, addWeeks, addMonths } from 'date-fns';
 
 /**
  * Service for syncing task table configurations to create task templates and tasks
@@ -61,7 +62,7 @@ class TaskTableSyncService {
   async cleanupExistingGeneratedItems() {
     try {
       // Get all tasks
-      const allTasks = await Task.list();
+      const allTasks = await Task.getAll();
       
       // Delete tasks that were auto-generated from table (have template_id and auto_generated flag)
       const deleteTaskPromises = allTasks
@@ -72,7 +73,7 @@ class TaskTableSyncService {
 
       // Get all templates and delete those created from table
       // (We'll mark them with a special flag or naming convention)
-      const allTemplates = await TaskTemplate.list();
+      const allTemplates = await TaskTemplate.getAll();
       const deleteTemplatePromises = allTemplates
         .filter(template => template.description && template.description.includes('[FROM_TABLE]'))
         .map(template => TaskTemplate.delete(template.id));
@@ -150,11 +151,37 @@ class TaskTableSyncService {
   async generateInitialTasks(templates) {
     try {
       let tasksGenerated = 0;
+      const today = new Date();
 
       for (const template of templates) {
         if (template.auto_generate && template.is_active) {
           try {
-            const task = await taskGenerationService.generateTaskFromTemplate(template);
+            // Calculate initial due date based on frequency
+            // For initial sync, we want tasks to start appearing soon
+            let initialDueDate = today;
+            
+            switch (template.frequency_type) {
+              case 'daily':
+                // Daily tasks: due today
+                initialDueDate = today;
+                break;
+              case 'weekly':
+                // Weekly tasks: due in X weeks from today
+                const weeksInterval = template.frequency_interval || 1;
+                initialDueDate = addWeeks(today, weeksInterval);
+                break;
+              case 'monthly':
+                // Monthly tasks: due in X months from today
+                const monthsInterval = template.frequency_interval || 1;
+                initialDueDate = addMonths(today, monthsInterval);
+                break;
+              default:
+                // Custom or unknown: due today
+                initialDueDate = today;
+            }
+
+            // Generate task with explicit due date (bypasses future date check)
+            const task = await taskGenerationService.generateTaskFromTemplate(template, initialDueDate);
             if (task) {
               tasksGenerated++;
             }

@@ -39,6 +39,7 @@ export default function TaskTableScreen({ navigation }) {
     planned_performer: '',
     planned_duration: '',
     planned_frequency: '',
+    notes: '',
   });
 
   useEffect(() => {
@@ -155,6 +156,7 @@ export default function TaskTableScreen({ navigation }) {
       planned_performer: '',
       planned_duration: '',
       planned_frequency: '',
+      notes: '',
     });
     setShowAddDialog(true);
   };
@@ -171,6 +173,7 @@ export default function TaskTableScreen({ navigation }) {
       planned_performer: row.planned_performer,
       planned_duration: row.planned_duration,
       planned_frequency: row.planned_frequency,
+      notes: row.notes || '',
     });
     setShowEditDialog(true);
   };
@@ -293,6 +296,13 @@ export default function TaskTableScreen({ navigation }) {
         </View>
       </View>
 
+      {row.notes && (
+        <View style={styles.notesContainer}>
+          <Text style={styles.notesLabel}>📝 Notes:</Text>
+          <Text style={styles.notesText}>{row.notes}</Text>
+        </View>
+      )}
+
       {row.is_synced && (
         <View style={styles.syncedBadge}>
           <Icon name="check-circle" size={14} color="#16A34A" />
@@ -409,6 +419,19 @@ export default function TaskTableScreen({ navigation }) {
               value={formData.planned_performer}
               onChangeText={(text) => setFormData({ ...formData, planned_performer: text })}
               placeholder="e.g., Together, Person 1"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Notes (הערות)</Text>
+            <TextInput
+              style={[styles.input, styles.notesInput]}
+              value={formData.notes}
+              onChangeText={(text) => setFormData({ ...formData, notes: text })}
+              placeholder="Additional notes or comments..."
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
             />
           </View>
 
@@ -697,6 +720,29 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#16A34A',
     fontWeight: '600',
+  },
+  notesContainer: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8B5CF6',
+  },
+  notesLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  notesText: {
+    fontSize: 13,
+    color: '#4B5563',
+    lineHeight: 18,
+  },
+  notesInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
   clearButton: {
     flexDirection: 'row',

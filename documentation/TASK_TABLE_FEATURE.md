@@ -64,19 +64,21 @@ This feature is designed for couples who want to:
 
 ## Excel File Format
 
-### Expected Columns (Right-to-Left in Hebrew)
+### Expected Columns (Right-to-Left in Hebrew, 10 columns)
 
-| תדירות | משך המטלה | מי מבצע | תדירות | משך המטלה | מי מבצע | מטלה | תת-קטגוריה | קטגוריה |
-|--------|-----------|---------|--------|-----------|---------|------|------------|---------|
-| Frequency (Current) | Duration (Current) | Performer (Current) | Frequency (Planned) | Duration (Planned) | Performer (Planned) | Task Name | Subcategory | Category |
+| הערות | תדירות | משך המטלה | מי מבצע | תדירות | משך המטלה | מי מבצע | מטלה | תת-קטגוריה | קטגוריה |
+|-------|--------|-----------|---------|--------|-----------|---------|------|------------|---------|
+| Notes | Frequency (Planned) | Duration (Planned) | Performer (Planned) | Frequency (Current) | Duration (Current) | Performer (Current) | Task Name | Subcategory | Category |
+
+**Note:** The system uses the **Planned** columns (columns 1, 2, 3) for generating tasks. Current columns (4, 5, 6) are for documentation only. Notes (column 0) are stored but not used for task generation.
 
 ### Example Excel Data
 
 ```
-קטגוריה    תת-קטגוריה    מטלה                    מי מבצע    משך המטלה    תדירות              מי מבצע    משך המטלה    תדירות
-ניקיון     כללי          שטיפת רצפה              עדן הבן    רבע שעה      פעם בשבוע           ביחד       חצי שעה      פעם בשבועיים
-כביסה      כללי          הפעלת מכונה             עדן הבן    חמש דקות     מתי שמתמלא          ביחד       חמש דקות     מתי שמתמלא
-תחזוקה שוטפת  כללי       קניות                  עדן הבן    שעה וחצי     פעמיים בשבוע        ביחד       שעתיים       פעם בשבועיים
+קטגוריה    תת-קטגוריה    מטלה                    מי מבצע (נוכחי)    משך המטלה (נוכחי)    תדירות (נוכחי)              מי מבצע (תכנון)    משך המטלה (תכנון)    תדירות (תכנון)    הערות
+ניקיון     כללי          שטיפת רצפה              עדן הבן            רבע שעה              פעם בשבוע                   ביחד               חצי שעה            פעם בשבועיים
+כביסה      כללי          הפעלת מכונה             עדן הבן            חמש דקות             מתי שמתמלא                  ביחד               חמש דקות           מתי שמתמלא
+תחזוקה שוטפת  כללי       קניות                  עדן הבן            שעה וחצי             פעמיים בשבוע                ביחד               שעתיים             פעם בשבועיים
 ```
 
 ### Supported Categories
@@ -170,10 +172,10 @@ Each task table row is stored as a `TaskTableConfig` with:
 ### Sync Process
 
 1. **Cleanup Phase:**
-   - Fetch all tasks with `auto_generated: true` and `template_id`
-   - Delete these auto-generated tasks
-   - Fetch all templates with `[FROM_TABLE]` in description
-   - Delete these templates
+   - Fetch all tasks using `Task.getAll()`
+   - Filter and delete tasks with `auto_generated: true` and `template_id`
+   - Fetch all templates using `TaskTemplate.getAll()`
+   - Filter and delete templates with `[FROM_TABLE]` in description
 
 2. **Template Creation:**
    - For each table row:

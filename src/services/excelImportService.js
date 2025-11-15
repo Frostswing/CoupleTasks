@@ -50,15 +50,16 @@ class ExcelImportService {
   /**
    * Parse Excel data array into task configurations
    * Expected columns (Hebrew, right-to-left):
-   * 0: תדירות (current frequency)
-   * 1: משך המטלה (current duration)
-   * 2: מי מבצע (current performer)
-   * 3: תדירות (planned frequency)
-   * 4: משך המטלה (planned duration)
-   * 5: מי מבצע (planned performer)
-   * 6: מטלה (task name)
-   * 7: תת-קטגוריה (subcategory)
-   * 8: קטגוריה (category)
+   * 0: הערות (notes/comments)
+   * 1: תדירות (planned frequency)
+   * 2: משך המטלה (planned duration)
+   * 3: מי מבצע (planned performer)
+   * 4: תדירות (current frequency)
+   * 5: משך המטלה (current duration)
+   * 6: מי מבצע (current performer)
+   * 7: מטלה (task name)
+   * 8: תת-קטגוריה (subcategory)
+   * 9: קטגוריה (category)
    */
   parseExcelData(data) {
     if (!data || data.length < 2) {
@@ -71,21 +72,22 @@ class ExcelImportService {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       
-      // Skip empty rows
-      if (!row || row.length === 0 || !row[6]) {
+      // Skip empty rows - check if task name (column 7) exists
+      if (!row || row.length === 0 || !row[7]) {
         continue;
       }
 
       const task = {
-        category: this.cleanValue(row[8]),
-        subcategory: this.cleanValue(row[7]),
-        task_name: this.cleanValue(row[6]),
-        planned_performer: this.cleanValue(row[5]),
-        planned_duration: this.cleanValue(row[4]),
-        planned_frequency: this.cleanValue(row[3]),
-        current_performer: this.cleanValue(row[2]),
-        current_duration: this.cleanValue(row[1]),
-        current_frequency: this.cleanValue(row[0])
+        category: this.cleanValue(row[9]),
+        subcategory: this.cleanValue(row[8]),
+        task_name: this.cleanValue(row[7]),
+        current_performer: this.cleanValue(row[6]),
+        current_duration: this.cleanValue(row[5]),
+        current_frequency: this.cleanValue(row[4]),
+        planned_performer: this.cleanValue(row[3]),
+        planned_duration: this.cleanValue(row[2]),
+        planned_frequency: this.cleanValue(row[1]),
+        notes: this.cleanValue(row[0]) // הערות - notes/comments
       };
 
       // Only add if task has a name
