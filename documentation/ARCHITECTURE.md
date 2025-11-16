@@ -481,6 +481,14 @@ Couples can maintain a comprehensive household task table in Excel, import it in
   - 7 times/week = every day
 - Templates can be activated/deactivated
 - Edit templates and generated tasks independently
+- **Export/Import Templates** (Web Interface):
+  - Export all templates to JSON file for backup or sharing
+  - Import templates from JSON file to create new templates
+  - Export removes internal IDs and metadata (created_by, created_date, updated_date)
+  - Import validates template data (frequency_type, category, priority, etc.)
+  - Import creates new templates (does not overwrite existing ones)
+  - Supports partial imports with error reporting for invalid templates
+  - File format: JSON array of template objects
 
 #### Enhanced Task Features
 - Template reference (`template_id`) - Link tasks to templates
@@ -491,6 +499,13 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Defer functionality with defer count tracking
 - Completed by tracking
 - Configurable notification offset (default: 6 hours before)
+- **Postpone Biweekly Tasks**: Special feature for biweekly recurring tasks
+  - Allows postponing a biweekly task to next week (1 week forward)
+  - When postponed, the task's `due_date` is moved forward by 1 week
+  - Tracks original date (`postponed_from_date`) and postpone date (`postponed_date`)
+  - Future instances continue from the postponed date, maintaining the biweekly pattern
+  - Available in both mobile app (DailyTaskCard) and web interface
+  - When completing a postponed biweekly task, the next instance is calculated from the postponed date, ensuring the recurrence pattern continues correctly
 - **Automatic Archiving**: Tasks are automatically archived when marked as completed
   - Sets `is_archived: true`, `archived_date`, `completion_date`, and `completed_by`
   - Happens automatically in `Task.update()` when status changes to 'completed'

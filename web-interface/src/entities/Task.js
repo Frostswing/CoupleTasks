@@ -33,6 +33,8 @@ export class Task {
     this.completed_by = data.completed_by || null
     this.notification_offset_hours = data.notification_offset_hours || 6
     this.selected_days = data.selected_days || null // Array of day numbers (0-6, 0=Sunday)
+    this.postponed_from_date = data.postponed_from_date || null // Original due date before postponing (for biweekly tasks)
+    this.postponed_date = data.postponed_date || null // Date when task was postponed
   }
 
   static async create(taskData) {

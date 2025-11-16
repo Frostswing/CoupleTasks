@@ -320,9 +320,17 @@ export default function DailyTasksScreen({ navigation }) {
           frequencyInterval = 2;
         }
         
+        // For postponed biweekly tasks, calculate next date from the postponed date
+        // This ensures the recurrence continues from the postponed date, not the original
+        let baseDateForNext = new Date().toISOString();
+        if (task.recurrence_rule === 'biweekly' && task.postponed_date && task.due_date) {
+          // Use the current due date (which was postponed) as the base
+          baseDateForNext = task.due_date;
+        }
+        
         const nextDueDate = taskGenerationService.calculateNextDueDate(
           { frequency_type: frequencyType, frequency_interval: frequencyInterval, selected_days: task.selected_days },
-          new Date().toISOString()
+          baseDateForNext
         );
         
         const newTask = {
@@ -333,6 +341,9 @@ export default function DailyTasksScreen({ navigation }) {
           archived_date: null,
           completion_date: null,
           completed_by: null,
+          // Preserve postponed tracking for future instances
+          postponed_from_date: task.postponed_from_date || null,
+          postponed_date: task.postponed_date || null,
         };
         delete newTask.id;
         
@@ -354,6 +365,29 @@ export default function DailyTasksScreen({ navigation }) {
   const handleDefer = (task) => {
     setTaskToDefer(task);
     setDeferModalVisible(true);
+  };
+
+  const handlePostponeBiweekly = async (task) => {
+    if (task.recurrence_rule !== 'biweekly') {
+      Alert.alert('Error', 'Can only postpone biweekly tasks');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await taskSchedulingService.postponeBiweeklyTask(task.id);
+      
+      // Clear cache to force refresh
+      if (currentUser?.uid) {
+        await clearTaskCache(currentUser.uid);
+      }
+      
+      showSuccess('Task postponed to next week');
+    } catch (error) {
+      handleError(error, 'postponeBiweekly');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const confirmDefer = async (days) => {
@@ -420,6 +454,7 @@ export default function DailyTasksScreen({ navigation }) {
             task={task}
             onComplete={handleComplete}
             onDefer={handleDefer}
+            onPostponeBiweekly={handlePostponeBiweekly}
             onPress={handleTaskPress}
             currentUser={currentUser}
           />

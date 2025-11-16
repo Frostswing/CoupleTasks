@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Task } from '../entities/Task'
 import { TASK_CATEGORIES, PRIORITIES } from '../constants/taskCategories'
+import { addWeeks, parseISO, format } from 'date-fns'
 import './Tasks.css'
 
 function Tasks({ user }) {
@@ -47,6 +48,37 @@ function Tasks({ user }) {
       } catch (error) {
         alert('Error deleting task: ' + error.message)
       }
+    }
+  }
+
+  const handlePostponeBiweekly = async (task) => {
+    if (task.recurrence_rule !== 'biweekly') {
+      alert('Can only postpone biweekly tasks')
+      return
+    }
+
+    if (!task.due_date) {
+      alert('Task must have a due date to postpone')
+      return
+    }
+
+    try {
+      const currentDueDate = parseISO(task.due_date)
+      const newDueDate = addWeeks(currentDueDate, 1) // Move to next week
+      const newDueDateString = format(newDueDate, 'yyyy-MM-dd')
+
+      // Store the original date before postponing (for tracking)
+      const postponedFromDate = task.postponed_from_date || task.due_date
+
+      await Task.update(task.id, {
+        due_date: newDueDateString,
+        postponed_from_date: postponedFromDate,
+        postponed_date: format(new Date(), 'yyyy-MM-dd'),
+      })
+
+      alert('Task postponed to next week')
+    } catch (error) {
+      alert('Error postponing task: ' + error.message)
     }
   }
 
@@ -160,12 +192,23 @@ function Tasks({ user }) {
               </div>
               <div className="task-actions">
                 {task.status !== 'completed' && (
-                  <button
-                    onClick={() => handleComplete(task.id)}
-                    className="btn btn-success"
-                  >
-                    Complete
-                  </button>
+                  <>
+                    {task.recurrence_rule === 'biweekly' && (
+                      <button
+                        onClick={() => handlePostponeBiweekly(task)}
+                        className="btn btn-secondary"
+                        title="Postpone to next week"
+                      >
+                        Postpone
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleComplete(task.id)}
+                      className="btn btn-success"
+                    >
+                      Complete
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => handleDelete(task.id)}

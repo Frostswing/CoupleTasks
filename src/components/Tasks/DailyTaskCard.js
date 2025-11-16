@@ -19,7 +19,7 @@ const categoryColors = {
   other: { bg: '#F3F4F6', text: '#6B7280' }
 };
 
-export default function DailyTaskCard({ task, onComplete, onDefer, onPress, currentUser }) {
+export default function DailyTaskCard({ task, onComplete, onDefer, onPostponeBiweekly, onPress, currentUser }) {
   const isAssignedToMe = task.assigned_to === currentUser?.email;
   const categoryStyle = categoryColors[task.category] || categoryColors.other;
   
@@ -91,14 +91,24 @@ export default function DailyTaskCard({ task, onComplete, onDefer, onPress, curr
         </View>
       </TouchableOpacity>
       
-      {onDefer && (
-        <TouchableOpacity
-          onPress={() => onDefer(task)}
-          style={styles.deferButton}
-        >
-          <Icon name="schedule" size={20} color="#6B7280" />
-        </TouchableOpacity>
-      )}
+      <View style={styles.actionButtons}>
+        {task.recurrence_rule === 'biweekly' && onPostponeBiweekly && (
+          <TouchableOpacity
+            onPress={() => onPostponeBiweekly(task)}
+            style={styles.postponeButton}
+          >
+            <Icon name="next-week" size={20} color="#0D9488" />
+          </TouchableOpacity>
+        )}
+        {onDefer && (
+          <TouchableOpacity
+            onPress={() => onDefer(task)}
+            style={styles.deferButton}
+          >
+            <Icon name="schedule" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -175,9 +185,17 @@ const styles = StyleSheet.create({
   assignedBadge: {
     marginLeft: 'auto',
   },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  postponeButton: {
+    padding: 8,
+    marginRight: 4,
+  },
   deferButton: {
     padding: 8,
-    marginLeft: 8,
   },
 });
 

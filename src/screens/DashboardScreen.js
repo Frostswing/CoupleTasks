@@ -318,7 +318,10 @@ export default function DashboardScreen({ navigation }) {
           is_archived: false,
           archived_date: null,
           completion_date: null,
-          subtasks: task.subtasks?.map(st => ({ ...st, is_completed: false })) || []
+          subtasks: task.subtasks?.map(st => ({ ...st, is_completed: false })) || [],
+          // Preserve postponed tracking for future instances
+          postponed_from_date: task.postponed_from_date || null,
+          postponed_date: task.postponed_date || null,
         };
         delete newTask.id;
         

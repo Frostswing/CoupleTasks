@@ -1,5 +1,5 @@
 import { Task } from '../entities/Task';
-import { addHours, parseISO, format, isBefore, isAfter, startOfDay, differenceInHours } from 'date-fns';
+import { addHours, addWeeks, parseISO, format, isBefore, isAfter, startOfDay, differenceInHours } from 'date-fns';
 
 /**
  * Service for task scheduling and date calculations
@@ -192,6 +192,47 @@ class TaskSchedulingService {
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
     const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     return { start: startOfDay(start), end: startOfDay(end) };
+  }
+
+  /**
+   * Postpone a biweekly task to next week
+   * Moves the task 1 week forward and updates recurrence to continue from the new date
+   */
+  async postponeBiweeklyTask(taskId) {
+    try {
+      const task = await Task.getById(taskId);
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
+      // Only allow postponing biweekly tasks
+      if (task.recurrence_rule !== 'biweekly') {
+        throw new Error('Can only postpone biweekly tasks');
+      }
+
+      if (!task.due_date) {
+        throw new Error('Task must have a due date to postpone');
+      }
+
+      const currentDueDate = parseISO(task.due_date);
+      const newDueDate = addWeeks(currentDueDate, 1); // Move to next week
+      const newDueDateString = format(newDueDate, 'yyyy-MM-dd');
+
+      // Store the original date before postponing (for tracking)
+      const postponedFromDate = task.postponed_from_date || task.due_date;
+
+      await Task.update(taskId, {
+        due_date: newDueDateString,
+        postponed_from_date: postponedFromDate, // Track original date
+        postponed_date: format(new Date(), 'yyyy-MM-dd'), // Track when postponed
+        updated_date: new Date().toISOString()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error postponing biweekly task:', error);
+      throw error;
+    }
   }
 }
 
