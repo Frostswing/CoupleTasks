@@ -52,6 +52,8 @@ yarn-error.*
 
 # firebase
 src/firebase/config.js
+web-interface/src/firebase/config.js
+**/firebase/config.js
 
 # Firebase rules
 database.rules.json
