@@ -180,6 +180,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
     { label: 'None', value: 'none' },
     { label: 'Daily', value: 'daily' },
     { label: 'Weekly', value: 'weekly' },
+    { label: 'Biweekly', value: 'biweekly' },
     { label: 'Monthly', value: 'monthly' },
   ];
 
@@ -339,9 +340,14 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
           />
 
           {/* Day Selection */}
+          {(formData.recurrence_rule === 'weekly' || formData.recurrence_rule === 'biweekly') && (
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Days of Week (Optional)</Text>
-            <Text style={styles.subLabel}>Select specific days for this task</Text>
+            <Text style={styles.subLabel}>
+              {formData.recurrence_rule === 'biweekly' 
+                ? 'Select specific days for this task (every 2 weeks)'
+                : 'Select specific days for this task'}
+            </Text>
             <View style={styles.daysContainer}>
               {[
                 { day: 0, label: 'Sun' },
@@ -387,6 +393,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
               })}
             </View>
           </View>
+          )}
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>

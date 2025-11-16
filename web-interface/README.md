@@ -66,3 +66,4 @@ The web interface uses the same Firebase project as the mobile app:
 - Vite (Build tool)
 - Docker & Nginx (Production)
 
+

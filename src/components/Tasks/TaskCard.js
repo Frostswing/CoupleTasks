@@ -113,7 +113,7 @@ export default function TaskCard({ task, onStatusChange, onEdit, onSubtaskToggle
                 <View style={[styles.badge, { backgroundColor: '#DBEAFE' }]}>
                   <Icon name="repeat" size={12} color="#2563EB" />
                   <Text style={[styles.badgeText, { color: '#2563EB', marginLeft: 4 }]}>
-                    {task.recurrence_rule}
+                    {task.recurrence_rule === 'biweekly' ? 'Biweekly' : task.recurrence_rule.charAt(0).toUpperCase() + task.recurrence_rule.slice(1)}
                   </Text>
                 </View>
               )}

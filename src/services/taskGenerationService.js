@@ -82,6 +82,67 @@ class TaskGenerationService {
   }
 
   /**
+   * Generate all dates for weekly/biweekly frequency with selected days within a date range
+   * Returns an array of dates for the selected days every X weeks
+   * @param {number} weeksInterval - Number of weeks between occurrences (1 for weekly, 2 for biweekly)
+   * @param {Date} startDate - Start date
+   * @param {Date} endDate - End date
+   * @param {Array<number>} selectedDays - Array of day numbers (0-6, 0=Sunday) to use specific days
+   */
+  generateDatesForWeeklyWithDays(weeksInterval, startDate, endDate, selectedDays) {
+    const dates = [];
+    let currentDate = startOfDay(startDate);
+    const end = endOfDay(endDate);
+    
+    if (!selectedDays || !Array.isArray(selectedDays) || selectedDays.length === 0) {
+      // If no days selected, fall back to simple weekly/biweekly pattern
+      while (currentDate <= end) {
+        if (currentDate >= startDate) {
+          dates.push(new Date(currentDate));
+        }
+        currentDate = addWeeks(currentDate, weeksInterval);
+        if (dates.length > 200) break;
+      }
+      return dates;
+    }
+    
+    // Generate dates for selected days every X weeks
+    while (currentDate <= end) {
+      // Check each selected day in the current week
+      for (const dayOfWeek of selectedDays) {
+        // Find the date of this day in the current week
+        const currentDayOfWeek = currentDate.getDay(); // 0=Sunday, 6=Saturday
+        let daysToAdd = dayOfWeek - currentDayOfWeek;
+        
+        // If the day is earlier in the week, move to next week
+        if (daysToAdd < 0) {
+          daysToAdd += 7;
+        }
+        
+        const targetDate = addDays(currentDate, daysToAdd);
+        
+        // Only add if within range
+        if (targetDate >= startDate && targetDate <= end) {
+          dates.push(new Date(targetDate));
+        }
+      }
+      
+      // Move to next occurrence (every X weeks)
+      currentDate = addWeeks(currentDate, weeksInterval);
+      
+      // Safety check
+      if (dates.length > 200) break;
+    }
+    
+    // Sort and remove duplicates
+    return dates
+      .sort((a, b) => a - b)
+      .filter((date, index, self) => 
+        index === self.findIndex(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))
+      );
+  }
+
+  /**
    * Generate all dates for times_per_week frequency within a date range
    * Returns an array of dates distributed evenly across weeks
    * @param {number} timesPerWeek - Number of times per week (1-7)
@@ -553,6 +614,15 @@ class TaskGenerationService {
         startDate,
         endDate,
         template.selected_days || null
+      );
+    } else if (template.frequency_type === 'weekly' && template.selected_days && template.selected_days.length > 0) {
+      // Use selected days for weekly frequency
+      const weeksInterval = template.frequency_interval || 1;
+      datesToGenerate = this.generateDatesForWeeklyWithDays(
+        weeksInterval,
+        startDate,
+        endDate,
+        template.selected_days
       );
     } else {
       // For other frequency types, calculate dates sequentially

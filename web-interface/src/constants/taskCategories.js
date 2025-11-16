@@ -18,6 +18,7 @@ export const PRIORITIES = [
 export const FREQUENCY_TYPES = [
   { label: 'Daily', value: 'daily' },
   { label: 'Weekly', value: 'weekly' },
+  { label: 'Biweekly', value: 'biweekly' },
   { label: 'Times per Week', value: 'times_per_week' },
   { label: 'Monthly', value: 'monthly' },
   { label: 'Custom', value: 'custom' },

@@ -284,12 +284,17 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           />
         )}
 
-        {/* Day selector for all frequency types */}
+        {/* Day selector for weekly and times_per_week frequency types */}
+        {(formData.frequency_type === 'weekly' || formData.frequency_type === 'times_per_week') && (
         <View style={styles.section}>
           <Text style={styles.label}>Select Days of Week (Optional)</Text>
           <Text style={styles.subLabel}>
             {formData.frequency_type === 'times_per_week' && formData.frequency_interval >= 2 && formData.frequency_interval <= 7
               ? `Choose ${formData.frequency_interval} day${formData.frequency_interval !== 1 ? 's' : ''} per week`
+              : formData.frequency_type === 'weekly' && formData.frequency_interval === 2
+              ? 'Select specific days for this template (every 2 weeks)'
+              : formData.frequency_type === 'weekly'
+              ? 'Select specific days for this template (every week)'
               : 'Select specific days for this template'}
           </Text>
           <View style={styles.daysContainer}>
@@ -355,6 +360,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
             </Text>
           )}
         </View>
+        )}
 
         {renderPickerModal(
           'Select Frequency',

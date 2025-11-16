@@ -55,7 +55,7 @@ export const DATABASE_SCHEMA = {
           updated_by: "userId|null",
           due_date: "YYYY-MM-DD|null",
           due_time: "HH:MM|null",
-          recurrence_rule: "none|daily|weekly|monthly",
+          recurrence_rule: "none|daily|weekly|biweekly|monthly",
           next_due_date: "YYYY-MM-DD|null",
           subtasks: [
             {

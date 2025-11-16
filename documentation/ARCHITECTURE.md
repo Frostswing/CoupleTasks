@@ -447,7 +447,8 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Create reusable task templates with:
   - Frequency types:
     - Daily (every X days)
-    - Weekly (every X weeks)
+    - Weekly (every X weeks) - supports day selection
+    - **Biweekly** (every 2 weeks) - supports day selection
     - **Times per Week** (1-7 times per week with smart scheduling)
     - Monthly (every X months)
     - Custom (free-form description)
@@ -465,6 +466,11 @@ Couples can maintain a comprehensive household task table in Excel, import it in
     - App starts (Daily Tasks or Task Planning screens)
     - Template is activated
     - Template is created/updated with auto_generate enabled
+- **Day Selection for Weekly/Biweekly**:
+  - Weekly templates can specify which days of the week tasks should occur
+  - Biweekly templates (frequency_interval: 2) can specify days that repeat every 2 weeks
+  - Selected days are stored as an array of day numbers (0-6, where 0=Sunday)
+  - Tasks are generated for the selected days at the specified interval
 - **Smart Scheduling for Times per Week**:
   - 1 time/week = every 7 days
   - 2 times/week = alternates between 3-4 days apart

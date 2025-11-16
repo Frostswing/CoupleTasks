@@ -312,8 +312,16 @@ export default function DailyTasksScreen({ navigation }) {
 
       // If recurring, create next instance
       if (task.recurrence_rule && task.recurrence_rule !== 'none') {
+        // Map recurrence_rule to frequency_type and interval
+        let frequencyType = task.recurrence_rule;
+        let frequencyInterval = 1;
+        if (task.recurrence_rule === 'biweekly') {
+          frequencyType = 'weekly';
+          frequencyInterval = 2;
+        }
+        
         const nextDueDate = taskGenerationService.calculateNextDueDate(
-          { frequency_type: task.recurrence_rule, frequency_interval: 1 },
+          { frequency_type: frequencyType, frequency_interval: frequencyInterval, selected_days: task.selected_days },
           new Date().toISOString()
         );
         

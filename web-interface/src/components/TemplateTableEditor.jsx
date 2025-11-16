@@ -12,23 +12,32 @@ function TemplateTableEditor({ templates, onSave, onDelete }) {
   useEffect(() => {
     // Initialize rows from templates
     if (templates && templates.length > 0) {
-      setRows(templates.map(t => ({
-        id: t.id,
-        template_name: t.template_name || '',
-        description: t.description || '',
-        category: t.category || 'household',
-        subcategory: t.subcategory || '',
-        frequency_type: t.frequency_type || 'weekly',
-        frequency_interval: t.frequency_interval || 1,
-        frequency_custom: t.frequency_custom || '',
-        selected_days: t.selected_days || null,
-        assigned_to: t.assigned_to || '',
-        estimated_duration: t.estimated_duration || '',
-        priority: t.priority || 'medium',
-        auto_generate: t.auto_generate || false,
-        room_location: t.room_location || '',
-        is_active: t.is_active !== undefined ? t.is_active : true,
-      })))
+      setRows(templates.map(t => {
+        // Convert weekly with interval 2 to biweekly for display
+        let frequencyType = t.frequency_type || 'weekly'
+        let frequencyInterval = t.frequency_interval || 1
+        if (frequencyType === 'weekly' && frequencyInterval === 2) {
+          frequencyType = 'biweekly'
+          frequencyInterval = 1 // Reset interval for biweekly display
+        }
+        return {
+          id: t.id,
+          template_name: t.template_name || '',
+          description: t.description || '',
+          category: t.category || 'household',
+          subcategory: t.subcategory || '',
+          frequency_type: frequencyType,
+          frequency_interval: frequencyInterval,
+          frequency_custom: t.frequency_custom || '',
+          selected_days: t.selected_days || null,
+          assigned_to: t.assigned_to || '',
+          estimated_duration: t.estimated_duration || '',
+          priority: t.priority || 'medium',
+          auto_generate: t.auto_generate || false,
+          room_location: t.room_location || '',
+          is_active: t.is_active !== undefined ? t.is_active : true,
+        }
+      }))
     } else {
       // Start with one empty row
       setRows([createEmptyRow()])
@@ -122,6 +131,14 @@ function TemplateTableEditor({ templates, onSave, onDelete }) {
       return
     }
 
+    // Convert biweekly to weekly with interval 2 for storage
+    let frequencyType = row.frequency_type
+    let frequencyInterval = parseInt(row.frequency_interval) || 1
+    if (frequencyType === 'biweekly') {
+      frequencyType = 'weekly'
+      frequencyInterval = 2
+    }
+
     try {
       if (row.id) {
         // Update existing template
@@ -130,8 +147,8 @@ function TemplateTableEditor({ templates, onSave, onDelete }) {
           description: row.description,
           category: row.category,
           subcategory: row.subcategory,
-          frequency_type: row.frequency_type,
-          frequency_interval: parseInt(row.frequency_interval) || 1,
+          frequency_type: frequencyType,
+          frequency_interval: frequencyInterval,
           frequency_custom: row.frequency_custom || null,
           selected_days: row.selected_days || null,
           assigned_to: row.assigned_to,
@@ -148,8 +165,8 @@ function TemplateTableEditor({ templates, onSave, onDelete }) {
           description: row.description,
           category: row.category,
           subcategory: row.subcategory,
-          frequency_type: row.frequency_type,
-          frequency_interval: parseInt(row.frequency_interval) || 1,
+          frequency_type: frequencyType,
+          frequency_interval: frequencyInterval,
           frequency_custom: row.frequency_custom || null,
           selected_days: row.selected_days || null,
           assigned_to: row.assigned_to,
@@ -268,13 +285,17 @@ function TemplateTableEditor({ templates, onSave, onDelete }) {
                   </select>
                 </td>
                 <td>
-                  <input
-                    type="number"
-                    value={row.frequency_interval}
-                    onChange={(e) => handleCellChange(index, 'frequency_interval', e.target.value)}
-                    min="1"
-                    className="table-input number-input"
-                  />
+                  {row.frequency_type === 'biweekly' ? (
+                    <span className="text-muted">2 weeks</span>
+                  ) : (
+                    <input
+                      type="number"
+                      value={row.frequency_interval}
+                      onChange={(e) => handleCellChange(index, 'frequency_interval', e.target.value)}
+                      min="1"
+                      className="table-input number-input"
+                    />
+                  )}
                 </td>
                 <td>
                   <input
@@ -287,31 +308,35 @@ function TemplateTableEditor({ templates, onSave, onDelete }) {
                   />
                 </td>
                 <td>
-                  <div className="days-selector">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayLabel, dayIndex) => {
-                      const isSelected = row.selected_days && row.selected_days.includes(dayIndex)
-                      return (
-                        <label key={dayIndex} className="day-checkbox-label">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              const currentDays = row.selected_days || []
-                              let newDays
-                              if (e.target.checked) {
-                                newDays = [...currentDays, dayIndex]
-                              } else {
-                                newDays = currentDays.filter(d => d !== dayIndex)
-                              }
-                              handleCellChange(index, 'selected_days', newDays.length > 0 ? newDays : null)
-                            }}
-                            className="day-checkbox"
-                          />
-                          <span className={isSelected ? 'day-checked' : ''}>{dayLabel}</span>
-                        </label>
-                      )
-                    })}
-                  </div>
+                  {(row.frequency_type === 'weekly' || row.frequency_type === 'biweekly' || row.frequency_type === 'times_per_week') ? (
+                    <div className="days-selector">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayLabel, dayIndex) => {
+                        const isSelected = row.selected_days && row.selected_days.includes(dayIndex)
+                        return (
+                          <label key={dayIndex} className="day-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const currentDays = row.selected_days || []
+                                let newDays
+                                if (e.target.checked) {
+                                  newDays = [...currentDays, dayIndex]
+                                } else {
+                                  newDays = currentDays.filter(d => d !== dayIndex)
+                                }
+                                handleCellChange(index, 'selected_days', newDays.length > 0 ? newDays : null)
+                              }}
+                              className="day-checkbox"
+                            />
+                            <span className={isSelected ? 'day-checked' : ''}>{dayLabel}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <span className="text-muted">N/A</span>
+                  )}
                 </td>
                 <td>
                   <select

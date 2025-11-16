@@ -98,7 +98,15 @@ function TaskTemplates({ user }) {
                 <p className="template-description">{template.description}</p>
                 <div className="template-details">
                   <span>Category: {template.category}</span>
-                  <span>Frequency: {template.frequency_type} ({template.frequency_interval})</span>
+                  <span>Frequency: {
+                    template.frequency_type === 'weekly' && template.frequency_interval === 2
+                      ? 'Biweekly'
+                      : template.frequency_type === 'weekly'
+                      ? `Weekly (${template.frequency_interval})`
+                      : template.frequency_type === 'times_per_week'
+                      ? `${template.frequency_interval} times per week`
+                      : `${template.frequency_type} (${template.frequency_interval})`
+                  }</span>
                   <span>Priority: {template.priority}</span>
                   {template.auto_generate && <span className="badge-auto">Auto-generate</span>}
                 </div>
