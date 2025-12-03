@@ -113,17 +113,22 @@ export class TaskTemplate {
       
       // If updateTasks is true (default), update all tasks generated from this template
       const shouldUpdateTasks = options.updateTasks !== false; // Default to true
+      
       if (shouldUpdateTasks) {
         // Import here to avoid circular dependency - use dynamic import
-        import('../services/taskGenerationService').then(module => {
+        // We need to handle this carefully to ensure it runs even if the response is returned
+        try {
+          const module = await import('../services/taskGenerationService');
           const taskGenerationService = module.default;
-          // Run in background to avoid blocking
+          
+          // Run in background but log errors
           taskGenerationService.updateTasksFromTemplate(id, updates).catch(error => {
-            console.error('Error updating tasks from template:', error);
+            console.error('Error updating tasks from template (background):', error);
           });
-        }).catch(error => {
-          console.error('Error loading taskGenerationService:', error);
-        });
+        } catch (error) {
+          console.error('Error loading taskGenerationService for recursive update:', error);
+          // Don't fail the template update just because task update failed
+        }
       }
       
       return true;

@@ -3,8 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 /**
- * Inline selector component that displays all options as selectable buttons
- * Replaces modal-based pickers for better UX
+ * Inline selector component - displays all options as selectable buttons
  */
 export default function InlineSelector({ 
   options, 
@@ -16,7 +15,7 @@ export default function InlineSelector({
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.optionsContainer, multiColumn && styles.multiColumn]}>
+      <View style={styles.optionsContainer}>
         {options.map((option) => {
           const isSelected = selectedValue === option.value;
           return (
@@ -24,8 +23,8 @@ export default function InlineSelector({
               key={option.value}
               style={[
                 styles.optionButton,
+                multiColumn && styles.optionButtonMultiColumn,
                 isSelected && styles.optionButtonSelected,
-                multiColumn && styles.optionButtonMultiColumn
               ]}
               onPress={() => onSelect(option.value)}
               activeOpacity={0.7}
@@ -54,7 +53,7 @@ export default function InlineSelector({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    width: '100%',
   },
   label: {
     fontSize: 14,
@@ -63,13 +62,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   optionsContainer: {
-    gap: 8,
-  },
-  multiColumn: {
     flexDirection: "row",
     flexWrap: "wrap",
+    marginHorizontal: -4,
   },
   optionButton: {
+    width: '100%',
     backgroundColor: "#FFFFFF",
     borderWidth: 2,
     borderColor: "#E5E7EB",
@@ -77,17 +75,15 @@ const styles = StyleSheet.create({
     padding: 14,
     minHeight: 48,
     justifyContent: "center",
+    marginHorizontal: 4,
+    marginBottom: 8,
+  },
+  optionButtonMultiColumn: {
+    width: '46%',
   },
   optionButtonSelected: {
     borderColor: "#14B8A6",
     backgroundColor: "#E6FFFA",
-  },
-  optionButtonMultiColumn: {
-    flex: 1,
-    minWidth: "48%",
-    maxWidth: "48%",
-    marginRight: 8,
-    marginBottom: 8,
   },
   optionContent: {
     flexDirection: "row",
@@ -96,7 +92,8 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 15,
-    color: "#374151",
+    color: "#1F2937",
+    fontWeight: "500",
     flex: 1,
     marginRight: 8,
   },
@@ -105,4 +102,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-

@@ -63,7 +63,6 @@ export default function DailyTasksScreen({ navigation }) {
   // Load cached tasks immediately, then set up real-time listener
   useEffect(() => {
     if (!currentUser?.uid) {
-      setIsLoading(false);
       return;
     }
 
@@ -96,11 +95,11 @@ export default function DailyTasksScreen({ navigation }) {
       });
     };
 
-    // Track if we've loaded initial data (from cache or Firebase)
+    // Track if we've loaded initial data from Firebase
     let hasLoadedInitialData = false;
     let loadingTimeout = null;
 
-    // Set timeout to prevent infinite loading (only if no initial data loaded)
+    // Set timeout to prevent infinite loading
     loadingTimeout = setTimeout(() => {
       if (isMounted && !hasLoadedInitialData) {
         console.warn('Task loading timeout - clearing loading state');
@@ -108,81 +107,7 @@ export default function DailyTasksScreen({ navigation }) {
       }
     }, 10000);
 
-    // Load cached tasks first for instant display, then check for updates
-    const loadCachedTasksAndSync = async () => {
-      try {
-        const cached = await getCachedTasks(currentUser.uid);
-        let cachedTaskList = [];
-        let lastSyncTimestamp = null;
-        
-        if (cached && cached.tasks) {
-          cachedTaskList = cached.tasks;
-          lastSyncTimestamp = cached.lastSyncTimestamp;
-          
-          // Show cached data immediately
-          if (isMounted) {
-            const filtered = filterTasks(cachedTaskList);
-            setTasks(filtered);
-            setIsLoading(false);
-            hasLoadedInitialData = true;
-            // Clear timeout since we have data
-            if (loadingTimeout) {
-              clearTimeout(loadingTimeout);
-              loadingTimeout = null;
-            }
-          }
-        }
-        // If no cache, keep isLoading = true until real-time listener fires
-
-        // Check if there are updates since last sync
-        if (lastSyncTimestamp) {
-          const hasUpdates = await Task.hasUpdatesSince(lastSyncTimestamp);
-          
-          if (!hasUpdates) {
-            // No updates, cache is still fresh - skip full fetch
-            console.log('No updates since last sync, using cache');
-            return;
-          }
-          
-          // Fetch only updated tasks and merge with cache
-          try {
-            const updatedTasks = await Task.getUpdatedSince(lastSyncTimestamp, { is_archived: { '$ne': true } });
-            
-            // Merge updated tasks with cached tasks
-            const taskMap = new Map();
-            
-            // Add all cached tasks to map
-            cachedTaskList.forEach(task => {
-              taskMap.set(task.id, task);
-            });
-            
-            // Update/overwrite with updated tasks
-            updatedTasks.forEach(task => {
-              taskMap.set(task.id, task);
-            });
-            
-            const mergedTasks = Array.from(taskMap.values());
-            const filtered = filterTasks(mergedTasks);
-            
-            if (isMounted) {
-              setTasks(filtered);
-              // Update cache with merged data
-              await cacheTasks(currentUser.uid, mergedTasks);
-            }
-          } catch (error) {
-            console.error('Error fetching updated tasks:', error);
-            // Fall through to full fetch - real-time listener will handle it
-          }
-        }
-      } catch (error) {
-        console.error('Error loading cached tasks:', error);
-        // Keep loading state - real-time listener will handle it
-      }
-    };
-
-    loadCachedTasksAndSync();
-
-    // Set up real-time listener for future changes (only sends deltas)
+    // Set up real-time listener for Firebase data
     const unsubscribe = Task.onSnapshot(
       (taskList) => {
         if (!isMounted) return;
@@ -195,7 +120,7 @@ export default function DailyTasksScreen({ navigation }) {
         
         const filtered = filterTasks(taskList);
         
-        // Update cache with fresh data
+        // Update cache in background for offline access
         cacheTasks(currentUser.uid, taskList).catch(err => {
           console.error('Error caching tasks:', err);
         });

@@ -112,6 +112,8 @@ const AutoCompleteInput = ({
         category: item.category || 'other',
         unit: item.unit || 'pieces',
         quantity: item.quantity || 1,
+        notes: item.notes || '',
+        image_url: item.image_url || '',
         isFromArchive: true
       }));
       
@@ -168,6 +170,7 @@ const AutoCompleteInput = ({
   };
 
   const handleSelectSuggestion = (suggestion) => {
+    console.log('🎯 AutoComplete: Suggestion clicked:', suggestion);
     const selectedText = type === 'tasks' ? suggestion.title : suggestion.name;
     
     onChangeText(selectedText);
@@ -175,7 +178,10 @@ const AutoCompleteInput = ({
     setSuggestions([]);
     
     if (onSelectSuggestion) {
+      console.log('📤 AutoComplete: Calling parent onSelectSuggestion');
       onSelectSuggestion(suggestion);
+    } else {
+      console.warn('⚠️ AutoComplete: No onSelectSuggestion handler provided');
     }
     
     // Close keyboard

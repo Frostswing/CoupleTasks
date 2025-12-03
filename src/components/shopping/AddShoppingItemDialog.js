@@ -21,7 +21,9 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
     name: '',
     category: 'other',
     quantity: '1',
-    unit: 'pieces'
+    unit: 'pieces',
+    notes: '',
+    image_url: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,16 +45,23 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
   };
 
   const handleSelectSuggestion = (suggestion) => {
+    console.log('🔍 Suggestion selected:', suggestion);
     // If suggestion has a name property, use it; otherwise it's the typed text
     if (suggestion && suggestion.name) {
       // Auto-fill form with suggestion data
-      setFormData(prev => ({
-        ...prev,
-        name: suggestion.name,
-        category: suggestion.category || autoDetectCategory(suggestion.name),
-        unit: suggestion.unit || getDefaultUnitForCategory(suggestion.category || autoDetectCategory(suggestion.name)),
-        quantity: suggestion.quantity ? suggestion.quantity.toString() : prev.quantity
-      }));
+      setFormData(prev => {
+        const newFormData = {
+          ...prev,
+          name: suggestion.name,
+          category: suggestion.category || autoDetectCategory(suggestion.name),
+          unit: suggestion.unit || getDefaultUnitForCategory(suggestion.category || autoDetectCategory(suggestion.name)),
+          quantity: suggestion.quantity ? suggestion.quantity.toString() : prev.quantity,
+          notes: suggestion.notes || '',
+          image_url: suggestion.image_url || ''
+        };
+        console.log('📝 Setting form data:', newFormData);
+        return newFormData;
+      });
     }
     // If no suggestion object, the text was already set by handleNameChange
   };
@@ -75,7 +84,9 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
         name: '',
         category: 'other',
         quantity: '1',
-        unit: 'pieces'
+        unit: 'pieces',
+        notes: '',
+        image_url: ''
       });
       
       onOpenChange(false);
@@ -92,7 +103,9 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
       name: '',
       category: 'other',
       quantity: '1',
-      unit: 'pieces'
+      unit: 'pieces',
+      notes: '',
+      image_url: ''
     });
     onOpenChange(false);
   };

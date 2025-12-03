@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Task } from '../entities/Task'
 import { TASK_CATEGORIES, PRIORITIES } from '../constants/taskCategories'
 import { addWeeks, parseISO, format } from 'date-fns'
+import TaskEditModal from './TaskEditModal'
 import './Tasks.css'
 
 function Tasks({ user }) {
@@ -10,6 +11,7 @@ function Tasks({ user }) {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed, overdue
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [editingTask, setEditingTask] = useState(null)
 
   useEffect(() => {
     loadTasks()
@@ -193,6 +195,7 @@ function Tasks({ user }) {
               <div className="task-actions">
                 {task.status !== 'completed' && (
                   <>
+
                     {task.recurrence_rule === 'biweekly' && (
                       <button
                         onClick={() => handlePostponeBiweekly(task)}
@@ -202,6 +205,12 @@ function Tasks({ user }) {
                         Postpone
                       </button>
                     )}
+                    <button
+                      onClick={() => setEditingTask(task)}
+                      className="btn btn-secondary"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => handleComplete(task.id)}
                       className="btn btn-success"
@@ -221,6 +230,17 @@ function Tasks({ user }) {
           ))
         )}
       </div>
+
+
+      {editingTask && (
+        <TaskEditModal
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={() => {
+            loadTasks()
+          }}
+        />
+      )}
     </div>
   )
 }

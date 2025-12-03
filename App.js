@@ -26,6 +26,7 @@ import LanguageSelectionScreen from "./src/screens/LanguageSelectionScreen";
 import { subscribeToAuthChanges } from "./src/services/userService";
 import { loadLanguagePreference } from "./src/localization/i18n";
 import i18n from "./src/localization/i18n";
+import LoadingScreen from "./src/components/common/LoadingScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -121,25 +122,16 @@ export default function App() {
 
   // Loading screen during authentication initialization
   if (!languageLoaded || initializing || !firebaseReady) {
+    let statusMessage = i18n.t('app.loadingApp');
+    if (!firebaseReady) {
+      statusMessage = i18n.t('app.initializingFirebase');
+    }
+    
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F8FAFC" }}>
-        <Text style={{ fontSize: 60, marginBottom: 20 }}>💜</Text>
-        <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 10, color: "#1F2937" }}>CoupleTasks</Text>
-        <ActivityIndicator size="large" color="#14B8A6" />
-        <Text style={{ marginTop: 10, color: "#6B7280" }}>{i18n.t('app.loadingApp')}</Text>
-        {!firebaseReady && (
-          <View style={{ alignItems: 'center', marginTop: 10 }}>
-            <Text style={{ marginTop: 5, color: "#EF4444" }}>
-              {i18n.t('app.initializingFirebase')}
-            </Text>
-            {firebaseStatus && (
-              <Text style={{ marginTop: 5, fontSize: 12, color: "#9CA3AF", textAlign: 'center' }}>
-                {i18n.t('app.firebaseStatus')} {JSON.stringify(firebaseStatus)}
-              </Text>
-            )}
-          </View>
-        )}
-      </View>
+      <LoadingScreen 
+        message={statusMessage}
+        status={firebaseStatus}
+      />
     );
   }
 

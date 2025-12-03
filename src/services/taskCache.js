@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CACHE_KEY_PREFIX = '@task_cache_';
 const CACHE_TIMESTAMP_KEY = '@task_cache_timestamp';
-const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const LAST_SYNC_KEY_PREFIX = '@task_last_sync_';
 
 /**

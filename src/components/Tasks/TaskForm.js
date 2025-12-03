@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -46,7 +47,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
     due_time: "",
     recurrence_rule: "none",
     subtasks: [],
-    selected_days: null, // Array of day numbers (0-6, 0=Sunday)
+    selected_days: null,
     ...normalizeTaskData(task)
   });
   
@@ -75,8 +76,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
       }
       
       setUsers(userList);
-      
-      // Don't auto-assign - let user choose (including "none")
     } catch (error) {
       console.error("Error loading users:", error);
     }
@@ -95,7 +94,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
   };
 
   const handleTaskSuggestion = (suggestion) => {
-    // Auto-fill task data from suggestion
     setFormData(prev => ({
       ...prev,
       title: suggestion.title,
@@ -121,7 +119,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || formData.due_date;
     setShowDatePicker(Platform.OS === 'ios');
-    // Ensure we store as Date object
     handleInputChange('due_date', currentDate ? new Date(currentDate) : null);
   };
 
@@ -137,7 +134,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
   const formatDate = (date) => {
     if (!date) return 'Select date';
     
-    // Handle string dates from Firebase (ISO format)
     let dateObj;
     if (typeof date === 'string') {
       dateObj = parseISO(date);
@@ -147,7 +143,6 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
       return 'Select date';
     }
     
-    // Check if date is valid
     if (isNaN(dateObj.getTime())) {
       return 'Select date';
     }
@@ -184,10 +179,18 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
     { label: 'Monthly', value: 'monthly' },
   ];
 
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.card}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerIcon}>
@@ -196,78 +199,77 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Title */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Task Title</Text>
-            <AutoCompleteInput
-              style={styles.input}
-              placeholder="What needs to be done?"
-              value={formData.title}
-              onChangeText={(text) => handleInputChange('title', text)}
-              onSelectSuggestion={handleTaskSuggestion}
-              type="tasks"
-              maxSuggestions={6}
-              showSmartSuggestions={true}
-            />
-          </View>
+        {/* Task Title */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Task Title</Text>
+          <AutoCompleteInput
+            style={styles.input}
+            placeholder="What needs to be done?"
+            value={formData.title}
+            onChangeText={(text) => handleInputChange('title', text)}
+            onSelectSuggestion={handleTaskSuggestion}
+            type="tasks"
+            maxSuggestions={6}
+            showSmartSuggestions={true}
+          />
+        </View>
 
-          {/* Description */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Add details about this task..."
-              value={formData.description}
-              onChangeText={(text) => handleInputChange('description', text)}
-              multiline
-              numberOfLines={4}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
+        {/* Description */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Description</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Add details about this task..."
+            value={formData.description}
+            onChangeText={(text) => handleInputChange('description', text)}
+            multiline
+            numberOfLines={4}
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
 
-          {/* Subtasks */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sub-tasks</Text>
-            {formData.subtasks?.map((subtask, index) => (
-              <View key={index} style={styles.subtaskRow}>
-                <TextInput
-                  style={[styles.input, styles.subtaskInput]}
-                  value={subtask.title}
-                  onChangeText={(text) => {
-                    const newSubtasks = [...formData.subtasks];
-                    newSubtasks[index].title = text;
-                    handleInputChange('subtasks', newSubtasks);
-                  }}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removeSubtask(index)}
-                >
-                  <Icon name="delete" size={20} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-            ))}
-            <View style={styles.addSubtaskRow}>
+        {/* Subtasks */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Sub-tasks</Text>
+          {formData.subtasks?.map((subtask, index) => (
+            <View key={index} style={styles.subtaskRow}>
               <TextInput
                 style={[styles.input, styles.subtaskInput]}
-                placeholder="Add a new sub-task..."
-                value={newSubtask}
-                onChangeText={setNewSubtask}
+                value={subtask.title}
+                onChangeText={(text) => {
+                  const newSubtasks = [...formData.subtasks];
+                  newSubtasks[index].title = text;
+                  handleInputChange('subtasks', newSubtasks);
+                }}
                 placeholderTextColor="#9CA3AF"
               />
-              <TouchableOpacity style={styles.addSubtaskButton} onPress={addSubtask}>
-                <Icon name="add" size={20} color="#14B8A6" />
-                <Text style={styles.addSubtaskButtonText}>Add</Text>
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeSubtask(index)}
+              >
+                <Icon name="delete" size={20} color="#EF4444" />
               </TouchableOpacity>
             </View>
+          ))}
+          <View style={styles.addSubtaskRow}>
+            <TextInput
+              style={[styles.input, styles.subtaskInput]}
+              placeholder="Add a new sub-task..."
+              value={newSubtask}
+              onChangeText={setNewSubtask}
+              placeholderTextColor="#9CA3AF"
+            />
+            <TouchableOpacity style={styles.addButton} onPress={addSubtask}>
+              <Icon name="add" size={20} color="#14B8A6" />
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
           </View>
+        </View>
 
-          {/* Date and Time Row */}
-          <View style={styles.rowContainer}>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
+        {/* Date and Time */}
+        <View style={styles.section}>
+          <View style={styles.row}>
+            <View style={styles.halfColumn}>
               <Text style={styles.label}>Due Date</Text>
               <TouchableOpacity
                 style={styles.dateButton}
@@ -279,7 +281,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
                 </Text>
               </TouchableOpacity>
             </View>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
+            <View style={styles.halfColumn}>
               <Text style={styles.label}>Due Time</Text>
               <TouchableOpacity
                 style={styles.dateButton}
@@ -292,8 +294,10 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
               </TouchableOpacity>
             </View>
           </View>
+        </View>
 
-          {/* Category */}
+        {/* Category */}
+        <View style={styles.section}>
           <InlineSelector
             label="Category"
             options={categoryOptions}
@@ -301,36 +305,39 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
             onSelect={(value) => handleInputChange('category', value)}
             multiColumn={true}
           />
+        </View>
 
-          {/* Priority */}
-          <View style={styles.inputGroup}>
-            <InlineSelector
-              label="Priority"
-              options={priorityOptions}
-              selectedValue={formData.priority}
-              onSelect={(value) => handleInputChange('priority', value)}
-              multiColumn={true}
-            />
-          </View>
+        {/* Priority */}
+        <View style={styles.section}>
+          <InlineSelector
+            label="Priority"
+            options={priorityOptions}
+            selectedValue={formData.priority}
+            onSelect={(value) => handleInputChange('priority', value)}
+            multiColumn={true}
+          />
+        </View>
 
-          {/* Assigned To */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Assigned To</Text>
-            <InlineSelector
-              options={[
-                { label: 'None (Unassigned)', value: '' },
-                { label: 'Together (Both Partners)', value: 'together' },
-                ...users.map(user => ({ 
-                  label: user.full_name || user.email, 
-                  value: user.email 
-                }))
-              ]}
-              selectedValue={formData.assigned_to || ''}
-              onSelect={(value) => handleInputChange('assigned_to', value || '')}
-            />
-          </View>
+        {/* Assigned To */}
+        <View style={styles.section}>
+          <InlineSelector
+            label="Assigned To"
+            options={[
+              { label: 'None (Unassigned)', value: '' },
+              { label: 'Together (Both Partners)', value: 'together' },
+              ...users.map(user => ({ 
+                label: user.full_name || user.email, 
+                value: user.email 
+              }))
+            ]}
+            selectedValue={formData.assigned_to || ''}
+            onSelect={(value) => handleInputChange('assigned_to', value || '')}
+            multiColumn={false}
+          />
+        </View>
 
-          {/* Recurrence */}
+        {/* Recurrence */}
+        <View style={styles.section}>
           <InlineSelector
             label="Recurrence"
             options={recurrenceOptions}
@@ -338,10 +345,11 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
             onSelect={(value) => handleInputChange('recurrence_rule', value)}
             multiColumn={true}
           />
+        </View>
 
-          {/* Day Selection */}
-          {(formData.recurrence_rule === 'weekly' || formData.recurrence_rule === 'biweekly') && (
-          <View style={styles.inputGroup}>
+        {/* Day Selection */}
+        {(formData.recurrence_rule === 'weekly' || formData.recurrence_rule === 'biweekly') && (
+          <View style={styles.section}>
             <Text style={styles.label}>Days of Week (Optional)</Text>
             <Text style={styles.subLabel}>
               {formData.recurrence_rule === 'biweekly' 
@@ -372,10 +380,8 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
                       let newDays;
                       
                       if (isSelected) {
-                        // Deselect day
                         newDays = currentDays.filter(d => d !== day);
                       } else {
-                        // Select day
                         newDays = [...currentDays, day];
                       }
                       
@@ -393,41 +399,40 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
               })}
             </View>
           </View>
-          )}
+        )}
 
-          {/* Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onCancel}
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={onCancel}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            style={styles.submitButtonWrapper}
+          >
+            <LinearGradient
+              colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.button, styles.submitButton]}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSubmit}
-              style={styles.submitButtonContainer}
-            >
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.button, styles.submitButton]}
-              >
-                <Text style={styles.submitButtonText}>
-                  {task ? 'Update Task' : 'Create Task'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+              <Text style={styles.submitButtonText}>
+                {task ? 'Update Task' : 'Create Task'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
-      </View>
+
+      </ScrollView>
 
       {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
           value={(() => {
             if (!formData.due_date) return new Date();
-            // Convert string to Date if needed
             if (typeof formData.due_date === 'string') {
               return parseISO(formData.due_date);
             }
@@ -449,32 +454,34 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
         />
       )}
 
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    margin: 8,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   headerIcon: {
     width: 40,
@@ -490,23 +497,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
   },
-  form: {
-    gap: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  halfWidth: {
-    flex: 1,
-    marginRight: 8,
-  },
-  thirdWidth: {
-    flex: 1,
-    marginRight: 8,
-  },
-  rowContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  section: {
+    marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   label: {
     fontSize: 14,
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   subLabel: {
     fontSize: 12,
     color: '#6B7280',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   input: {
     borderWidth: 1,
@@ -525,8 +525,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
     color: '#1F2937',
+    minHeight: 48,
   },
   textArea: {
     height: 100,
@@ -542,27 +543,38 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   removeButton: {
-    padding: 8,
+    padding: 12,
     borderRadius: 8,
+    backgroundColor: '#FEF2F2',
   },
   addSubtaskRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
   },
-  addSubtaskButton: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: '#E6FFFA',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     marginLeft: 8,
+    minHeight: 48,
   },
-  addSubtaskButtonText: {
+  addButtonText: {
     color: '#14B8A6',
     fontWeight: '600',
     marginLeft: 4,
+    fontSize: 14,
+  },
+  row: {
+    flexDirection: 'row',
+    marginHorizontal: -8,
+  },
+  halfColumn: {
+    flex: 1,
+    paddingHorizontal: 8,
   },
   dateButton: {
     flexDirection: 'row',
@@ -571,10 +583,11 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderRadius: 12,
     padding: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
+    minHeight: 48,
   },
   dateButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#374151',
     marginLeft: 8,
     flex: 1,
@@ -582,18 +595,19 @@ const styles = StyleSheet.create({
   daysContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
     marginTop: 8,
+    marginHorizontal: -4,
   },
   dayButton: {
-    width: 45,
-    height: 45,
-    borderRadius: 8,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     backgroundColor: '#F9FAFB',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
+    margin: 4,
   },
   dayButtonSelected: {
     backgroundColor: '#14B8A6',
@@ -609,18 +623,21 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
+    marginTop: 8,
+    marginHorizontal: -8,
   },
   button: {
     flex: 1,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52,
+    marginHorizontal: 8,
   },
   cancelButton: {
     backgroundColor: '#F3F4F6',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
   },
   cancelButtonText: {
@@ -628,19 +645,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6B7280',
   },
-  submitButtonContainer: {
+  submitButtonWrapper: {
     flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
+    marginHorizontal: 8,
   },
   submitButton: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    margin: 0,
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
   },
-}); 
+});

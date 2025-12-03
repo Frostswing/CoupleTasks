@@ -15,6 +15,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { getCurrentUser, signOut } from "../services/userService";
 import SyncIndicator from "../components/common/SyncIndicator";
 import i18n from "../localization/i18n";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 
 // Import all screens
 import HomeScreen from "../screens/HomeScreen";
@@ -56,7 +57,7 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
         },
         headerBackground: () => (
           <LinearGradient
-            colors={["#0D9488", "#14B8A6", "#06B6D4"]}
+            colors={COLORS.gradientPrimary}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{ flex: 1 }}
@@ -389,7 +390,7 @@ const CustomDrawerContent = (props) => {
   return (
     <View style={styles.drawerContainer}>
       <LinearGradient
-        colors={["#0D9488", "#14B8A6", "#06B6D4", "#3B82F6"]}
+        colors={COLORS.gradientPrimary}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.drawerHeader}
@@ -421,7 +422,7 @@ const CustomDrawerContent = (props) => {
                   <MaterialIcons
                     name={item.icon}
                     size={24}
-                    color={isActive ? "#14B8A6" : "#6B7280"}
+                    color={isActive ? COLORS.primary : COLORS.textSecondary}
                   />
                   <Text
                     style={[
@@ -442,7 +443,7 @@ const CustomDrawerContent = (props) => {
           style={styles.signOutButton}
           onPress={handleSignOut}
         >
-          <MaterialIcons name="exit-to-app" size={24} color="#DC2626" />
+          <MaterialIcons name="exit-to-app" size={24} color={COLORS.error} />
           <Text style={styles.signOutText}>
             {i18n.t("navigation.drawer.signOut")}
           </Text>
@@ -462,11 +463,11 @@ const DrawerNavigator = () => {
         headerShown: false,
         drawerType: "front",
         drawerStyle: {
-          backgroundColor: "#FFFFFF",
+          backgroundColor: COLORS.surface,
           width: 280,
         },
-        drawerActiveTintColor: "#14B8A6",
-        drawerInactiveTintColor: "#6B7280",
+        drawerActiveTintColor: COLORS.primary,
+        drawerInactiveTintColor: COLORS.textSecondary,
       }}
     >
       <Drawer.Screen
@@ -483,77 +484,76 @@ const DrawerNavigator = () => {
 const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: COLORS.surface,
   },
   drawerHeader: {
-    padding: 20,
+    padding: SPACING.l,
     paddingTop: 60,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },
   drawerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 4,
+    ...TYPOGRAPHY.h2,
+    color: COLORS.surface,
+    marginBottom: SPACING.xs,
   },
   drawerSubtitle: {
-    fontSize: 14,
-    color: "#B2F5EA",
-    marginTop: 4,
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.primaryBg,
+    marginTop: SPACING.xs,
   },
   drawerContent: {
     flex: 1,
-    paddingTop: 8,
+    paddingTop: SPACING.s,
   },
   section: {
-    marginBottom: 8,
+    marginBottom: SPACING.s,
   },
   sectionTitle: {
-    fontSize: 12,
+    ...TYPOGRAPHY.caption,
     fontWeight: "600",
-    color: "#9CA3AF",
+    color: COLORS.textTertiary,
     textTransform: "uppercase",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
     letterSpacing: 0.5,
   },
   drawerItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.m,
     paddingVertical: 12,
-    marginHorizontal: 8,
+    marginHorizontal: SPACING.s,
     marginVertical: 2,
-    borderRadius: 8,
+    borderRadius: RADIUS.s,
   },
   drawerItemActive: {
-    backgroundColor: "#E6FFFA",
+    backgroundColor: COLORS.primaryBg,
   },
   drawerItemText: {
     fontSize: 16,
-    color: "#6B7280",
-    marginLeft: 16,
+    color: COLORS.textSecondary,
+    marginLeft: SPACING.m,
   },
   drawerItemTextActive: {
-    color: "#14B8A6",
+    color: COLORS.primary,
     fontWeight: "600",
   },
   drawerFooter: {
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    padding: 16,
+    borderTopColor: COLORS.border,
+    padding: SPACING.m,
   },
   signOutButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.m,
   },
   signOutText: {
     fontSize: 16,
-    color: "#DC2626",
-    marginLeft: 16,
+    color: COLORS.error,
+    marginLeft: SPACING.m,
     fontWeight: "500",
   },
 });

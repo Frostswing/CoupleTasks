@@ -71,6 +71,54 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
     loadUsers();
   }, []);
 
+  // Update form data when template prop changes
+  useEffect(() => {
+    if (template) {
+      setFormData({
+        template_name: template.template_name || "",
+        description: template.description || "",
+        category: template.category || "household",
+        subcategory: template.subcategory || "",
+        frequency_type: template.frequency_type || "weekly",
+        frequency_interval: template.frequency_interval || 1,
+        frequency_custom: template.frequency_custom || "",
+        selected_days: template.selected_days || null,
+        assigned_to: template.assigned_to || "",
+        estimated_duration: template.estimated_duration || "",
+        priority: template.priority || "medium",
+        auto_generate: template.auto_generate || false,
+        generation_offset: template.generation_offset || 0,
+        notification_offset_hours: template.notification_offset_hours || 6,
+        room_location: template.room_location || "",
+        is_active: template.is_active !== undefined ? template.is_active : true,
+        ...template
+      });
+      
+      // If template has assigned_to, make sure we don't overwrite it with current user default
+      // This is handled by the spread ...template above, but we need to be careful about the initial load logic
+    } else {
+      // Reset form for new template
+      setFormData({
+        template_name: "",
+        description: "",
+        category: "household",
+        subcategory: "",
+        frequency_type: "weekly",
+        frequency_interval: 1,
+        frequency_custom: "",
+        selected_days: null,
+        assigned_to: currentUser ? currentUser.email : "",
+        estimated_duration: "",
+        priority: "medium",
+        auto_generate: false,
+        generation_offset: 0,
+        notification_offset_hours: 6,
+        room_location: "",
+        is_active: true,
+      });
+    }
+  }, [template, currentUser]);
+
   const loadUsers = async () => {
     try {
       const me = await UserEntity.me();

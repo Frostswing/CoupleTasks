@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import i18n from "../localization/i18n";
+import { COLORS, SPACING, RADIUS, SHADOWS, TYPOGRAPHY } from "../constants/theme";
 
 export default function HomeScreen({ navigation }) {
   // Quick action cards configuration - ordered by priority (most used at top)
@@ -19,18 +20,19 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.events"),
       description: "Manage partner events and availability",
       icon: "event",
-      color: "#EC4899",
-      backgroundColor: "#FCE7F3",
+      color: COLORS.accent,
+      backgroundColor: COLORS.accentBg,
       screen: "Events",
       size: "large",
+      gradient: COLORS.gradientAccent,
     },
     {
       id: "dailyTasks",
       title: i18n.t("navigation.drawer.dailyTasks"),
       description: "See what's due today and this week",
       icon: "today",
-      color: "#14B8A6",
-      backgroundColor: "#CCFBF1",
+      color: COLORS.primaryLight,
+      backgroundColor: COLORS.primaryBg,
       screen: "DailyTasks",
       size: "small",
     },
@@ -39,8 +41,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("home.addShoppingItem"),
       description: i18n.t("home.addShoppingItemDescription"),
       icon: "add-shopping-cart",
-      color: "#1D4ED8",
-      backgroundColor: "#BFDBFE",
+      color: COLORS.info,
+      backgroundColor: COLORS.infoBg,
       screen: "ShoppingList",
       params: { openAddDialog: true },
       size: "small",
@@ -50,8 +52,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.taskPlanning"),
       description: "Plan your tasks on calendar",
       icon: "event",
-      color: "#0D9488",
-      backgroundColor: "#B2F5EA",
+      color: COLORS.primary,
+      backgroundColor: COLORS.primaryBg,
       screen: "TaskPlanning",
       size: "small",
     },
@@ -60,8 +62,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.addTask"),
       description: "Create a new task quickly",
       icon: "add-circle",
-      color: "#2DD4BF",
-      backgroundColor: "#E6FFFA",
+      color: COLORS.primaryLight,
+      backgroundColor: COLORS.primaryBg,
       screen: "AddTask",
       size: "small",
     },
@@ -70,8 +72,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.shoppingList"),
       description: "Manage your shopping items",
       icon: "shopping-cart",
-      color: "#2563EB",
-      backgroundColor: "#DBEAFE",
+      color: COLORS.info,
+      backgroundColor: COLORS.infoBg,
       screen: "ShoppingList",
       size: "small",
     },
@@ -80,8 +82,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.shoppingMode"),
       description: "Guided shopping flow",
       icon: "shopping-bag",
-      color: "#7C3AED",
-      backgroundColor: "#EDE9FE",
+      color: COLORS.secondary,
+      backgroundColor: COLORS.secondaryBg,
       screen: "ShoppingMode",
       size: "small",
     },
@@ -90,8 +92,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.inventory"),
       description: "Track household items",
       icon: "inventory-2",
-      color: "#16A34A",
-      backgroundColor: "#DCFCE7",
+      color: COLORS.success,
+      backgroundColor: COLORS.successBg,
       screen: "Inventory",
       size: "large",
     },
@@ -100,8 +102,8 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.history"),
       description: "View completion stats",
       icon: "history",
-      color: "#F59E0B",
-      backgroundColor: "#FEF3C7",
+      color: COLORS.warning,
+      backgroundColor: COLORS.warningBg,
       screen: "History",
       size: "small",
     },
@@ -110,10 +112,11 @@ export default function HomeScreen({ navigation }) {
       title: i18n.t("navigation.drawer.management"),
       description: "Comprehensive statistics and analytics dashboard",
       icon: "analytics",
-      color: "#14B8A6",
-      backgroundColor: "#CCFBF1",
+      color: COLORS.primaryLight,
+      backgroundColor: COLORS.primaryBg,
       screen: "Management",
       size: "large",
+      gradient: COLORS.gradientPrimary,
     },
   ];
 
@@ -145,7 +148,7 @@ export default function HomeScreen({ navigation }) {
         {isLarge && !isInventory ? (
           // Large card layout: centered icon and content with gradient
           <LinearGradient
-            colors={["#EC4899", "#F472B6", "#A78BFA", "#8B5CF6"]}
+            colors={action.gradient || COLORS.gradientPrimary}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.cardGradient}
@@ -235,7 +238,7 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Welcome Section */}
         <LinearGradient
-          colors={["#E6FFFA", "#CCFBF1", "#B2F5EA"]}
+          colors={COLORS.gradientPrimary}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.welcomeSection}
@@ -297,7 +300,7 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -315,16 +318,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   cardGradient: {
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    borderRadius: RADIUS.l,
+    padding: SPACING.m,
+    ...SHADOWS.medium,
     position: "relative",
   },
   welcomeEmoji: {
@@ -332,17 +328,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   welcomeText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 8,
+    ...TYPOGRAPHY.h1,
+    color: COLORS.surface,
+    marginBottom: SPACING.s,
     textAlign: "center",
   },
   subtitleText: {
-    fontSize: 16,
-    color: "#6B7280",
+    ...TYPOGRAPHY.body,
+    color: "rgba(255, 255, 255, 0.9)",
     textAlign: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.m,
   },
   cardsContainer: {
     paddingHorizontal: 16,
@@ -354,17 +349,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.l,
+    padding: SPACING.m,
+    ...SHADOWS.small,
     flexDirection: "column",
     alignItems: "flex-start",
     justifyContent: "space-between",
