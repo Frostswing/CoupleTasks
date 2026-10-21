@@ -5,8 +5,13 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 ENV_FILE="${ROOT}/.env.local"
+GSERVICES="${ROOT}/google-services.json"
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "Missing .env.local — copy .env.example and set Firebase + Google client IDs"
+  exit 1
+fi
+if [[ ! -f "$GSERVICES" ]]; then
+  echo "Missing google-services.json at project root (gitignored; download from Firebase)"
   exit 1
 fi
 
@@ -28,12 +33,8 @@ npx expo prebuild --platform android --clean
 
 echo "[2/4] patch Android release settings..."
 node scripts/patch-android-apk-build.mjs
-
-if [[ -f "${ROOT}/android/app/google-services.json" ]]; then
-  echo "Using android/app/google-services.json"
-else
-  echo "Note: android/app/google-services.json not present (optional for JS Firebase; add for full native Google/Firebase)"
-fi
+cp "$GSERVICES" "${ROOT}/android/app/google-services.json"
+echo "Using android/app/google-services.json (from project root copy)"
 
 echo "[3/4] assembleRelease..."
 cd "${ROOT}/android"

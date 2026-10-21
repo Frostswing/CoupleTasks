@@ -18,12 +18,13 @@
     },
     "android": {
       "versionCode": 2,
-      "package": "com.eden.coupletasks",
+      "package": "co.il.edenInc.coupletasks",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FAFAFA"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
