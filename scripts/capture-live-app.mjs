@@ -24,9 +24,9 @@ const PASSWORD = "CursorE2E_CoupleTasks_2026!";
 
 const LIGHT_SCREENS = [
   { file: "after-home.png", drawer: "Home", wait: 2000 },
-  { file: "after-tasks.png", drawer: "Daily Tasks" },
+  { file: "after-daily-tasks-light.png", drawer: "Daily Tasks" },
+  { file: "after-events-light.png", drawer: "Events" },
   { file: "after-shopping-list-light.png", drawer: "Shopping List", waitText: ["חלב", "Bread"] },
-  { file: "after-events.png", drawer: "Events" },
   { file: "after-inventory.png", drawer: "Inventory" },
   { file: "after-settings.png", drawer: "Settings" },
   { file: "after-sharing.png", drawer: "Sharing" },
@@ -37,6 +37,8 @@ const LIGHT_SCREENS = [
 
 const DARK_SCREENS = [
   { file: "after-dark-home.png", drawer: "Home" },
+  { file: "after-daily-tasks-dark.png", drawer: "Daily Tasks" },
+  { file: "after-events-dark.png", drawer: "Events" },
   { file: "after-dark-shopping.png", drawer: "Shopping List", waitText: ["חלב", "Bread"] },
   { file: "after-dark-inventory.png", drawer: "Inventory" },
   { file: "after-dark-settings.png", drawer: "Settings" },

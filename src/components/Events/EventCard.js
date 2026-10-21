@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { MaterialIcons as Icon } from '@expo/vector-icons';
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 export default function EventCard({ event, currentUserId, onPress, onRespond }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isCreator = event.created_by === currentUserId;
   const hasResponse = event.partner_response !== null;
-  
+
   const getEventTypeIcon = () => {
     switch (event.event_type) {
       case 'invitation':
@@ -20,27 +24,26 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
 
   const getEventTypeColor = () => {
     switch (event.event_type) {
-      case 'invitation':
-        return '#F59E0B'; // Orange
-      case 'solo_ok':
-        return '#2563EB'; // Turquoise
+      case "invitation":
+        return colors.warning;
+      case "solo_ok":
+        return colors.primary;
       default:
-        return '#6B7280'; // Gray
+        return colors.textSecondary;
     }
   };
 
   const getStatusColor = () => {
     switch (event.status) {
-      case 'accepted':
-        return '#16A34A'; // Green
-      case 'declined':
-        return '#DC2626'; // Red
-      case 'disputed':
-        return '#EF4444'; // Red
-      case 'acknowledged':
-        return '#2563EB'; // Blue
+      case "accepted":
+        return colors.success;
+      case "declined":
+      case "disputed":
+        return colors.error;
+      case "acknowledged":
+        return colors.primary;
       default:
-        return '#F59E0B'; // Orange (pending)
+        return colors.warning;
     }
   };
 
@@ -101,7 +104,15 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
       activeOpacity={0.7}
       style={styles.cardContainer}
     >
-      <View style={[styles.card, !isCreator && event.status === 'pending' && event.event_type === 'invitation' && styles.pendingInvitation]}>
+      <View
+        style={[
+          styles.card,
+          !isCreator &&
+            event.status === "pending" &&
+            event.event_type === "invitation" &&
+            styles.pendingInvitation,
+        ]}
+      >
         <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: `${getEventTypeColor()}20` }]}>
           <Icon name={getEventTypeIcon()} size={24} color={getEventTypeColor()} />
@@ -109,17 +120,17 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
         <View style={styles.headerContent}>
           <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
           <View style={styles.metaRow}>
-            <Icon name="calendar-today" size={14} color="#6B7280" />
+            <Icon name="calendar-today" size={14} color={colors.textSecondary} />
             <Text style={styles.metaText}>{formatEventDate()}</Text>
             {event.event_time && (
               <>
-                <Icon name="access-time" size={14} color="#6B7280" style={styles.metaIcon} />
+                <Icon name="access-time" size={14} color={colors.textSecondary} style={styles.metaIcon} />
                 <Text style={styles.metaText}>{formatEventTime()}</Text>
               </>
             )}
             {event.location && (
               <>
-                <Icon name="place" size={14} color="#6B7280" style={styles.metaIcon} />
+                <Icon name="place" size={14} color={colors.textSecondary} style={styles.metaIcon} />
                 <Text style={styles.metaText} numberOfLines={1}>{event.location}</Text>
               </>
             )}
@@ -140,7 +151,7 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
 
       {event.notes && (
         <View style={styles.notesContainer}>
-          <Icon name="note" size={16} color="#6B7280" />
+          <Icon name="note" size={16} color={colors.textSecondary} />
           <Text style={styles.notes} numberOfLines={2}>
             {event.notes}
           </Text>
@@ -161,14 +172,14 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
               style={[styles.responseButton, styles.acceptButton]}
               onPress={() => onRespond && onRespond('accepted')}
             >
-              <Icon name="check" size={18} color="#FFFFFF" />
+              <Icon name="check" size={18} color={COLORS.textInverse} />
               <Text style={styles.responseButtonText}>Accept</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.responseButton, styles.declineButton]}
               onPress={() => onRespond && onRespond('declined')}
             >
-              <Icon name="close" size={18} color="#FFFFFF" />
+              <Icon name="close" size={18} color={COLORS.textInverse} />
               <Text style={styles.responseButtonText}>Decline</Text>
             </TouchableOpacity>
           </View>
@@ -179,7 +190,7 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
             style={styles.acknowledgeButton}
             onPress={() => onRespond && onRespond('acknowledged')}
           >
-            <Icon name="check-circle" size={18} color="#2563EB" />
+            <Icon name="check-circle" size={18} color={colors.primary} />
             <Text style={styles.acknowledgeButtonText}>Acknowledge</Text>
           </TouchableOpacity>
         )}
@@ -190,38 +201,33 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   cardContainer: {
     marginBottom: 12,
-    position: 'relative',
+    position: "relative",
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     paddingLeft: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    ...SHADOWS.sm,
   },
   accentBorder: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
   },
   pendingInvitation: {
-    borderLeftColor: '#F59E0B',
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.warningMuted,
   },
   header: {
     flexDirection: 'row',
@@ -241,8 +247,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: colors.text,
     marginBottom: 4,
   },
   metaRow: {
@@ -252,7 +258,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 4,
     marginRight: 12,
   },
@@ -263,44 +269,44 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#F59E0B',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.warning,
+    justifyContent: "center",
+    alignItems: "center",
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   description: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
     lineHeight: 20,
   },
   notesContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#F9FAFB',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: colors.borderLight,
     padding: 10,
     borderRadius: 8,
     marginBottom: 12,
   },
   notes: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 8,
     flex: 1,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 8,
     paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -329,29 +335,30 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   acceptButton: {
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
   },
   declineButton: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
   },
   responseButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   acknowledgeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.primaryMuted,
     gap: 4,
   },
   acknowledgeButtonText: {
-    color: '#2563EB',
+    color: colors.primary,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
+}
 

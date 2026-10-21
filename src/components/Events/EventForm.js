@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from "react-native";
 import { COLORS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { parseISO } from "date-fns";
@@ -19,6 +20,9 @@ import InlineSelector from "../common/InlineSelector";
 const { width } = Dimensions.get('window');
 
 export default function EventForm({ event, onSubmit, onCancel, title = "Create New Event" }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const normalizeEventData = (eventData) => {
     if (!eventData) return {};
     
@@ -126,7 +130,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerIcon}>
-            <Icon name="event" size={24} color="#2563EB" />
+            <Icon name="event" size={24} color={colors.primary} />
           </View>
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
@@ -141,7 +145,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
               placeholder="What's happening?"
               value={formData.title}
               onChangeText={(text) => handleInputChange('title', text)}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
@@ -155,7 +159,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
               onChangeText={(text) => handleInputChange('description', text)}
               multiline
               numberOfLines={4}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
@@ -169,7 +173,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
               onChangeText={(text) => handleInputChange('notes', text)}
               multiline
               numberOfLines={3}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
@@ -181,7 +185,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
                 style={styles.dateButton}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Icon name="calendar-today" size={20} color="#6B7280" />
+                <Icon name="calendar-today" size={20} color={colors.textSecondary} />
                 <Text style={styles.dateButtonText}>
                   {formatDate(formData.event_date)}
                 </Text>
@@ -193,7 +197,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
                 style={styles.dateButton}
                 onPress={() => setShowTimePicker(true)}
               >
-                <Icon name="access-time" size={20} color="#6B7280" />
+                <Icon name="access-time" size={20} color={colors.textSecondary} />
                 <Text style={styles.dateButtonText}>
                   {formData.event_time || 'Select time'}
                 </Text>
@@ -210,7 +214,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
               value={formData.duration ? formData.duration.toString() : ''}
               onChangeText={(text) => handleInputChange('duration', text ? parseInt(text) || null : null)}
               keyboardType="numeric"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
@@ -240,7 +244,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
                 placeholder="Where?"
                 value={formData.location}
                 onChangeText={(text) => handleInputChange('location', text)}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
               />
             </View>
           </View>
@@ -290,127 +294,123 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    margin: 8,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#DBEAFE',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  form: {
-    gap: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  halfWidth: {
-    flex: 1,
-    marginRight: 8,
-  },
-  rowContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#1F2937',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  dateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  dateButtonText: {
-    fontSize: 16,
-    color: '#374151',
-    marginLeft: 8,
-    flex: 1,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  button: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  submitButtonContainer: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  submitButton: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    backgroundColor: COLORS.primary,
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-});
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      margin: 8,
+      padding: 20,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 24,
+    },
+    headerIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primaryMuted,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    form: {
+      gap: 16,
+    },
+    inputGroup: {
+      marginBottom: 16,
+    },
+    halfWidth: {
+      flex: 1,
+      marginRight: 8,
+    },
+    rowContainer: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 12,
+      fontSize: 16,
+      backgroundColor: colors.surface,
+      color: colors.text,
+    },
+    textArea: {
+      height: 100,
+      textAlignVertical: "top",
+    },
+    dateButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 12,
+      backgroundColor: colors.surface,
+    },
+    dateButtonText: {
+      fontSize: 16,
+      color: colors.text,
+      marginLeft: 8,
+      flex: 1,
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      gap: 12,
+      marginTop: 24,
+    },
+    button: {
+      flex: 1,
+      padding: 16,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+    cancelButton: {
+      backgroundColor: colors.borderLight,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelButtonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textSecondary,
+    },
+    submitButtonContainer: {
+      flex: 1,
+      borderRadius: 12,
+      overflow: "hidden",
+    },
+    submitButton: {
+      padding: 16,
+      borderRadius: 12,
+      alignItems: "center",
+      backgroundColor: colors.primary,
+    },
+    submitButtonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.textInverse,
+    },
+  });
+}
 

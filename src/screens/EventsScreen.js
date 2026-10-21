@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -17,11 +17,12 @@ import EventForm from "../components/Events/EventForm";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
 import eventNotificationService from "../services/eventNotificationService";
 import eventCleanupService from "../services/eventCleanupService";
-import { screenBackgroundStyle } from "../constants/theme";
+import { COLORS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 
 export default function EventsScreen({ navigation }) {
   const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [events, setEvents] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -277,7 +278,7 @@ export default function EventsScreen({ navigation }) {
           }}
           style={styles.addButton}
         >
-          <Icon name="add" size={24} color="#FFFFFF" />
+          <Icon name="add" size={24} color={COLORS.textInverse} />
         </TouchableOpacity>
       </View>
 
@@ -285,7 +286,12 @@ export default function EventsScreen({ navigation }) {
       <ScrollView
         style={styles.scrollView}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
       >
         {groupedEvents.today.length > 0 && (
@@ -380,7 +386,7 @@ export default function EventsScreen({ navigation }) {
 
         {getFilteredEvents().length === 0 && (
           <View style={styles.emptyContainer}>
-            <Icon name="event-busy" size={64} color="#D1D5DB" />
+            <Icon name="event-busy" size={64} color={colors.border} />
             <Text style={styles.emptyText}>No events found</Text>
             <Text style={styles.emptySubtext}>
               {filter === "pending" 
@@ -409,14 +415,14 @@ export default function EventsScreen({ navigation }) {
                 setEditingEvent(null);
               }}
             >
-              <Icon name="close" size={24} color="#1F2937" />
+              <Icon name="close" size={24} color={colors.text} />
             </TouchableOpacity>
             {editingEvent && (
               <TouchableOpacity
                 onPress={() => handleDeleteEvent(editingEvent)}
                 style={styles.deleteButton}
               >
-                <Icon name="delete" size={24} color="#DC2626" />
+                <Icon name="delete" size={24} color={colors.error} />
               </TouchableOpacity>
             )}
           </View>
@@ -435,115 +441,116 @@ export default function EventsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  filterContainer: {
-    flexDirection: "row",
-    gap: 8,
-    flex: 1,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-  },
-  filterButtonActiveSolid: {
-    backgroundColor: "#2563EB",
-  },
-  filterButtonWithBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
-  },
-  filterTextActive: {
-    color: "#FFFFFF",
-  },
-  badge: {
-    backgroundColor: "#F59E0B",
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 6,
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginLeft: 12,
-    backgroundColor: "#2563EB",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 12,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#6B7280",
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: "#9CA3AF",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  deleteButton: {
-    padding: 4,
-  },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    filterContainer: {
+      flexDirection: "row",
+      gap: 8,
+      flex: 1,
+    },
+    filterButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.borderLight,
+    },
+    filterButtonActiveSolid: {
+      backgroundColor: colors.primary,
+    },
+    filterButtonWithBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    filterText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.textSecondary,
+    },
+    filterTextActive: {
+      color: COLORS.textInverse,
+    },
+    badge: {
+      backgroundColor: colors.warning,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 6,
+    },
+    badgeText: {
+      color: COLORS.textInverse,
+      fontSize: 10,
+      fontWeight: "bold",
+    },
+    addButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginLeft: 12,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scrollView: {
+      flex: 1,
+    },
+    section: {
+      padding: 16,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 12,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 40,
+    },
+    emptyText: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginTop: 16,
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.textTertiary,
+      marginTop: 8,
+      textAlign: "center",
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    deleteButton: {
+      padding: 4,
+    },
+  });
+}
 
