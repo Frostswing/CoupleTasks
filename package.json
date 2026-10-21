@@ -1,6 +1,6 @@
 {
   "name": "coupletasks",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
@@ -11,6 +11,7 @@
     "test": "node scripts/test-store-departments.mjs && node scripts/check-theme-hex.mjs && node scripts/test-two-column-grid.mjs && node scripts/test-forgot-password.mjs && node scripts/test-google-auth-errors.mjs",
     "capture-ui-previews": "node scripts/capture-screen-previews.mjs",
     "build:android": "expo prebuild --platform android --clean && npx expo run:android --variant release",
+    "build:apk": "bash scripts/build-couple-tasks-apk.sh",
     "prebuild:android": "expo prebuild --platform android"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "date-fns": "^2.30.0",
     "expo": "~53.0.8",
     "expo-auth-session": "~6.2.1",
+    "expo-build-properties": "~0.14.8",
     "expo-crypto": "~14.1.1",
     "expo-document-picker": "^14.0.7",
     "expo-image": "^3.0.10",

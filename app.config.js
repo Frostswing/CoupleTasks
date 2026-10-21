@@ -7,7 +7,18 @@ const iosUrlScheme = googleWebClientId
   ? `com.googleusercontent.apps.${googleWebClientId.replace(".apps.googleusercontent.com", "")}`
   : null;
 
-const plugins = [...(appJson.expo.plugins || [])];
+const plugins = [
+  ...(appJson.expo.plugins || []),
+  [
+    "expo-build-properties",
+    {
+      android: {
+        enableProguardInReleaseBuilds: true,
+        enableShrinkResourcesInReleaseBuilds: true,
+      },
+    },
+  ],
+];
 if (iosUrlScheme) {
   plugins.push([
     "@react-native-google-signin/google-signin",
