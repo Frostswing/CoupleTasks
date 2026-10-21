@@ -9,7 +9,7 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { COLORS } from "../../constants/theme";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { parseISO } from "date-fns";
@@ -255,18 +255,11 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSubmit}
-              style={styles.submitButtonContainer}
+              style={[styles.button, styles.submitButton, styles.submitButtonContainer]}
             >
-              <LinearGradient
-                colors={["#2563EB", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.button, styles.submitButton]}
-              >
-                <Text style={styles.submitButtonText}>
-                  {event ? 'Update Event' : 'Create Event'}
-                </Text>
-              </LinearGradient>
+              <Text style={styles.submitButtonText}>
+                {event ? "Update Event" : "Create Event"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -411,7 +404,8 @@ const styles = StyleSheet.create({
   submitButton: {
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
+    backgroundColor: COLORS.primary,
   },
   submitButtonText: {
     fontSize: 16,

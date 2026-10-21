@@ -10,7 +10,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { COLORS } from "../../constants/theme";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { parseISO } from "date-fns";
@@ -411,18 +411,11 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleSubmit}
-            style={styles.submitButtonWrapper}
+            style={[styles.button, styles.submitButton, styles.submitButtonWrapper]}
           >
-            <LinearGradient
-              colors={["#2563EB", "#06B6D4", "#3B82F6"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.button, styles.submitButton]}
-            >
-              <Text style={styles.submitButtonText}>
-                {task ? 'Update Task' : 'Create Task'}
-              </Text>
-            </LinearGradient>
+            <Text style={styles.submitButtonText}>
+              {task ? "Update Task" : "Create Task"}
+            </Text>
           </TouchableOpacity>
         </View>
 

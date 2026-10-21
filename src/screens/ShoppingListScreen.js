@@ -635,9 +635,9 @@ export default function ShoppingListScreen({ navigation, route }) {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowAddDialog(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Item</Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Add Item</Text>
             <TouchableOpacity onPress={() => {
               setShowAddDialog(false);
               setNewItemName("");
@@ -650,13 +650,13 @@ export default function ShoppingListScreen({ navigation, route }) {
               setNewItemLink("");
               setNewItemNotes("");
             }}>
-              <Icon name="close" size={24} color="#6B7280" />
+              <Icon name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.modalContent}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Item Name</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Item Name</Text>
               <View style={styles.inputWrapper}>
                 <AutoCompleteInput
                   placeholder="What do you need to buy?"
@@ -802,13 +802,13 @@ export default function ShoppingListScreen({ navigation, route }) {
               setNewItemLink("");
               setNewItemNotes("");
             }}>
-              <Icon name="close" size={24} color="#6B7280" />
+              <Icon name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.modalContent}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Item Name</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Item Name</Text>
               <TextInput
                 style={styles.input}
                 placeholder="What do you need to buy?"

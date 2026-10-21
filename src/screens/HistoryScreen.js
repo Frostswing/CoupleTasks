@@ -404,7 +404,7 @@ function createStyles(colors) {
     backgroundColor: colors.borderLight,
   },
   activeTab: {
-    backgroundColor: '#CCFBF1',
+    backgroundColor: colors.primaryMuted,
   },
   tabText: {
     fontSize: 14,
@@ -598,5 +598,6 @@ function createStyles(colors) {
     marginLeft: 8,
   },
 });
+}
 
 export default HistoryScreen;

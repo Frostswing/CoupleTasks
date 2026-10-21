@@ -22,6 +22,26 @@ for (const line of readFileSync(envPath, "utf8").split("\n")) {
 const EMAIL = "cursor-coupletasks-e2e-primary@test.invalid";
 const PASSWORD = "CursorE2E_CoupleTasks_2026!";
 
+const LIGHT_SCREENS = [
+  { file: "after-home.png", drawer: "Home", wait: 2000 },
+  { file: "after-tasks.png", drawer: "Daily Tasks" },
+  { file: "after-shopping-list-light.png", drawer: "Shopping List", waitText: ["חלב", "Bread"] },
+  { file: "after-events.png", drawer: "Events" },
+  { file: "after-inventory.png", drawer: "Inventory" },
+  { file: "after-settings.png", drawer: "Settings" },
+  { file: "after-sharing.png", drawer: "Sharing" },
+  { file: "after-history.png", drawer: "History" },
+  { file: "after-management.png", drawer: "Management" },
+  { file: "after-drawer.png", drawer: null },
+];
+
+const DARK_SCREENS = [
+  { file: "after-dark-home.png", drawer: "Home" },
+  { file: "after-dark-shopping.png", drawer: "Shopping List", waitText: ["חלב", "Bread"] },
+  { file: "after-dark-inventory.png", drawer: "Inventory" },
+  { file: "after-dark-settings.png", drawer: "Settings" },
+];
+
 async function startServer() {
   const proc = spawn(
     "python3",
@@ -72,52 +92,8 @@ async function signIn(page) {
 
 async function openDrawer(page) {
   await page.waitForTimeout(500);
-  const menuHit = page.locator("text=Quick Access").first();
-  if (await menuHit.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await page.mouse.click(28, 52);
-    await page.waitForTimeout(600);
-    return;
-  }
   await page.mouse.click(28, 52);
   await page.waitForTimeout(600);
-}
-
-async function goHome(page) {
-  await page.goto(BASE, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(2000);
-}
-
-async function clickByLabel(page, label) {
-  await page.evaluate((text) => {
-    const walk = (node) => {
-      if (!node || node.nodeType !== 1) return null;
-      const rect = node.getBoundingClientRect();
-      const t = node.textContent?.trim() || "";
-      if (
-        rect.height >= 48 &&
-        rect.width >= 200 &&
-        t.includes(text) &&
-        (node.getAttribute("role") === "button" ||
-          node.onclick ||
-          node.style?.cursor === "pointer" ||
-          node.className?.includes?.("r-"))
-      ) {
-        return node;
-      }
-      for (const child of node.children) {
-        const hit = walk(child);
-        if (hit) return hit;
-      }
-      return null;
-    };
-    const target =
-      walk(document.body) ||
-      [...document.querySelectorAll("div")].find(
-        (n) => n.textContent?.includes(text) && n.getBoundingClientRect().height > 50
-      );
-    target?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-  }, label);
-  await page.waitForTimeout(2500);
 }
 
 async function navigateFromDrawer(page, label) {
@@ -143,59 +119,42 @@ async function navigateFromDrawer(page, label) {
   await page.waitForTimeout(600);
 }
 
-async function navigateTo(page, label) {
-  await navigateFromDrawer(page, label);
+async function captureScreens(page, screens) {
+  for (const shot of screens) {
+    if (shot.drawer) {
+      await navigateFromDrawer(page, shot.drawer);
+    } else {
+      await openDrawer(page);
+      await page.waitForTimeout(800);
+    }
+    if (shot.waitText) {
+      for (const t of shot.waitText) {
+        await page.locator(`text=${t}`).first().waitFor({ timeout: 12000 }).catch(() => {});
+      }
+    }
+    await page.waitForTimeout(shot.wait || 1000);
+    await page.screenshot({ path: path.join(outDir, shot.file), fullPage: true });
+    if (shot.drawer && shot.drawer !== "Home") {
+      await page.goto(BASE, { waitUntil: "domcontentloaded" });
+      await page.waitForTimeout(1500);
+    }
+  }
 }
 
 const browser = await chromium.launch();
-const context = await browser.newContext({
-  viewport: { width: 390, height: 844 },
-  colorScheme: "light",
-});
-const page = await context.newPage();
-await skipLanguageGate(page);
-
 const server = await startServer();
 
 try {
-  await page.goto(BASE, { waitUntil: "domcontentloaded", timeout: 120000 });
-  await page.waitForTimeout(3000);
-  await page.screenshot({ path: path.join(outDir, "after-auth.png"), fullPage: true });
-
-  await signIn(page);
-
-  await goHome(page);
-  await page.screenshot({ path: path.join(outDir, "after-home.png"), fullPage: true });
-
-  await navigateFromDrawer(page, "Daily Tasks");
-  await page.screenshot({ path: path.join(outDir, "after-tasks.png"), fullPage: true });
-
-  await goHome(page);
-  await navigateFromDrawer(page, "Shopping List");
-  await page
-    .locator("text=חלב")
-    .or(page.locator("text=Bread"))
-    .first()
-    .waitFor({ timeout: 15000 })
-    .catch(() => {});
-  await page.waitForTimeout(1000);
-  await page.screenshot({
-    path: path.join(outDir, "after-shopping.png"),
-    fullPage: true,
+  const lightContext = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    colorScheme: "light",
   });
-  await page.screenshot({
-    path: path.join(outDir, "after-shopping-list-grouped.png"),
-    fullPage: true,
-  });
+  const lightPage = await lightContext.newPage();
+  await skipLanguageGate(lightPage);
+  await signIn(lightPage);
+  await captureScreens(lightPage, LIGHT_SCREENS);
+  await lightContext.close();
 
-  await navigateFromDrawer(page, "Events");
-  await page.screenshot({ path: path.join(outDir, "after-events.png"), fullPage: true });
-
-  await openDrawer(page);
-  await page.waitForTimeout(800);
-  await page.screenshot({ path: path.join(outDir, "after-drawer.png"), fullPage: true });
-
-  await context.close();
   const darkContext = await browser.newContext({
     viewport: { width: 390, height: 844 },
     colorScheme: "dark",
@@ -203,36 +162,30 @@ try {
   const darkPage = await darkContext.newPage();
   await skipLanguageGate(darkPage);
   await signIn(darkPage);
-  await darkPage.screenshot({
-    path: path.join(outDir, "after-dark-home.png"),
-    fullPage: true,
-  });
-  await navigateFromDrawer(darkPage, "Shopping List");
-  await darkPage.screenshot({
-    path: path.join(outDir, "after-dark-shopping.png"),
-    fullPage: true,
-  });
+  await captureScreens(darkPage, DARK_SCREENS);
   await darkContext.close();
 
-  const composite = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+  const composite = await browser.newPage({ viewport: { width: 1600, height: 1200 } });
   const tiles = [
-    "after-auth.png",
-    "after-home.png",
-    "after-tasks.png",
-    "after-shopping-list-grouped.png",
+    "shopping-before-redesign.png",
+    "after-shopping-list-light.png",
+    "after-dark-shopping.png",
+    "after-inventory.png",
+    "after-settings.png",
+    "after-sharing.png",
+    "after-dark-settings.png",
     "after-events.png",
-    "after-drawer.png",
+    "after-history.png",
+    "after-management.png",
+    "after-home.png",
     "after-dark-home.png",
   ];
-  const html = `<!DOCTYPE html><html><body style="margin:0;background:#111;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px">${tiles
-    .map(
-      (f) =>
-        `<img src="file://${path.join(outDir, f)}" style="width:100%;border-radius:8px"/>`
-    )
-    .join("")}</body></html>`;
+  const html = `<!DOCTYPE html><html><head><style>body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui}h1{padding:12px;font-size:18px}grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px}img{width:100%;border-radius:10px;border:1px solid #333}</style></head><body><h1>CoupleTasks UI — light &amp; dark</h1><grid>${tiles
+    .map((f) => `<img src="file://${path.join(outDir, f)}" alt="${f}"/>`)
+    .join("")}</grid></body></html>`;
   await composite.setContent(html);
   await composite.screenshot({
-    path: path.join(outDir, "after-redesign-all-screens.png"),
+    path: path.join(outDir, "ui-redesign-composite.png"),
     fullPage: true,
   });
 
