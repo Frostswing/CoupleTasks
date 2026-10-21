@@ -21,6 +21,7 @@ import i18n from '../localization/i18n';
 import { COLORS, screenBackgroundStyle } from '../constants/theme';
 import { useAppTheme } from '../context/ThemeContext';
 import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
+import PremiumScreenShell from '../components/premium/PremiumScreenShell';
 
 export default function TaskTableScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -450,18 +451,17 @@ export default function TaskTableScreen({ navigation }) {
   );
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading task table..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading task table..." title={i18n.t("navigation.drawer.taskTable")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.subtitle}>
-          {tableRows.length} task{tableRows.length !== 1 ? 's' : ''} configured
-        </Text>
-      </View>
-
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.taskTable")}
+      subtitle={`${tableRows.length} task${tableRows.length !== 1 ? "s" : ""} configured`}
+    >
       {/* Action Buttons */}
       <View style={styles.actionBar}>
         <TouchableOpacity
@@ -503,7 +503,6 @@ export default function TaskTableScreen({ navigation }) {
       </View>
 
       {/* Table Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {tableRows.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
@@ -531,7 +530,7 @@ export default function TaskTableScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         )}
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Add/Edit Modals */}
       <FormModal
@@ -544,7 +543,7 @@ export default function TaskTableScreen({ navigation }) {
         onClose={() => setShowEditDialog(false)}
         title="Edit Task"
       />
-    </SafeAreaView>
+    </>
   );
 }
 

@@ -16,6 +16,8 @@ import { Task } from "../entities/Task";
 import { COLORS, SPACING, SHADOWS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import i18n from "../localization/i18n";
 import { User } from "../entities/User";
 import TaskCard from "../components/Tasks/TaskCard";
 import TaskFilters from "../components/Tasks/TaskFilters";
@@ -421,43 +423,35 @@ export default function DashboardScreen({ navigation }) {
   const stats = getStats();
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading your tasks..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading your tasks..." title={i18n.t("navigation.drawer.allTasks")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView 
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.welcomeText}>
-              Welcome back, {currentUser?.full_name || 'Partner'}!
-            </Text>
-            <Text style={styles.subtitleText}>
-              Let's see what you and your partner need to tackle today
-            </Text>
-          </View>
-          <TouchableOpacity 
-            style={[styles.addButton, isUpdating && styles.disabledButton]}
-            onPress={() => navigation.navigate('AddTask')}
-            disabled={isUpdating}
-          >
-            <Icon name="add" size={24} color={COLORS.textInverse} />
-            <Text style={styles.addButtonText}>Add Task</Text>
-          </TouchableOpacity>
-        </View>
-
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.allTasks")}
+      subtitle={`Welcome back, ${currentUser?.full_name || "Partner"}!`}
+      heroStats={[
+        { label: "Total", value: String(stats.total) },
+        { label: "Done", value: String(stats.completed) },
+        { label: "Overdue", value: String(stats.overdue) },
+      ]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
+      }
+      fab={{
+        icon: "add",
+        onPress: () => navigation.navigate("AddTask"),
+        accessibilityLabel: i18n.t("navigation.addTask"),
+      }}
+    >
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
@@ -552,7 +546,7 @@ export default function DashboardScreen({ navigation }) {
             </View>
           )}
         </View>
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Edit Task Modal */}
       <EditTaskDialog
@@ -561,7 +555,7 @@ export default function DashboardScreen({ navigation }) {
         onClose={() => setEditingTask(null)}
         onUpdateTask={handleUpdateTask}
       />
-    </SafeAreaView>
+    </>
   );
 }
 

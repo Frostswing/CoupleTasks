@@ -62,7 +62,16 @@ export const GRADIENT_STOPS = {
     header: ["#1D4ED8", "#2563EB", "#06B6D4"],
     default: ["#2563EB", "#06B6D4", "#3B82F6"],
   },
+  hero: {
+    light: ["#1D4ED8", "#2563EB", "#06B6D4"],
+    dark: ["#1E3A5F", "#2563EB", "#0F766E"],
+  },
 };
+
+/** Gradient stops for premium hero headers and primary CTAs. */
+export function getHeroGradient(isDark) {
+  return isDark ? GRADIENT_STOPS.hero.dark : GRADIENT_STOPS.hero.light;
+}
 
 export const SPACING = {
   xxs: 2,
@@ -327,5 +336,6 @@ export default {
   PRIORITY_COLORS,
   STATUS_COLORS,
   GRADIENT_STOPS,
+  getHeroGradient,
   screenBackgroundStyle,
 };

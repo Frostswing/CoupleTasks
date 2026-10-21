@@ -10,7 +10,10 @@ import {
   Modal,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import PremiumScreenShell from "../../components/premium/PremiumScreenShell";
+import EmptyState from "../../components/premium/EmptyState";
+import PremiumCard from "../../components/premium/PremiumCard";
+import i18n from "../../localization/i18n";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../../entities/Task";
 import { User } from "../../entities/User";
@@ -369,7 +372,7 @@ export default function DailyTasksScreen({ navigation }) {
     if (tasks.length === 0) return null;
 
     return (
-      <View style={styles.group} key={title}>
+      <PremiumCard key={title} style={styles.group} padded={false}>
         <View style={styles.groupHeader}>
           <View style={[styles.groupIcon, { backgroundColor: color }]}>
             <Icon name={icon} size={20} color={COLORS.textInverse} />
@@ -388,77 +391,52 @@ export default function DailyTasksScreen({ navigation }) {
             currentUser={currentUser}
           />
         ))}
-      </View>
+      </PremiumCard>
     );
   };
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={[styles.loadingContainer, screenBackgroundStyle(colors)]}>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading your tasks...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   const totalTasks = groupedTasks.overdue.length + 
                      groupedTasks.today.length + 
                      groupedTasks.thisWeek.length + 
                      groupedTasks.comingSoon.length;
 
-  return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.welcomeText}>
-              {currentUser?.full_name ? `Hi, ${currentUser.full_name.split(' ')[0]}!` : 'Hi!'}
-            </Text>
-            <Text style={styles.subtitleText}>
-              {totalTasks} {totalTasks === 1 ? 'task' : 'tasks'} to focus on
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('AddTask')}
-            disabled={isUpdating}
-          >
-            <Icon name="add" size={24} color={COLORS.textInverse} />
-          </TouchableOpacity>
-        </View>
+  const heroTitle =
+    currentUser?.full_name ? `Hi, ${currentUser.full_name.split(" ")[0]}!` : "Daily tasks";
+  const heroSubtitle = `${totalTasks} ${totalTasks === 1 ? "task" : "tasks"} to focus on`;
 
-        {/* Task Groups */}
+  return (
+    <>
+    <PremiumScreenShell
+      loading={isLoading}
+      loadingLabel="Loading your tasks..."
+      title={heroTitle}
+      subtitle={heroSubtitle}
+      heroStats={[
+        { label: "Overdue", value: String(groupedTasks.overdue.length) },
+        { label: "Today", value: String(groupedTasks.today.length) },
+      ]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
+      }
+      fab={{
+        icon: "add",
+        onPress: () => navigation.navigate("AddTask"),
+        accessibilityLabel: i18n.t("navigation.addTask"),
+      }}
+    >
         {totalTasks === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Icon name="check-circle" size={48} color={colors.primary} />
-            </View>
-            <Text style={styles.emptyTitle}>All caught up!</Text>
-            <Text style={styles.emptySubtitle}>
-              You have no tasks right now. Great job!
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyButton}
-              onPress={() => navigation.navigate('AddTask')}
-            >
-              <Icon name="add" size={20} color={COLORS.textInverse} />
-              <Text style={styles.emptyButtonText}>Add Task</Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            icon="check-circle"
+            title="All caught up!"
+            message="You have no tasks right now. Great job!"
+            actionLabel="Add Task"
+            onAction={() => navigation.navigate("AddTask")}
+          />
         ) : (
           <>
             {renderTaskGroup("Overdue", groupedTasks.overdue, "warning", colors.error)}
@@ -467,7 +445,7 @@ export default function DailyTasksScreen({ navigation }) {
             {renderTaskGroup("Coming Soon", groupedTasks.comingSoon, "schedule", colors.success)}
           </>
         )}
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Defer Modal */}
       <Modal
@@ -513,7 +491,7 @@ export default function DailyTasksScreen({ navigation }) {
         onUpdateTask={handleUpdateTask}
         navigation={navigation}
       />
-    </SafeAreaView>
+    </>
   );
 }
 
@@ -566,13 +544,14 @@ function createStyles(colors) {
     elevation: 4,
   },
   group: {
-    marginBottom: 24,
-    paddingHorizontal: 20,
+    marginBottom: 16,
   },
   groupHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   groupIcon: {
     width: 32,

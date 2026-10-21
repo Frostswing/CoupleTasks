@@ -14,6 +14,8 @@ import { Task } from "../../entities/Task";
 import { COLORS, SPACING, screenBackgroundStyle } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
 import { ThemedScreenShell } from "../../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../../components/premium/PremiumScreenShell";
+import i18n from "../../localization/i18n";
 import { TaskTemplate } from "../../entities/TaskTemplate";
 import { User } from "../../entities/User";
 import CalendarView from "../../components/Tasks/CalendarView";
@@ -219,37 +221,34 @@ export default function TaskPlanningScreen({ navigation }) {
   };
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading calendar..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading calendar..." title={i18n.t("navigation.drawer.taskPlanning")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={toggleViewMode}
-          >
-            <Icon 
-              name={viewMode === 'week' ? 'view-week' : 'calendar-month'} 
-              size={24} 
-              color={colors.primary} 
-            />
-            <Text style={styles.toggleText}>
-              {viewMode === 'week' ? 'Month' : 'Week'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowTemplateModal(true)}
-          >
-            <Icon name="add" size={24} color={COLORS.textInverse} />
-          </TouchableOpacity>
-        </View>
+    <>
+    <PremiumScreenShell
+      scroll={false}
+      title={i18n.t("navigation.drawer.taskPlanning")}
+      subtitle={`${tasks.length} scheduled tasks`}
+      fab={{
+        icon: "add",
+        onPress: () => setShowTemplateModal(true),
+        accessibilityLabel: "Add from template",
+      }}
+      contentStyle={{ flex: 1, paddingHorizontal: 0 }}
+    >
+      <View style={styles.headerActions}>
+        <TouchableOpacity style={styles.toggleButton} onPress={toggleViewMode}>
+          <Icon
+            name={viewMode === "week" ? "view-week" : "calendar-month"}
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.toggleText}>{viewMode === "week" ? "Month" : "Week"}</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Calendar View */}
       <CalendarView
         tasks={tasks}
         currentDate={selectedDate}
@@ -258,6 +257,7 @@ export default function TaskPlanningScreen({ navigation }) {
         onTaskPress={handleTaskPress}
         onTaskMove={handleTaskMove}
       />
+    </PremiumScreenShell>
 
       {/* Create Task Modal */}
       <Modal
@@ -476,7 +476,7 @@ export default function TaskPlanningScreen({ navigation }) {
         onUpdateTask={handleUpdateTask}
         navigation={navigation}
       />
-    </SafeAreaView>
+    </>
   );
 }
 

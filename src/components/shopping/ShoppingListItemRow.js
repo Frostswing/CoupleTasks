@@ -14,6 +14,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import { formatQuantity } from "../../utils/formatQuantity";
 import i18n from "../../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../../constants/theme";
+import PartnerAvatar from "../premium/PartnerAvatar";
 
 export default function ShoppingListItemRow({
   item,
@@ -106,11 +107,23 @@ export default function ShoppingListItemRow({
           >
             {item.name}
           </Text>
-          <Text style={[styles.meta, { color: colors.textSecondary }]}>
-            {formatQuantity(item.quantity, item.unit, locale)}
-            {item.auto_added ? ` · ${i18n.t("shopping.autoAdded")}` : ""}
-          </Text>
+          <View style={styles.metaRow}>
+            <View style={[styles.qtyPill, { backgroundColor: colors.primaryMuted }]}>
+              <Text style={[styles.qtyText, { color: colors.primary }]}>
+                {formatQuantity(item.quantity, item.unit, locale)}
+              </Text>
+            </View>
+            {item.auto_added ? (
+              <Text style={[styles.meta, { color: colors.textTertiary }]}>
+                {i18n.t("shopping.autoAdded")}
+              </Text>
+            ) : null}
+          </View>
         </View>
+
+        {item.added_by ? (
+          <PartnerAvatar email={item.added_by} size={30} variant="partner" />
+        ) : null}
 
         <Icon
           name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
@@ -168,9 +181,24 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
     fontWeight: "500",
   },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.s,
+    marginTop: SPACING.xs,
+    flexWrap: "wrap",
+  },
+  qtyPill: {
+    paddingHorizontal: SPACING.s,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+  },
+  qtyText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: "700",
+  },
   meta: {
     ...TYPOGRAPHY.caption,
-    marginTop: 2,
   },
   deleteAction: {
     width: 72,

@@ -36,6 +36,8 @@ import ShoppingDepartmentSection from "../components/shopping/ShoppingDepartment
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import PremiumScreenShell, { PremiumHeroProgress } from "../components/premium/PremiumScreenShell";
+import PremiumCard from "../components/premium/PremiumCard";
 
 const { width } = Dimensions.get('window');
 
@@ -515,44 +517,42 @@ export default function ShoppingListScreen({ navigation, route }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.loadingContainer, screenBackgroundStyle(colors)]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          {i18n.t("common.loading")}
-        </Text>
-      </SafeAreaView>
+      <PremiumScreenShell
+        loading
+        loadingLabel={i18n.t("common.loading")}
+        title={i18n.t("navigation.shoppingList")}
+      />
     );
   }
 
+  const heroProgress =
+    totalCount > 0 ? (
+      <PremiumHeroProgress
+        progress={progress}
+        label={`${purchasedItems.length}/${totalCount} ${i18n.t("shopping.purchasedSection").toLowerCase()}`}
+      />
+    ) : null;
+
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={[styles.aisleHint, { color: colors.textTertiary }]}>
-          {i18n.t("shopping.groupedByAisle")}
-        </Text>
-
-        {totalCount > 0 && (
-          <View style={styles.progressRow}>
-            <View style={[styles.progressTrack, { backgroundColor: colors.borderLight }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${Math.round(progress * 100)}%`, backgroundColor: colors.primary },
-                ]}
-              />
-            </View>
-            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-              {purchasedItems.length}/{totalCount}
-            </Text>
-          </View>
-        )}
-
-        <View style={[styles.quickAddBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.shoppingList")}
+      subtitle={i18n.t("shopping.groupedByAisle")}
+      heroStats={[
+        { label: "To buy", value: String(pendingItems.length) },
+        { label: "Done", value: String(purchasedItems.length) },
+      ]}
+      heroSlot={heroProgress}
+      noHorizontalPadding
+      fab={{
+        icon: "add",
+        onPress: () => setShowAddDialog(true),
+        accessibilityLabel: i18n.t("shopping.moreDetails"),
+      }}
+      contentStyle={styles.scrollContent}
+    >
+        <View style={styles.innerPad}>
+        <PremiumCard style={[styles.quickAddBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TextInput
             style={[styles.quickAddInput, { color: colors.text }]}
             placeholder={i18n.t("shopping.quickAddPlaceholder")}
@@ -577,7 +577,7 @@ export default function ShoppingListScreen({ navigation, route }) {
               <Icon name="add" size={22} color={COLORS.textInverse} />
             )}
           </TouchableOpacity>
-        </View>
+        </PremiumCard>
 
         <TouchableOpacity onPress={() => setShowAddDialog(true)} style={styles.moreDetailsLink}>
           <Text style={{ color: colors.primary, fontWeight: "600" }}>
@@ -628,7 +628,8 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
           )}
         </View>
-      </ScrollView>
+        </View>
+    </PremiumScreenShell>
 
       {/* Add Item Modal */}
       <Modal
@@ -945,7 +946,7 @@ export default function ShoppingListScreen({ navigation, route }) {
         visible={showStoreLayoutModal}
         onClose={() => setShowStoreLayoutModal(false)}
       />
-    </SafeAreaView>
+    </>
   );
 }
 
@@ -1089,6 +1090,9 @@ function createStyles(colors) {
   },
   scrollView: {
     flex: 1,
+  },
+  innerPad: {
+    paddingHorizontal: SPACING.l,
   },
   scrollContent: {
     paddingBottom: SPACING.xxxl,

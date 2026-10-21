@@ -16,6 +16,8 @@ import { Task } from "../entities/Task";
 import { COLORS, SPACING, SHADOWS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import i18n from "../localization/i18n";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
 import { format, differenceInDays } from "date-fns";
@@ -417,17 +419,16 @@ export default function ArchiveScreen({ navigation }) {
   );
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading archived items..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading archived items..." title={i18n.t("navigation.archive")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.subtitle}>Tasks and shopping lists are stored for 60 days. Archived products are kept forever.</Text>
-        </View>
-
+    <PremiumScreenShell
+      title={i18n.t("navigation.archive")}
+      subtitle="Tasks and shopping lists are stored for 60 days. Archived products are kept forever."
+    >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Icon name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
@@ -562,8 +563,7 @@ export default function ArchiveScreen({ navigation }) {
             </View>
           )}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+    </PremiumScreenShell>
   );
 }
 

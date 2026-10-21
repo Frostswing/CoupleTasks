@@ -17,11 +17,12 @@ import { ShoppingListItem } from "../entities/ShoppingListItem";
 import {COLORS, SPACING, screenBackgroundStyle, SHADOWS} from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import i18n from "../localization/i18n";
 import { InventoryItem } from "../entities/InventoryItem";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { groupItemsByStoreDepartment } from "../constants/storeDepartments";
 import { getShoppingDepartmentOrder } from "../services/shoppingDepartmentOrderService";
-import i18n from "../localization/i18n";
 
 const { width } = Dimensions.get('window');
 
@@ -293,7 +294,9 @@ export default function ShoppingModeScreen({ navigation, route }) {
   );
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading Shopping Mode..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading Shopping Mode..." title={i18n.t("navigation.drawer.shoppingMode")} />
+    );
   }
 
   if (error) {

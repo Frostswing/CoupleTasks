@@ -17,6 +17,8 @@ import { InventoryItem } from "../entities/InventoryItem";
 import {COLORS, SPACING, screenBackgroundStyle, SHADOWS} from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import i18n from "../localization/i18n";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { getCurrentUser, getUserProfile } from "../services/userService";
 
@@ -225,24 +227,26 @@ export default function InventoryScreen({ navigation }) {
   );
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading your inventory..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading your inventory..." title={i18n.t("navigation.inventory")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.subtitle}>Track what you have at home</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddDialog(true)}
-          >
-            <Icon name="add" size={24} color={COLORS.textInverse} />
-            <Text style={styles.addButtonText}>Add Item</Text>
-          </TouchableOpacity>
-        </View>
-
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.inventory")}
+      subtitle="Track what you have at home"
+      heroStats={[
+        { label: "Items", value: String(filteredItems.length) },
+        { label: "Low", value: String(lowStockItems.length) },
+      ]}
+      fab={{
+        icon: "add",
+        onPress: () => setShowAddDialog(true),
+        accessibilityLabel: "Add inventory item",
+      }}
+    >
         {/* Search */}
         <View style={styles.searchContainer}>
           <Icon name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
@@ -323,7 +327,7 @@ export default function InventoryScreen({ navigation }) {
             </View>
           )}
         </View>
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Add Item Modal */}
       <Modal
@@ -395,7 +399,7 @@ export default function InventoryScreen({ navigation }) {
           </ScrollView>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
 

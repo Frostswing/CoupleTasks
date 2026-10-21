@@ -11,6 +11,7 @@ import TaskForm from "../components/Tasks/TaskForm";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import i18n from "../localization/i18n";
 
 export default function AddTaskScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -35,10 +36,12 @@ export default function AddTaskScreen({ navigation }) {
 
   return (
     <>
-      <ThemedScreenShell scroll contentStyle={styles.content}>
-        <Text style={styles.lead}>
-          Create a new task for you and your partner
-        </Text>
+      <ThemedScreenShell
+        scroll
+        contentStyle={styles.content}
+        title={i18n.t("navigation.addTask")}
+        subtitle="Create a new task for you and your partner"
+      >
         <TaskForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}

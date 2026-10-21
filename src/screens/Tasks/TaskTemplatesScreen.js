@@ -16,6 +16,8 @@ import { TaskTemplate } from "../../entities/TaskTemplate";
 import { COLORS, SPACING, screenBackgroundStyle } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
 import { ThemedScreenShell } from "../../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../../components/premium/PremiumScreenShell";
+import i18n from "../../localization/i18n";
 import { User } from "../../entities/User";
 import TaskTemplateCard from "../../components/Tasks/TaskTemplateCard";
 import TaskTemplateForm from "../../components/Tasks/TaskTemplateForm";
@@ -217,26 +219,21 @@ export default function TaskTemplatesScreen({ navigation, route }) {
   };
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading templates..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading templates..." title={i18n.t("navigation.drawer.taskTemplates")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.subtitle}>
-            {filteredTemplates.length} {filteredTemplates.length === 1 ? 'template' : 'templates'}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleCreateTemplate}
-        >
-          <Icon name="add" size={24} color={COLORS.textInverse} />
-        </TouchableOpacity>
-      </View>
-
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.taskTemplates")}
+      subtitle={`${filteredTemplates.length} ${filteredTemplates.length === 1 ? "template" : "templates"}`}
+      fab={{
+        icon: "add",
+        onPress: handleCreateTemplate,
+        accessibilityLabel: "Create template",
+      }}
+    >
       {/* Filters */}
       <View style={styles.filters}>
         {[
@@ -338,7 +335,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </PremiumScreenShell>
   );
 }
 

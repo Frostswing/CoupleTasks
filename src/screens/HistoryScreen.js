@@ -22,6 +22,8 @@ import { getCategoryById, getUnitById } from '../constants/categories';
 import { COLORS, PRIORITY_COLORS, SHADOWS, screenBackgroundStyle } from '../constants/theme';
 import { useAppTheme } from '../context/ThemeContext';
 import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
+import PremiumScreenShell from '../components/premium/PremiumScreenShell';
+import i18n from '../localization/i18n';
 const HistoryScreen = () => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -224,16 +226,19 @@ const HistoryScreen = () => {
   }, [currentHistory]);
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="טוען היסטוריה..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="טוען היסטוריה..." title={i18n.t("navigation.drawer.history")} />
+    );
   }
 
   return (
-    <View style={[styles.container, screenBackgroundStyle(colors)]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerSubtitle}>עקוב אחר הפעילות והשפר את ההצעות</Text>
-      </View>
-
+    <>
+    <PremiumScreenShell
+      scroll={false}
+      title={i18n.t("navigation.drawer.history")}
+      subtitle="עקוב אחר הפעילות והשפר את ההצעות"
+      contentStyle={{ flex: 1, paddingHorizontal: 0 }}
+    >
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
@@ -316,6 +321,7 @@ const HistoryScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+    </PremiumScreenShell>
 
       {/* Export Modal */}
       <Modal
@@ -349,7 +355,7 @@ const HistoryScreen = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 };
 

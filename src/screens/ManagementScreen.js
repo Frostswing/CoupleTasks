@@ -17,6 +17,7 @@ import { Task } from "../entities/Task";
 import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
 import { User } from "../entities/User";
 import { 
   differenceInDays, 
@@ -469,23 +470,17 @@ export default function ManagementScreen({ navigation }) {
   };
 
   if (isLoading && !stats) {
-    return <ThemedScreenShell loading loadingLabel={i18n.t('management.loading')} />;
+    return (
+      <PremiumScreenShell loading loadingLabel={i18n.t("management.loading")} title={i18n.t("navigation.drawer.management")} />
+    );
   }
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.subtitle}>{i18n.t('management.subtitle', { days: ARCHIVE_DAYS })}</Text>
-        </View>
-
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.management")}
+      subtitle={i18n.t("management.subtitle", { days: ARCHIVE_DAYS })}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+    >
         {/* Filters Section */}
         <View style={styles.filtersContainer}>
           {/* User Filter */}
@@ -945,8 +940,7 @@ export default function ManagementScreen({ navigation }) {
             )}
           </>
         )}
-      </ScrollView>
-    </SafeAreaView>
+    </PremiumScreenShell>
   );
 }
 

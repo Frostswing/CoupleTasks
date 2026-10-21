@@ -1,68 +1,36 @@
 import React from "react";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, StyleSheet } from "react-native";
 import { useAppTheme } from "../../context/ThemeContext";
-import { screenBackgroundStyle, SPACING, TYPOGRAPHY } from "../../constants/theme";
+import { SPACING, TYPOGRAPHY } from "../../constants/theme";
+import PremiumScreenShell from "../premium/PremiumScreenShell";
+import PremiumCard from "../premium/PremiumCard";
 
 /**
- * Shared loading + scroll shell for secondary screens (theme-aware).
+ * Theme-aware screen shell — delegates to premium layout (hero, cards, skeletons).
  */
-export function ThemedScreenShell({
-  loading,
-  loadingLabel,
-  children,
-  scroll = true,
-  contentStyle,
-  edges = ["bottom"],
-}) {
-  const { colors } = useAppTheme();
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.fill, screenBackgroundStyle(colors)]} edges={edges}>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          {loadingLabel ? (
-            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>{loadingLabel}</Text>
-          ) : null}
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!scroll) {
-    return (
-      <SafeAreaView style={[styles.fill, screenBackgroundStyle(colors)]} edges={edges}>
-        <View style={[styles.fill, contentStyle]}>{children}</View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={[styles.fill, screenBackgroundStyle(colors)]} edges={edges}>
-      <ScrollView
-        style={styles.fill}
-        contentContainerStyle={[styles.scrollContent, contentStyle]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {children}
-      </ScrollView>
-    </SafeAreaView>
-  );
+export function ThemedScreenShell(props) {
+  return <PremiumScreenShell {...props} />;
 }
 
-export function ThemedSection({ title, subtitle, children, style }) {
+export function ThemedSection({ title, subtitle, children, style, card }) {
   const { colors } = useAppTheme();
-  return (
-    <View style={[styles.section, style]}>
+  const inner = (
+    <>
       {title ? <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text> : null}
       {subtitle ? (
         <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
       ) : null}
       {children}
-    </View>
+    </>
   );
+  if (card) {
+    return (
+      <View style={[styles.section, style]}>
+        <PremiumCard>{inner}</PremiumCard>
+      </View>
+    );
+  }
+  return <View style={[styles.section, style]}>{inner}</View>;
 }
 
 export function themedCard(colors) {
@@ -76,23 +44,8 @@ export function themedCard(colors) {
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: SPACING.xl,
-  },
-  loadingText: {
-    marginTop: SPACING.l,
-    ...TYPOGRAPHY.body,
-  },
-  scrollContent: {
-    paddingHorizontal: SPACING.l,
-    paddingBottom: SPACING.xxxl,
-  },
   section: {
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.l,
   },
   sectionTitle: {
     ...TYPOGRAPHY.h3,

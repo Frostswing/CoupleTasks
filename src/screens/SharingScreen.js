@@ -17,6 +17,7 @@ import {
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import i18n from "../localization/i18n";
 
 const SharingScreen = () => {
   const { colors } = useAppTheme();
@@ -172,7 +173,7 @@ const SharingScreen = () => {
   };
 
   if (loading) {
-    return <ThemedScreenShell loading />;
+    return <ThemedScreenShell loading title={i18n.t("navigation.sharing")} />;
   }
 
   if (!currentUser) {
@@ -186,7 +187,11 @@ const SharingScreen = () => {
   }
 
   return (
-    <ThemedScreenShell contentStyle={styles.content}>
+    <ThemedScreenShell
+      contentStyle={styles.content}
+      title={i18n.t("navigation.sharing")}
+      subtitle="Share lists with your partner"
+    >
       {sharingStatus.isSharing ? (
         <View style={styles.sharingInfoContainer}>
           <Text style={styles.sharingInfoText}>

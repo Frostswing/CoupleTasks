@@ -17,8 +17,12 @@ import EventForm from "../components/Events/EventForm";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
 import eventNotificationService from "../services/eventNotificationService";
 import eventCleanupService from "../services/eventCleanupService";
-import { COLORS, screenBackgroundStyle } from "../constants/theme";
+import { COLORS } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import ChipFilter from "../components/premium/ChipFilter";
+import EmptyState from "../components/premium/EmptyState";
+import i18n from "../localization/i18n";
 
 export default function EventsScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -242,58 +246,41 @@ export default function EventsScreen({ navigation }) {
     e.status === 'pending' && e.created_by !== currentUser?.uid && e.event_type === 'invitation'
   ).length;
 
-  const renderFilterChip = (key, label, showBadge = false) => {
-    const active = filter === key;
-    return (
-      <TouchableOpacity
-        key={key}
-        onPress={() => setFilter(key)}
-        style={[styles.filterButton, active && styles.filterButtonActiveSolid]}
-      >
-        <View style={styles.filterButtonWithBadge}>
-          <Text style={active ? styles.filterTextActive : styles.filterText}>{label}</Text>
-          {showBadge && pendingCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{pendingCount}</Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  const filterOptions = [
+    { value: "all", label: "All" },
+    { value: "upcoming", label: "Upcoming" },
+    { value: "pending", label: pendingCount > 0 ? `Pending (${pendingCount})` : "Pending" },
+  ];
+
+  const upcomingCount = getFilteredEvents().filter((e) => !isPast(parseISO(e.event_date))).length;
 
   return (
-    <View style={[styles.container, screenBackgroundStyle(colors)]}>
-      {/* Header with Filter and Add Button */}
-      <View style={styles.header}>
-        <View style={styles.filterContainer}>
-          {renderFilterChip("all", "All")}
-          {renderFilterChip("upcoming", "Upcoming")}
-          {renderFilterChip("pending", "Pending", true)}
-        </View>
-        <TouchableOpacity
-          onPress={() => {
-            setEditingEvent(null);
-            setShowAddModal(true);
-          }}
-          style={styles.addButton}
-        >
-          <Icon name="add" size={24} color={COLORS.textInverse} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Events List */}
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-      >
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.events")}
+      subtitle="Partner calendar & invitations"
+      heroStats={[
+        { label: "Upcoming", value: String(upcomingCount) },
+        { label: "Pending", value: String(pendingCount) },
+      ]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
+      fab={{
+        icon: "add",
+        onPress: () => {
+          setEditingEvent(null);
+          setShowAddModal(true);
+        },
+        accessibilityLabel: "Add event",
+      }}
+    >
+        <ChipFilter options={filterOptions} value={filter} onChange={setFilter} style={{ marginHorizontal: -8 }} />
         {groupedEvents.today.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Today</Text>
@@ -385,17 +372,22 @@ export default function EventsScreen({ navigation }) {
         )}
 
         {getFilteredEvents().length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Icon name="event-busy" size={64} color={colors.border} />
-            <Text style={styles.emptyText}>No events found</Text>
-            <Text style={styles.emptySubtext}>
-              {filter === "pending" 
-                ? "No pending invitations" 
-                : "Create your first event to get started"}
-            </Text>
-          </View>
+          <EmptyState
+            icon="event-busy"
+            title="No events found"
+            message={
+              filter === "pending"
+                ? "No pending invitations"
+                : "Create your first event to get started"
+            }
+            actionLabel="Add event"
+            onAction={() => {
+              setEditingEvent(null);
+              setShowAddModal(true);
+            }}
+          />
         )}
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Add/Edit Event Modal */}
       <Modal
@@ -437,7 +429,7 @@ export default function EventsScreen({ navigation }) {
           />
         </View>
       </Modal>
-    </View>
+    </>
   );
 }
 

@@ -14,6 +14,7 @@ import { getCurrentUser, getUserProfile } from "../services/userService";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import i18n from "../localization/i18n";
 
 export default function SettingsScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -74,10 +75,12 @@ export default function SettingsScreen({ navigation }) {
   }
 
   return (
-    <ThemedScreenShell scroll contentStyle={styles.scrollContent}>
-      <Text style={styles.lead}>
-        Manage your profile and link with your partner.
-      </Text>
+    <ThemedScreenShell
+      scroll
+      contentStyle={styles.scrollContent}
+      title={i18n.t("navigation.settings")}
+      subtitle="Manage your profile and link with your partner."
+    >
 
       <View style={styles.card}>
         <View style={styles.cardHeader}>
