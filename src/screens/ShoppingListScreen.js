@@ -786,7 +786,7 @@ export default function ShoppingListScreen({ navigation, route }) {
           setNewItemNotes("");
         }}
       >
-        <SafeAreaView style={styles.modalContainer}>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Edit Item</Text>
             <TouchableOpacity onPress={() => {
@@ -1195,7 +1195,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   modalHeader: {
     flexDirection: 'row',
