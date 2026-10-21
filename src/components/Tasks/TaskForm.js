@@ -646,6 +646,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     margin: 0,
+    backgroundColor: COLORS.primary,
   },
   submitButtonText: {
     fontSize: 16,
