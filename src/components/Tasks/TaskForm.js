@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { parseISO } from "date-fns";
@@ -23,6 +24,7 @@ const { width } = Dimensions.get('window');
 
 export default function TaskForm({ task, onSubmit, onCancel, title = "Create New Task" }) {
   const { colors } = useAppTheme();
+  const { isPartnered } = usePartnerMode();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Convert task dates from strings to Date objects if needed
@@ -63,7 +65,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [isPartnered]);
 
   const loadUsers = async () => {
     try {
@@ -72,7 +74,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
 
       const userList = [me];
 
-      if (me.partner_email) {
+      if (isPartnered && me.partner_email) {
         const partnerResults = await UserEntity.filter({ email: me.partner_email });
         if (partnerResults.length > 0) {
           userList.push(partnerResults[0]);
@@ -328,7 +330,9 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
             label="Assigned To"
             options={[
               { label: 'None (Unassigned)', value: '' },
-              { label: 'Together (Both Partners)', value: 'together' },
+              ...(isPartnered
+                ? [{ label: 'Together (Both Partners)', value: 'together' }]
+                : []),
               ...users.map(user => ({ 
                 label: user.full_name || user.email, 
                 value: user.email 

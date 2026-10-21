@@ -4,9 +4,11 @@ import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
 import { COLORS, SHADOWS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 
 export default function EventCard({ event, currentUserId, onPress, onRespond }) {
   const { colors } = useAppTheme();
+  const { isPartnered } = usePartnerMode();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const isCreator = event.created_by === currentUserId;
   const hasResponse = event.partner_response !== null;
@@ -136,7 +138,10 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
             )}
           </View>
         </View>
-        {!isCreator && event.status === 'pending' && event.event_type === 'invitation' && (
+        {isPartnered &&
+          !isCreator &&
+          event.status === "pending" &&
+          event.event_type === "invitation" && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>!</Text>
           </View>
@@ -166,7 +171,10 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
           </Text>
         </View>
         
-        {!isCreator && event.status === 'pending' && event.event_type === 'invitation' && (
+        {isPartnered &&
+          !isCreator &&
+          event.status === "pending" &&
+          event.event_type === "invitation" && (
           <View style={styles.responseButtons}>
             <TouchableOpacity
               style={[styles.responseButton, styles.acceptButton]}

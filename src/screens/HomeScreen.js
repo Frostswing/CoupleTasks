@@ -4,10 +4,12 @@ import { MaterialIcons as Icon } from "@expo/vector-icons";
 import i18n from "../localization/i18n";
 import { SPACING, RADIUS, TYPOGRAPHY, COLORS } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 import PremiumScreenShell from "../components/premium/PremiumScreenShell";
 import PremiumCard from "../components/premium/PremiumCard";
 import PressableScale from "../components/premium/PressableScale";
 import ProgressRing from "../components/premium/ProgressRing";
+import CoupleHomeHero from "../components/home/CoupleHomeHero";
 import { Task } from "../entities/Task";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
@@ -16,35 +18,43 @@ import taskSchedulingService from "../services/taskSchedulingService";
 export default function HomeScreen({ navigation }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const {
+    loading: partnerLoading,
+    isPartnered,
+    profile,
+    userFirstName,
+    partnerFirstName,
+    partnerEmail,
+  } = usePartnerMode();
+
   const [loading, setLoading] = useState(true);
   const [taskFocus, setTaskFocus] = useState(0);
   const [taskDoneRatio, setTaskDoneRatio] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
   const [shoppingPending, setShoppingPending] = useState(0);
-  const [greeting, setGreeting] = useState("");
 
   const loadDashboard = useCallback(async () => {
     try {
       const user = await User.me();
-      const first = user?.full_name?.split(" ")[0];
-      setGreeting(first ? `Hi, ${first}` : i18n.t("home.welcome"));
-
-      const allTasks = await Task.filter({ is_archived: { "$ne": true } });
       const userEmails = [user.email];
       if (user.partner_email) userEmails.push(user.partner_email);
+
+      const allTasks = await Task.filter({ is_archived: { "$ne": true } });
       const tasks = allTasks.filter((t) => {
         if (userEmails.includes(t.assigned_to)) return true;
-        if (t.assigned_to === "together") return true;
+        if (isPartnered && t.assigned_to === "together") return true;
         if (!t.assigned_to) return true;
         return userEmails.includes(t.created_by);
       });
       const grouped = taskSchedulingService.groupTasksByUrgency(tasks);
-      const focus =
+      setTaskFocus(
         grouped.overdue.length +
-        grouped.today.length +
-        grouped.thisWeek.length +
-        grouped.comingSoon.length;
-      setTaskFocus(focus);
+          grouped.today.length +
+          grouped.thisWeek.length +
+          grouped.comingSoon.length
+      );
       const completed = tasks.filter((t) => t.status === "completed").length;
+      setCompletedCount(completed);
       setTaskDoneRatio(tasks.length ? completed / tasks.length : 0);
 
       const shopping = await ShoppingListItem.list("-created_date");
@@ -60,56 +70,68 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isPartnered]);
 
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
 
-  const quickActions = [
-    {
-      id: "dailyTasks",
-      title: i18n.t("navigation.drawer.dailyTasks"),
-      description: "Today's focus",
-      icon: "today",
-      screen: "DailyTasks",
-    },
-    {
-      id: "shoppingList",
-      title: i18n.t("navigation.drawer.shoppingList"),
-      description: "List & aisles",
-      icon: "shopping-cart",
-      screen: "ShoppingList",
-    },
-    {
-      id: "events",
-      title: i18n.t("navigation.drawer.events"),
-      description: "Calendar & invites",
-      icon: "event",
-      screen: "Events",
-    },
-    {
-      id: "taskPlanning",
-      title: i18n.t("navigation.drawer.taskPlanning"),
-      description: "Plan ahead",
-      icon: "event-note",
-      screen: "TaskPlanning",
-    },
-    {
-      id: "inventory",
-      title: i18n.t("navigation.drawer.inventory"),
-      description: "Stock levels",
-      icon: "inventory-2",
-      screen: "Inventory",
-    },
-    {
-      id: "management",
-      title: i18n.t("navigation.drawer.management"),
-      description: "Insights",
-      icon: "insights",
-      screen: "Management",
-    },
-  ];
+  const quickActions = useMemo(
+    () =>
+      [
+        {
+          id: "dailyTasks",
+          title: i18n.t("navigation.drawer.dailyTasks"),
+          description: "Today's focus",
+          icon: "today",
+          screen: "DailyTasks",
+        },
+        {
+          id: "shoppingList",
+          title: i18n.t("navigation.drawer.shoppingList"),
+          description: "List & aisles",
+          icon: "shopping-cart",
+          screen: "ShoppingList",
+        },
+        {
+          id: "events",
+          title: i18n.t("navigation.drawer.events"),
+          description: isPartnered ? "Calendar & invites" : "Your calendar",
+          icon: "event",
+          screen: "Events",
+        },
+        {
+          id: "taskPlanning",
+          title: i18n.t("navigation.drawer.taskPlanning"),
+          description: "Plan ahead",
+          icon: "event-note",
+          screen: "TaskPlanning",
+        },
+        {
+          id: "inventory",
+          title: i18n.t("navigation.drawer.inventory"),
+          description: "Stock levels",
+          icon: "inventory-2",
+          screen: "Inventory",
+        },
+        {
+          id: "management",
+          title: i18n.t("navigation.drawer.management"),
+          description: "Insights",
+          icon: "insights",
+          screen: "Management",
+        },
+      ].filter((a) => !a.partnerOnly),
+    [isPartnered]
+  );
+
+  const openDrawer = () => {
+    try {
+      navigation.getParent()?.openDrawer?.();
+    } catch {
+      /* drawer optional */
+    }
+  };
 
   const handleNavigate = (screen, params) => {
     try {
@@ -143,58 +165,92 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 
+  const tipText = isPartnered ? i18n.t("home.tipCouple") : i18n.t("home.tipSolo");
+
   return (
     <PremiumScreenShell
-      loading={loading}
+      loading={loading || partnerLoading}
       loadingLabel={i18n.t("common.loading")}
-      title={greeting || i18n.t("home.welcome")}
-      subtitle={i18n.t("home.subtitle")}
-      heroStats={[
-        { label: "Focus", value: String(taskFocus) },
-        { label: "To buy", value: String(shoppingPending) },
-      ]}
-      heroSlot={heroSlot}
+      noHorizontalPadding
       contentStyle={styles.scrollContent}
     >
-      <Text style={styles.sectionOverline}>Quick Access</Text>
-      <View style={styles.actionList}>
-        {quickActions.map((action) => (
-          <PressableScale key={action.id} onPress={() => handleNavigate(action.screen, action.params)}>
-            <PremiumCard style={styles.actionCard} padded>
-              <View style={styles.actionRow}>
+      <CoupleHomeHero
+        isPartnered={isPartnered}
+        userFirstName={userFirstName}
+        partnerFirstName={partnerFirstName}
+        userEmail={profile?.email}
+        partnerEmail={partnerEmail}
+        completedCount={completedCount}
+        onOpenMenu={openDrawer}
+        onNotifications={() => handleNavigate("Settings")}
+        onInvitePartner={() => handleNavigate("Settings")}
+      />
+
+      <View style={styles.bodyPad}>
+        <PremiumCard style={styles.statsCard}>
+          {heroSlot}
+          <View style={styles.inlineStats}>
+            <View style={styles.inlineStat}>
+              <Text style={[styles.statVal, { color: colors.text }]}>{taskFocus}</Text>
+              <Text style={[styles.statLbl, { color: colors.textSecondary }]}>Focus</Text>
+            </View>
+            <View style={styles.inlineStat}>
+              <Text style={[styles.statVal, { color: colors.text }]}>{shoppingPending}</Text>
+              <Text style={[styles.statLbl, { color: colors.textSecondary }]}>To buy</Text>
+            </View>
+          </View>
+        </PremiumCard>
+
+        <Text style={styles.sectionOverline}>Quick Access</Text>
+        <View style={styles.actionGrid}>
+          {quickActions.map((action) => (
+            <PressableScale
+              key={action.id}
+              onPress={() => handleNavigate(action.screen, action.params)}
+              style={styles.gridItem}
+            >
+              <PremiumCard style={styles.actionCard} padded>
                 <View style={[styles.actionIcon, { backgroundColor: colors.primaryMuted }]}>
                   <Icon name={action.icon} size={22} color={colors.primary} />
                 </View>
-                <View style={styles.actionBody}>
-                  <Text style={[styles.actionTitle, { color: colors.text }]}>{action.title}</Text>
-                  <Text style={[styles.actionDesc, { color: colors.textTertiary }]} numberOfLines={1}>
-                    {action.description}
-                  </Text>
-                </View>
-                <Icon name="chevron-right" size={22} color={colors.textTertiary} />
-              </View>
-            </PremiumCard>
-          </PressableScale>
-        ))}
-      </View>
-
-      <Text style={styles.sectionOverline}>More</Text>
-      <PremiumCard>
-        <View style={styles.moreRow}>
-          {[
-            { icon: "archive", label: "Archive", screen: "Archive" },
-            { icon: "history", label: "History", screen: "History" },
-            { icon: "settings", label: "Settings", screen: "Settings" },
-          ].map((item) => (
-            <PressableScale key={item.screen} onPress={() => handleNavigate(item.screen)} style={styles.moreItem}>
-              <View style={[styles.moreIcon, { backgroundColor: colors.borderLight }]}>
-                <Icon name={item.icon} size={20} color={colors.textSecondary} />
-              </View>
-              <Text style={[styles.moreLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.actionTitle, { color: colors.text }]} numberOfLines={1}>
+                  {action.title}
+                </Text>
+                <Text style={[styles.actionDesc, { color: colors.textTertiary }]} numberOfLines={2}>
+                  {action.description}
+                </Text>
+              </PremiumCard>
             </PressableScale>
           ))}
         </View>
-      </PremiumCard>
+
+        <PremiumCard style={[styles.tipCard, { backgroundColor: colors.primaryMuted }]}>
+          <Icon name="lightbulb-outline" size={22} color={colors.primary} />
+          <Text style={[styles.tipText, { color: colors.text }]}>{tipText}</Text>
+        </PremiumCard>
+
+        <Text style={styles.sectionOverline}>More</Text>
+        <PremiumCard>
+          <View style={styles.moreRow}>
+            {[
+              { icon: "archive", label: "Archive", screen: "Archive" },
+              { icon: "history", label: "History", screen: "History" },
+              { icon: "settings", label: "Settings", screen: "Settings" },
+            ].map((item) => (
+              <PressableScale
+                key={item.screen}
+                onPress={() => handleNavigate(item.screen)}
+                style={styles.moreItem}
+              >
+                <View style={[styles.moreIcon, { backgroundColor: colors.borderLight }]}>
+                  <Icon name={item.icon} size={20} color={colors.textSecondary} />
+                </View>
+                <Text style={[styles.moreLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+              </PressableScale>
+            ))}
+          </View>
+        </PremiumCard>
+      </View>
     </PremiumScreenShell>
   );
 }
@@ -202,19 +258,19 @@ export default function HomeScreen({ navigation }) {
 const createStyles = (colors) =>
   StyleSheet.create({
     scrollContent: {
-      paddingTop: SPACING.s,
+      paddingBottom: SPACING.xxxl,
     },
-    sectionOverline: {
-      ...TYPOGRAPHY.overline,
-      color: colors.textTertiary,
+    bodyPad: {
+      paddingHorizontal: SPACING.l,
+    },
+    statsCard: {
       marginBottom: SPACING.m,
-      marginTop: SPACING.m,
     },
     heroRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: SPACING.l,
       gap: SPACING.l,
+      marginBottom: SPACING.m,
     },
     heroActions: {
       flex: 1,
@@ -224,48 +280,76 @@ const createStyles = (colors) =>
       flexDirection: "row",
       alignItems: "center",
       gap: SPACING.s,
-      backgroundColor: COLORS.overlayOnPrimary,
+      backgroundColor: colors.primaryMuted,
       paddingVertical: SPACING.s + 2,
       paddingHorizontal: SPACING.m,
       borderRadius: RADIUS.m,
     },
     heroChipGhost: {
-      opacity: 0.85,
-      backgroundColor: COLORS.overlayOnPrimary,
+      opacity: 0.92,
     },
     heroChipText: {
       ...TYPOGRAPHY.label,
-      color: COLORS.textInverse,
+      color: colors.primary,
       fontWeight: "600",
     },
-    actionList: {
+    inlineStats: {
+      flexDirection: "row",
+      gap: SPACING.xl,
+    },
+    inlineStat: {
+      alignItems: "flex-start",
+    },
+    statVal: {
+      ...TYPOGRAPHY.h2,
+    },
+    statLbl: {
+      ...TYPOGRAPHY.caption,
+    },
+    sectionOverline: {
+      ...TYPOGRAPHY.overline,
+      color: colors.textTertiary,
+      marginBottom: SPACING.m,
+      marginTop: SPACING.m,
+    },
+    actionGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: SPACING.s,
     },
-    actionCard: {
-      marginBottom: 0,
+    gridItem: {
+      width: "48%",
+      flexGrow: 1,
+      minWidth: "46%",
     },
-    actionRow: {
-      flexDirection: "row",
-      alignItems: "center",
+    actionCard: {
+      minHeight: 108,
     },
     actionIcon: {
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       borderRadius: RADIUS.m,
       alignItems: "center",
       justifyContent: "center",
-      marginRight: SPACING.m,
-    },
-    actionBody: {
-      flex: 1,
-      marginRight: SPACING.s,
+      marginBottom: SPACING.s,
     },
     actionTitle: {
       ...TYPOGRAPHY.h3,
+      fontSize: 15,
       marginBottom: 2,
     },
     actionDesc: {
       ...TYPOGRAPHY.caption,
+    },
+    tipCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SPACING.m,
+      marginTop: SPACING.l,
+    },
+    tipText: {
+      ...TYPOGRAPHY.bodySmall,
+      flex: 1,
     },
     moreRow: {
       flexDirection: "row",

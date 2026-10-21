@@ -23,16 +23,24 @@ import PremiumScreenShell from "../components/premium/PremiumScreenShell";
 import ChipFilter from "../components/premium/ChipFilter";
 import EmptyState from "../components/premium/EmptyState";
 import i18n from "../localization/i18n";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 export default function EventsScreen({ navigation }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isPartnered } = usePartnerMode();
   const [events, setEvents] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [filter, setFilter] = useState("all"); // all, upcoming, pending, past
+
+  useEffect(() => {
+    if (!isPartnered && filter === "pending") {
+      setFilter("all");
+    }
+  }, [isPartnered, filter]);
 
   useEffect(() => {
     loadCurrentUser();
@@ -246,11 +254,19 @@ export default function EventsScreen({ navigation }) {
     e.status === 'pending' && e.created_by !== currentUser?.uid && e.event_type === 'invitation'
   ).length;
 
-  const filterOptions = [
-    { value: "all", label: "All" },
-    { value: "upcoming", label: "Upcoming" },
-    { value: "pending", label: pendingCount > 0 ? `Pending (${pendingCount})` : "Pending" },
-  ];
+  const filterOptions = useMemo(() => {
+    const opts = [
+      { value: "all", label: "All" },
+      { value: "upcoming", label: "Upcoming" },
+    ];
+    if (isPartnered) {
+      opts.push({
+        value: "pending",
+        label: pendingCount > 0 ? `Pending (${pendingCount})` : "Pending",
+      });
+    }
+    return opts;
+  }, [isPartnered, pendingCount]);
 
   const upcomingCount = getFilteredEvents().filter((e) => !isPast(parseISO(e.event_date))).length;
 
@@ -258,10 +274,12 @@ export default function EventsScreen({ navigation }) {
     <>
     <PremiumScreenShell
       title={i18n.t("navigation.drawer.events")}
-      subtitle="Partner calendar & invitations"
+      subtitle={
+        isPartnered ? i18n.t("events.subtitleCouple") : i18n.t("events.subtitleSolo")
+      }
       heroStats={[
         { label: "Upcoming", value: String(upcomingCount) },
-        { label: "Pending", value: String(pendingCount) },
+        ...(isPartnered ? [{ label: "Pending", value: String(pendingCount) }] : []),
       ]}
       refreshControl={
         <RefreshControl

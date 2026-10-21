@@ -35,6 +35,7 @@
         "languageChanged": "Language changed successfully"
     },
     "auth": {
+        "subtitle": "Your tasks, shopping, and calendar in one place",
         "signIn": "Sign In",
         "signUp": "Sign Up",
         "signOut": "Sign Out",
@@ -100,8 +101,22 @@
     },
     "home": {
         "title": "Home",
-        "welcome": "Welcome to CoupleTasks",
-        "subtitle": "Manage your tasks and shopping together",
+        "welcome": "Welcome",
+        "subtitle": "Manage your tasks and shopping",
+        "subtitleCouple": "Manage your tasks and shopping together",
+        "greetingMorning": "Good morning",
+        "greetingAfternoon": "Good afternoon",
+        "greetingEvening": "Good evening",
+        "greetingSolo": "{{name}}!",
+        "greetingCouple": "{{name}} & {{partner}}!",
+        "statCompletedSolo": "{{count}} tasks completed",
+        "statCompletedTogether": "{{count}} tasks completed together",
+        "invitePartnerTitle": "Invite your partner",
+        "invitePartnerSubtitle": "Link accounts to share lists and tasks",
+        "notifications": "Notifications",
+        "fallbackName": "there",
+        "tipSolo": "Small steps today make tomorrow easier.",
+        "tipCouple": "Small tasks together make a big difference!",
         "tasksDescription": "View and manage your tasks",
         "shoppingDescription": "Manage your shopping list",
         "addShoppingItem": "Add Shopping Item",
@@ -110,14 +125,38 @@
     "dashboard": {
         "welcomeBack": "Welcome back,",
         "subtitle": "Let's see what you and your partner need to tackle today",
+        "subtitleSolo": "Your task overview",
         "totalTasks": "Total Tasks",
         "completed": "Completed",
         "myTasks": "My Tasks",
         "overdue": "Overdue",
         "noTasksFound": "No tasks found",
-        "createFirstTask": "Start by creating your first shared task together!",
+        "createFirstTaskCouple": "Start by creating your first shared task together!",
+        "createFirstTaskSolo": "Start by creating your first task!",
         "adjustFilters": "Try adjusting your filters to see more tasks.",
         "addFirstTask": "Add Your First Task"
+    },
+    "addTask": {
+        "subtitleSolo": "Create a new personal task",
+        "subtitleCouple": "Create a new task for you and your partner"
+    },
+    "events": {
+        "subtitleSolo": "Your calendar",
+        "subtitleCouple": "Partner calendar & invitations"
+    },
+    "settings": {
+        "subtitleSolo": "Manage your profile and household",
+        "subtitleCouple": "Manage your profile and partner connection",
+        "inviteTitle": "Invite your partner",
+        "inviteDescription": "Enter your partner's email to sync tasks. They must already have an account.",
+        "partnerEmailLabel": "Partner's email",
+        "inviteHintTitle": "Two-way link",
+        "inviteHintBody": "Your partner should add your email in their settings too for full sync.",
+        "savePartnerLink": "Save partner connection",
+        "saving": "Saving...",
+        "listSharingLink": "Or share shopping lists instead",
+        "partnerLinkedTitle": "Partner connected",
+        "partnerLinkedDescription": "You're linked and can share tasks and lists."
     },
     "tasks": {
         "title": "Task Title",

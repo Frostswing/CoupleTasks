@@ -16,6 +16,7 @@ import SyncIndicator from "../components/common/SyncIndicator";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 // Import all screens
 import HomeScreen from "../screens/HomeScreen";
@@ -104,6 +105,7 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
 
 const CustomDrawerContent = (props) => {
   const { colors } = useAppTheme();
+  const { isPartnered } = usePartnerMode();
   const user = getCurrentUser();
 
   const routeName = useNavigationState((state) => {
@@ -223,7 +225,9 @@ const CustomDrawerContent = (props) => {
             {section.section && (
               <Text style={styles.sectionTitle}>{section.section}</Text>
             )}
-            {section.items.map((item) => {
+            {section.items
+              .filter((item) => isPartnered || item.screen !== "Sharing")
+              .map((item) => {
               const isActive = routeName === item.screen;
               return (
                 <TouchableOpacity

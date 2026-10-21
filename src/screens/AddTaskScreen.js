@@ -12,10 +12,12 @@ import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import i18n from "../localization/i18n";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 export default function AddTaskScreen({ navigation }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isPartnered } = usePartnerMode();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (taskData) => {
@@ -40,7 +42,9 @@ export default function AddTaskScreen({ navigation }) {
         scroll
         contentStyle={styles.content}
         title={i18n.t("navigation.addTask")}
-        subtitle="Create a new task for you and your partner"
+        subtitle={
+          isPartnered ? i18n.t("addTask.subtitleCouple") : i18n.t("addTask.subtitleSolo")
+        }
       >
         <TaskForm
           onSubmit={handleSubmit}

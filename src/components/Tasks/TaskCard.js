@@ -8,8 +8,10 @@ import {
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { format } from "date-fns";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, CATEGORY_COLORS, PRIORITY_COLORS, STATUS_COLORS } from "../../constants/theme";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 
 export default function TaskCard({ task, onStatusChange, onEdit, onSubtaskToggle, currentUser }) {
+  const { isPartnered } = usePartnerMode();
   const isAssignedToMe = task.assigned_to === currentUser?.email;
   const allSubtasksCompleted = task.subtasks?.every((st) => st.is_completed) ?? true;
 
@@ -142,11 +144,16 @@ export default function TaskCard({ task, onStatusChange, onEdit, onSubtaskToggle
 
         <View style={styles.spacer} />
 
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {getAssignedUserInitials(task.assigned_to)}
-          </Text>
-        </View>
+        {isPartnered &&
+        task.assigned_to &&
+        task.assigned_to !== "together" &&
+        task.assigned_to !== currentUser?.email ? (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {getAssignedUserInitials(task.assigned_to)}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );

@@ -15,12 +15,15 @@ import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import i18n from "../localization/i18n";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 export default function SettingsScreen({ navigation }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isPartnered, partnerEmail: linkedPartnerEmail, refresh: refreshPartnerMode } =
+    usePartnerMode();
   const [currentUser, setCurrentUser] = useState(null);
-  const [partnerEmail, setPartnerEmail] = useState("");
+  const [partnerEmailDraft, setPartnerEmailDraft] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -42,7 +45,7 @@ export default function SettingsScreen({ navigation }) {
         : { uid: authUser.uid, email: authUser.email, full_name: authUser.displayName || "User" };
       setCurrentUser(profile);
       if (profile.partner_email) {
-        setPartnerEmail(profile.partner_email);
+        setPartnerEmailDraft(profile.partner_email);
       }
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -52,16 +55,17 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleSave = async () => {
-    if (!partnerEmail || partnerEmail === currentUser.email) {
+    if (!partnerEmailDraft || partnerEmailDraft === currentUser.email) {
       Alert.alert("Error", "Please enter a valid partner email.");
       return;
     }
 
     setIsSaving(true);
     try {
-      await User.updateMyUserData({ partner_email: partnerEmail });
+      await User.updateMyUserData({ partner_email: partnerEmailDraft });
       Alert.alert("Success", "Partner linked successfully!");
-      loadUserData();
+      await loadUserData();
+      refreshPartnerMode();
     } catch (error) {
       console.error("Error saving partner email:", error);
       Alert.alert("Error", "Failed to save. Please try again.");
@@ -79,63 +83,93 @@ export default function SettingsScreen({ navigation }) {
       scroll
       contentStyle={styles.scrollContent}
       title={i18n.t("navigation.settings")}
-      subtitle="Manage your profile and link with your partner."
+      subtitle={
+        isPartnered ? i18n.t("settings.subtitleCouple") : i18n.t("settings.subtitleSolo")
+      }
     >
 
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardTitleContainer}>
-            <Icon name="link" size={24} color={colors.primary} />
-            <Text style={styles.cardTitle}>Link Your Partner</Text>
-          </View>
-          <Text style={styles.cardDescription}>
-            Enter your partner's email to sync tasks. They must be a registered user.
-          </Text>
-        </View>
-
-        <View style={styles.cardContent}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Partner's Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="partner@example.com"
-              value={partnerEmail}
-              onChangeText={setPartnerEmail}
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
-          <View style={styles.infoAlert}>
-            <View style={styles.alertIcon}>
-              <Icon name="favorite" size={16} color={colors.primary} />
+      {!isPartnered ? (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardTitleContainer}>
+              <Icon name="person-add" size={24} color={colors.primary} />
+              <Text style={styles.cardTitle}>{i18n.t("settings.inviteTitle")}</Text>
             </View>
-            <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>For a complete sync</Text>
-              <Text style={styles.alertText}>
-                Your partner must also add your email address in their settings.
+            <Text style={styles.cardDescription}>{i18n.t("settings.inviteDescription")}</Text>
+          </View>
+
+          <View style={styles.cardContent}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{i18n.t("settings.partnerEmailLabel")}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="partner@example.com"
+                value={partnerEmailDraft}
+                onChangeText={setPartnerEmailDraft}
+                placeholderTextColor={colors.textTertiary}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            <View style={styles.infoAlert}>
+              <View style={styles.alertIcon}>
+                <Icon name="info-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.alertContent}>
+                <Text style={styles.alertTitle}>{i18n.t("settings.inviteHintTitle")}</Text>
+                <Text style={styles.alertText}>{i18n.t("settings.inviteHintBody")}</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color={COLORS.textInverse} />
+              ) : (
+                <Icon name="save" size={20} color={COLORS.textInverse} />
+              )}
+              <Text style={styles.saveButtonText}>
+                {isSaving ? i18n.t("settings.saving") : i18n.t("settings.savePartnerLink")}
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryLink}
+              onPress={() => navigation.navigate("Sharing")}
+            >
+              <Text style={[styles.secondaryLinkText, { color: colors.primary }]}>
+                {i18n.t("settings.listSharingLink")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardTitleContainer}>
+              <Icon name="favorite" size={24} color={colors.primary} />
+              <Text style={styles.cardTitle}>{i18n.t("settings.partnerLinkedTitle")}</Text>
+            </View>
+            <Text style={styles.cardDescription}>{i18n.t("settings.partnerLinkedDescription")}</Text>
+          </View>
+          <View style={styles.cardContent}>
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>{i18n.t("settings.partnerEmailLabel")}</Text>
+              <View style={styles.partnerInfo}>
+                <Icon name="favorite" size={16} color={colors.primary} />
+                <Text style={styles.profileValue}>
+                  {linkedPartnerEmail || currentUser?.partner_email}
+                </Text>
+              </View>
             </View>
           </View>
-
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color={COLORS.textInverse} />
-            ) : (
-              <Icon name="save" size={20} color={COLORS.textInverse} />
-            )}
-            <Text style={styles.saveButtonText}>
-              {isSaving ? 'Saving...' : 'Save Partner Connection'}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      )}
 
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -158,15 +192,6 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.profileValue}>{currentUser?.email}</Text>
           </View>
 
-          {currentUser?.partner_email && (
-            <View style={styles.profileItem}>
-              <Text style={styles.profileLabel}>Partner</Text>
-              <View style={styles.partnerInfo}>
-                <Icon name="favorite" size={16} color={colors.primary} />
-                <Text style={styles.profileValue}>{currentUser.partner_email}</Text>
-              </View>
-            </View>
-          )}
         </View>
       </View>
     </ThemedScreenShell>
@@ -292,6 +317,15 @@ function createStyles(colors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
+    },
+    secondaryLink: {
+      marginTop: SPACING.m,
+      alignItems: 'center',
+      paddingVertical: SPACING.s,
+    },
+    secondaryLinkText: {
+      ...TYPOGRAPHY.bodySmall,
+      fontWeight: '600',
     },
   });
 }

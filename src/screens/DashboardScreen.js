@@ -25,12 +25,14 @@ import EditTaskDialog from "../components/Tasks/EditTaskDialog";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { add, addDays, addMonths, addWeeks } from 'date-fns';
 import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from "../services/taskCache";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isPartnered } = usePartnerMode();
 
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -432,7 +434,11 @@ export default function DashboardScreen({ navigation }) {
     <>
     <PremiumScreenShell
       title={i18n.t("navigation.drawer.allTasks")}
-      subtitle={`Welcome back, ${currentUser?.full_name || "Partner"}!`}
+      subtitle={
+        currentUser?.full_name
+          ? `${i18n.t("dashboard.welcomeBack")} ${currentUser.full_name.split(" ")[0]}!`
+          : i18n.t("dashboard.subtitleSolo")
+      }
       heroStats={[
         { label: "Total", value: String(stats.total) },
         { label: "Done", value: String(stats.completed) },
@@ -518,10 +524,11 @@ export default function DashboardScreen({ navigation }) {
               </View>
               <Text style={styles.emptyTitle}>No tasks found</Text>
               <Text style={styles.emptySubtitle}>
-                {tasks.length === 0 
-                  ? "Start by creating your first shared task together!" 
-                  : "Try adjusting your filters to see more tasks."
-                }
+                {tasks.length === 0
+                  ? isPartnered
+                    ? i18n.t("dashboard.createFirstTaskCouple")
+                    : i18n.t("dashboard.createFirstTaskSolo")
+                  : i18n.t("dashboard.adjustFilters")}
               </Text>
               <TouchableOpacity 
                 style={styles.emptyButton}

@@ -15,6 +15,7 @@ import { User as UserEntity } from "../../entities/User";
 import taskGenerationService from "../../services/taskGenerationService";
 import { COLORS, SHADOWS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 
 const categories = [
   { label: 'Household', value: 'household' },
@@ -43,6 +44,7 @@ const frequencyTypes = [
 
 export default function TaskTemplateForm({ template, onSubmit, onCancel, title = "Create Template" }) {
   const { colors } = useAppTheme();
+  const { isPartnered } = usePartnerMode();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [formData, setFormData] = useState({
@@ -130,11 +132,11 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
       setCurrentUser(me);
 
       const userList = [{ email: me.email, full_name: me.full_name }];
-      if (me.partner_email) {
-        userList.push({ email: me.partner_email, full_name: 'Partner' });
+      if (isPartnered && me.partner_email) {
+        userList.push({ email: me.partner_email, full_name: "Partner" });
+        userList.push({ email: "together", full_name: "Together" });
+        userList.push({ email: "separately", full_name: "Separately" });
       }
-      userList.push({ email: 'together', full_name: 'Together' });
-      userList.push({ email: 'separately', full_name: 'Separately' });
       
       setUsers(userList);
       

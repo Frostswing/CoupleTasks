@@ -35,6 +35,7 @@
         "languageChanged": "השפה שונתה בהצלחה"
     },
     "auth": {
+        "subtitle": "המטלות, הקניות והיומן שלכם במקום אחד",
         "signIn": "התחברות",
         "signUp": "הרשמה",
         "signOut": "התנתקות",
@@ -100,8 +101,22 @@
     },
     "home": {
         "title": "בית",
-        "welcome": "ברוכים הבאים ל-CoupleTasks",
-        "subtitle": "נהלו את המטלות והקניות שלכם יחד",
+        "welcome": "ברוכים הבאים",
+        "subtitle": "נהלו את המטלות והקניות שלכם",
+        "subtitleCouple": "נהלו את המטלות והקניות שלכם יחד",
+        "greetingMorning": "בוקר טוב",
+        "greetingAfternoon": "צהריים טובים",
+        "greetingEvening": "ערב טוב",
+        "greetingSolo": "{{name}}!",
+        "greetingCouple": "{{name}} ו{{partner}}!",
+        "statCompletedSolo": "{{count}} מטלות הושלמו",
+        "statCompletedTogether": "{{count}} מטלות הושלמו יחד",
+        "invitePartnerTitle": "הזמינו את בן/בת הזוג",
+        "invitePartnerSubtitle": "קשרו חשבונות לשיתוף רשימות ומטלות",
+        "notifications": "התראות",
+        "fallbackName": "שם",
+        "tipSolo": "צעדים קטנים היום מקלים על מחר.",
+        "tipCouple": "מטלות קטנות יחד עושות הבדל גדול!",
         "tasksDescription": "צפו ונהלו את המטלות שלכם",
         "shoppingDescription": "נהלו את רשימת הקניות שלכם",
         "addShoppingItem": "הוסף מוצר לרשימה",
@@ -110,14 +125,38 @@
     "dashboard": {
         "welcomeBack": "ברוכים הבאים,",
         "subtitle": "בואו נראה מה אתם ושותפכם צריכים לטפל בו היום",
+        "subtitleSolo": "סקירת המטלות שלך",
         "totalTasks": "כל המטלות",
         "completed": "הושלמו",
         "myTasks": "המטלות שלי",
         "overdue": "באיחור",
         "noTasksFound": "לא נמצאו מטלות",
-        "createFirstTask": "התחילו ביצירת המטלה המשותפת הראשונה שלכם!",
+        "createFirstTaskCouple": "התחילו ביצירת המטלה המשותפת הראשונה שלכם!",
+        "createFirstTaskSolo": "התחילו ביצירת המטלה הראשונה שלכם!",
         "adjustFilters": "נסו לשנות את הפילטרים כדי לראות יותר מטלות.",
         "addFirstTask": "הוסף את המטלה הראשונה"
+    },
+    "addTask": {
+        "subtitleSolo": "צור מטלה אישית חדשה",
+        "subtitleCouple": "צור מטלה חדשה עבורכם ועבור בן/בת הזוג"
+    },
+    "events": {
+        "subtitleSolo": "היומן שלך",
+        "subtitleCouple": "יומן משותף והזמנות"
+    },
+    "settings": {
+        "subtitleSolo": "נהל את הפרופיל והבית שלך",
+        "subtitleCouple": "נהל את הפרופיל והחיבור לבן/בת הזוג",
+        "inviteTitle": "הזמינו את בן/בת הזוג",
+        "inviteDescription": "הזינו את האימייל של בן/בת הזוג לסנכרון מטלות. עליהם כבר להיות רשומים.",
+        "partnerEmailLabel": "אימייל בן/בת הזוג",
+        "inviteHintTitle": "קישור דו-כיווני",
+        "inviteHintBody": "בן/בת הזוג צריכים להוסיף את האימייל שלכם בהגדרות שלהם לסנכרון מלא.",
+        "savePartnerLink": "שמור חיבור לבן/בת הזוג",
+        "saving": "שומר...",
+        "listSharingLink": "או שתפו רשימות קניות במקום",
+        "partnerLinkedTitle": "בן/בת הזוג מחוברים",
+        "partnerLinkedDescription": "אתם מקושרים ויכולים לשתף מטלות ורשימות."
     },
     "tasks": {
         "title": "כותרת המטלה",

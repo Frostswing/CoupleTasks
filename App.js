@@ -22,6 +22,7 @@ import i18n from "./src/localization/i18n";
 import LoadingScreen from "./src/components/common/LoadingScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
+import { HouseholdPartnerProvider } from "./src/context/HouseholdPartnerContext";
 import { getNavigationTheme } from "./src/navigation/navigationTheme";
 
 const Stack = createNativeStackNavigator();
@@ -154,7 +155,9 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <HouseholdPartnerProvider>
+        <AppContent />
+      </HouseholdPartnerProvider>
     </ThemeProvider>
   );
 }

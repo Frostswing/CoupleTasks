@@ -201,7 +201,7 @@ const AuthScreen = ({ navigation }) => {
         loading={loading}
         loadingLabel={i18n.t("common.loading")}
         title={heroTitle}
-        subtitle={user ? "Organize together" : "Organize together with your partner"}
+        subtitle={i18n.t("auth.subtitle")}
         contentStyle={themed.scrollPad}
       >
         {user ? (

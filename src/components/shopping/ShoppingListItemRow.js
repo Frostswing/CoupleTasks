@@ -15,6 +15,7 @@ import { formatQuantity } from "../../utils/formatQuantity";
 import i18n from "../../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../../constants/theme";
 import PartnerAvatar from "../premium/PartnerAvatar";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 
 export default function ShoppingListItemRow({
   item,
@@ -25,6 +26,7 @@ export default function ShoppingListItemRow({
   isLastInGroup,
   disableSwipe,
 }) {
+  const { isPartnered } = usePartnerMode();
   const scale = useRef(new Animated.Value(1)).current;
   const locale = i18n.locale;
 
@@ -122,7 +124,7 @@ export default function ShoppingListItemRow({
           </View>
         </View>
 
-        {item.added_by ? (
+        {isPartnered && item.added_by ? (
           <PartnerAvatar email={item.added_by} size={30} variant="partner" />
         ) : null}
 

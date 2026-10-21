@@ -25,9 +25,11 @@ import taskSchedulingService from "../../services/taskSchedulingService";
 import taskGenerationService from "../../services/taskGenerationService";
 import { handleError, showSuccess } from "../../services/errorHandlingService";
 import { format, parseISO } from "date-fns";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 
 export default function TaskPlanningScreen({ navigation }) {
   const { colors } = useAppTheme();
+  const { isPartnered } = usePartnerMode();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [tasks, setTasks] = useState([]);
@@ -434,7 +436,10 @@ export default function TaskPlanningScreen({ navigation }) {
                             <Text style={styles.metaText}> {task.estimated_duration} min</Text>
                           </View>
                         )}
-                        {task.assigned_to && (
+                        {isPartnered &&
+                          task.assigned_to &&
+                          task.assigned_to !== currentUser?.email &&
+                          task.assigned_to !== "together" && (
                           <View style={styles.assignedText}>
                             <Icon name="person" size={14} color={colors.textSecondary} />
                             <Text style={styles.metaText}> {task.assigned_to}</Text>

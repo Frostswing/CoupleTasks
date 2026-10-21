@@ -18,6 +18,7 @@ import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 import { User } from "../entities/User";
 import { 
   differenceInDays, 
@@ -50,7 +51,8 @@ export default function ManagementScreen({ navigation }) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [currentUser, setCurrentUser] = useState(null);
-  const [partner, setPartner] = useState(null);
+  const { isPartnered, partnerProfile } = usePartnerMode();
+  const partner = isPartnered ? partnerProfile : null;
   const [selectedUser, setSelectedUser] = useState('myself'); // 'myself', 'partner', or 'all'
   const [dateRange, setDateRange] = useState(DATE_RANGES.LAST_60_DAYS);
   const [customStartDate, setCustomStartDate] = useState(subDays(new Date(), 60));
@@ -63,6 +65,12 @@ export default function ManagementScreen({ navigation }) {
   const [stats, setStats] = useState(null);
 
   const ARCHIVE_DAYS = 60;
+
+  useEffect(() => {
+    if (!isPartnered && selectedUser !== 'myself') {
+      setSelectedUser('myself');
+    }
+  }, [isPartnered, selectedUser]);
 
   // Load user and partner data
   useEffect(() => {
@@ -80,18 +88,6 @@ export default function ManagementScreen({ navigation }) {
     try {
       const user = await User.me();
       setCurrentUser(user);
-
-      // Load partner if exists
-      if (user.partner_email) {
-        try {
-          const partnerData = await User.findByEmail(user.partner_email);
-          if (partnerData) {
-            setPartner(partnerData);
-          }
-        } catch (error) {
-          console.error("Error loading partner:", error);
-        }
-      }
     } catch (error) {
       console.error("Error loading user data:", error);
     }
@@ -506,7 +502,7 @@ export default function ManagementScreen({ navigation }) {
                   {currentUser?.full_name || currentUser?.email || i18n.t('management.myself')}
                 </Text>
               </TouchableOpacity>
-              {partner && (
+              {isPartnered && partner && (
                 <TouchableOpacity
                   style={[
                     styles.filterButton,
@@ -527,25 +523,27 @@ export default function ManagementScreen({ navigation }) {
                   </Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                style={[
-                  styles.filterButton,
-                  selectedUser === 'all' && styles.filterButtonActive
-                ]}
-                onPress={() => setSelectedUser('all')}
-              >
-                <Icon 
-                  name="group" 
-                  size={18} 
-                  color={selectedUser === 'all' ? COLORS.textInverse : colors.textSecondary} 
-                />
-                <Text style={[
-                  styles.filterButtonText,
-                  selectedUser === 'all' && styles.filterButtonTextActive
-                ]}>
-                  {i18n.t('management.all')}
-                </Text>
-              </TouchableOpacity>
+              {isPartnered && (
+                <TouchableOpacity
+                  style={[
+                    styles.filterButton,
+                    selectedUser === 'all' && styles.filterButtonActive
+                  ]}
+                  onPress={() => setSelectedUser('all')}
+                >
+                  <Icon 
+                    name="group" 
+                    size={18} 
+                    color={selectedUser === 'all' ? COLORS.textInverse : colors.textSecondary} 
+                  />
+                  <Text style={[
+                    styles.filterButtonText,
+                    selectedUser === 'all' && styles.filterButtonTextActive
+                  ]}>
+                    {i18n.t('management.all')}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 

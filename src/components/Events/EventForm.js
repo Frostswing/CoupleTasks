@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
+import { usePartnerMode } from "../../context/HouseholdPartnerContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { parseISO } from "date-fns";
@@ -21,6 +22,7 @@ const { width } = Dimensions.get('window');
 
 export default function EventForm({ event, onSubmit, onCancel, title = "Create New Event" }) {
   const { colors } = useAppTheme();
+  const { isPartnered } = usePartnerMode();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const normalizeEventData = (eventData) => {
@@ -117,11 +119,19 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
     { label: 'Other', value: 'other' },
   ];
 
-  const eventTypeOptions = [
-    { label: 'Informational - Just letting you know', value: 'informational' },
-    { label: 'Invitation - Want to know if you can join', value: 'invitation' },
-    { label: 'Solo OK - Going alone is fine', value: 'solo_ok' },
-  ];
+  const eventTypeOptions = useMemo(() => {
+    const opts = [
+      { label: "Informational - Just letting you know", value: "informational" },
+      { label: "Solo OK - Going alone is fine", value: "solo_ok" },
+    ];
+    if (isPartnered) {
+      opts.splice(1, 0, {
+        label: "Invitation - Want to know if you can join",
+        value: "invitation",
+      });
+    }
+    return opts;
+  }, [isPartnered]);
 
 
   return (
