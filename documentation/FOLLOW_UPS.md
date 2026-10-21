@@ -10,6 +10,7 @@ Linked from [ARCHITECTURE.md](./ARCHITECTURE.md).
 - Dark mode foundation (system scheme + navigation theme)
 - Migrate in-app icons to `@expo/vector-icons` (removed `react-native-vector-icons`)
 - Unit tests for store department helpers (`npm test`)
+- Dark mode: stack headers + tasks / shopping / events screen backgrounds (`screenBackgroundStyle`)
 
 ## Open — needs owner / credentials / devices
 

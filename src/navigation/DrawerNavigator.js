@@ -41,6 +41,7 @@ const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
 const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
+  const { colors } = useAppTheme();
   const openDrawer = () => {
     if (drawerNavigation?.openDrawer) {
       drawerNavigation.openDrawer();
@@ -52,13 +53,14 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
       initialRouteName="Home"
       screenOptions={{
         headerStyle: {
-          backgroundColor: COLORS.surface,
+          backgroundColor: colors.surface,
         },
         headerShadowVisible: false,
-        headerTintColor: COLORS.text,
+        headerTintColor: colors.text,
         headerTitleStyle: {
           ...TYPOGRAPHY.h2,
           fontSize: 17,
+          color: colors.text,
         },
         headerTitle: ({ children }) => (
           <TouchableOpacity
@@ -67,8 +69,8 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
             style={styles.headerTitle}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MaterialIcons name="menu" size={24} color={COLORS.text} style={{ marginRight: SPACING.s }} />
-            <Text style={styles.headerTitleText}>{children}</Text>
+            <MaterialIcons name="menu" size={24} color={colors.text} style={{ marginRight: SPACING.s }} />
+            <Text style={[styles.headerTitleText, { color: colors.text }]}>{children}</Text>
           </TouchableOpacity>
         ),
         headerRight: () => (

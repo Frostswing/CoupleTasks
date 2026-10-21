@@ -17,8 +17,11 @@ import EventForm from "../components/Events/EventForm";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
 import eventNotificationService from "../services/eventNotificationService";
 import eventCleanupService from "../services/eventCleanupService";
+import { screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 export default function EventsScreen({ navigation }) {
+  const { colors } = useAppTheme();
   const [events, setEvents] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -259,7 +262,7 @@ export default function EventsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, screenBackgroundStyle(colors)]}>
       {/* Header with Filter and Add Button */}
       <View style={styles.header}>
         <View style={styles.filterContainer}>

@@ -1338,6 +1338,7 @@ const styles = StyleSheet.create({
 - [HOME_SCREEN_REDESIGN.md](./HOME_SCREEN_REDESIGN.md) - Home screen redesign documentation (November 2024)
 - [TASK_TABLE_FEATURE.md](./TASK_TABLE_FEATURE.md) - Task Table bulk import and sync feature (November 2024)
 - [README.md](../README.md) - Project overview
+- [FOLLOW_UPS.md](./FOLLOW_UPS.md) - Post-PR#2 improvements and blockers
 
 ---
 

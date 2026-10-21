@@ -23,9 +23,12 @@ import taskCleanupService from "../../services/taskCleanupService";
 import { handleError, showSuccess } from "../../services/errorHandlingService";
 import { getCurrentUser } from "../../services/userService";
 import { addDays, format } from "date-fns";
+import { screenBackgroundStyle } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from "../../services/taskCache";
 
 export default function DailyTasksScreen({ navigation }) {
+  const { colors } = useAppTheme();
   const [tasks, setTasks] = useState([]);
   const [groupedTasks, setGroupedTasks] = useState({
     overdue: [],
@@ -390,7 +393,7 @@ export default function DailyTasksScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
+      <SafeAreaView style={[styles.loadingContainer, screenBackgroundStyle(colors)]}>
         <View style={styles.loadingContent}>
           <ActivityIndicator size="large" color="#2563EB" />
           <Text style={styles.loadingText}>Loading your tasks...</Text>
@@ -405,7 +408,7 @@ export default function DailyTasksScreen({ navigation }) {
                      groupedTasks.comingSoon.length;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       <ScrollView
         style={styles.scrollView}
         refreshControl={

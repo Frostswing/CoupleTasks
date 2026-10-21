@@ -33,11 +33,13 @@ import { subscribeShoppingDepartmentOrder } from "../services/shoppingDepartment
 import StoreDepartmentPicker from "../components/shopping/StoreDepartmentPicker";
 import ShoppingDepartmentOrderModal from "../components/shopping/ShoppingDepartmentOrderModal";
 import i18n from "../localization/i18n";
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
 export default function ShoppingListScreen({ navigation, route }) {
+  const { colors } = useAppTheme();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -551,7 +553,7 @@ export default function ShoppingListScreen({ navigation, route }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
+      <SafeAreaView style={[styles.loadingContainer, screenBackgroundStyle(colors)]}>
         <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.loadingText}>Loading your shopping list...</Text>
       </SafeAreaView>
@@ -559,7 +561,7 @@ export default function ShoppingListScreen({ navigation, route }) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>

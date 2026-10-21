@@ -292,6 +292,11 @@ export const STATUS_COLORS = {
   completed: { bg: "#DCFCE7", text: "#16A34A", icon: "check-circle" },
 };
 
+/** Root screen background that respects ThemeContext `colors`. */
+export function screenBackgroundStyle(colors) {
+  return { backgroundColor: colors.background };
+}
+
 export default {
   COLORS,
   SPACING,
@@ -302,4 +307,5 @@ export default {
   CATEGORY_COLORS,
   PRIORITY_COLORS,
   STATUS_COLORS,
+  screenBackgroundStyle,
 };
