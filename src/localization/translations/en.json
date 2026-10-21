@@ -186,7 +186,23 @@
         "addToList": "Add to List",
         "adding": "Adding...",
         "pleaseEnterItemName": "Please enter an item name",
-        "errorAddingItem": "An error occurred while adding the item"
+        "errorAddingItem": "An error occurred while adding the item",
+        "storeDepartment": "Store aisle",
+        "groupedByAisle": "Grouped by store aisle",
+        "storeLayoutTitle": "Store layout",
+        "storeLayoutSubtitle": "Reorder aisles to match how you walk through your supermarket. Shared with your partner.",
+        "storeDepartments": {
+            "produce": "Produce",
+            "bakery": "Bakery",
+            "dairy": "Dairy & eggs",
+            "meat_fish": "Meat & fish",
+            "frozen": "Frozen",
+            "dry_goods": "Dry goods",
+            "drinks": "Drinks",
+            "cleaning": "Cleaning",
+            "personal_care": "Personal care",
+            "other": "Other"
+        }
     },
     "app": {
         "loadingApp": "Loading the app...",

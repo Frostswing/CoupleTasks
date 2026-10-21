@@ -16,13 +16,16 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
 import { handleError, showSuccess } from "../services/errorHandlingService";
+import { groupItemsByStoreDepartment } from "../constants/storeDepartments";
+import { getShoppingDepartmentOrder } from "../services/shoppingDepartmentOrderService";
+import i18n from "../localization/i18n";
 
 const { width } = Dimensions.get('window');
 
 export default function ShoppingModeScreen({ navigation, route }) {
   const { itemIds } = route.params || {};
   const [items, setItems] = useState([]);
-  const [categoryOrder, setCategoryOrder] = useState([]);
+  const [departmentOrder, setDepartmentOrder] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFinishing, setIsFinishing] = useState(false);
   const [error, setError] = useState(null);
@@ -87,20 +90,8 @@ export default function ShoppingModeScreen({ navigation, route }) {
   }, [itemIds]);
 
   useEffect(() => {
-    if (items.length > 0) {
-      // Simple category ordering (could be enhanced with AI later)
-      const categories = [...new Set(items.map(item => item.category))];
-      const optimalOrder = [
-        'fruits', 'vegetables', 'dairy', 'meat', 'grains', 
-        'snacks', 'beverages', 'household', 'personal_care', 'other'
-      ];
-      
-      const orderedCategories = optimalOrder.filter(cat => categories.includes(cat));
-      const remainingCategories = categories.filter(cat => !optimalOrder.includes(cat));
-      
-      setCategoryOrder([...orderedCategories, ...remainingCategories]);
-    }
-  }, [items]);
+    getShoppingDepartmentOrder().then(setDepartmentOrder);
+  }, []);
 
   const handleTogglePurchased = (itemToToggle) => {
     setItems(prevItems =>
@@ -243,23 +234,12 @@ export default function ShoppingModeScreen({ navigation, route }) {
     }
   };
 
-  const { toBuy, bought } = useMemo(() => {
-    const toBuy = {};
-    const bought = [];
-    items.forEach(item => {
-      if (item.is_purchased) {
-        bought.push(item);
-      } else {
-        if (!toBuy[item.category]) {
-          toBuy[item.category] = [];
-        }
-        toBuy[item.category].push(item);
-      }
-    });
-    return { toBuy, bought };
-  }, [items]);
-
-  const orderedCategories = categoryOrder.filter(cat => toBuy[cat]?.length > 0);
+  const { toBuyGroups, bought } = useMemo(() => {
+    const pending = items.filter((item) => !item.is_purchased);
+    const purchased = items.filter((item) => item.is_purchased);
+    const groups = groupItemsByStoreDepartment(pending, departmentOrder);
+    return { toBuyGroups: groups, bought: purchased };
+  }, [items, departmentOrder]);
   const hasBoughtItems = bought.length > 0;
 
   const ShoppingItemCard = ({ item }) => (
@@ -368,15 +348,15 @@ export default function ShoppingModeScreen({ navigation, route }) {
           </View>
 
           {/* Shopping Categories */}
-          {orderedCategories.length > 0 ? (
+          {toBuyGroups.length > 0 ? (
             <View style={styles.categoriesContainer}>
-              {orderedCategories.map(category => (
-                <View key={category} style={styles.categorySection}>
+              {toBuyGroups.map((group) => (
+                <View key={group.departmentId} style={styles.categorySection}>
                   <Text style={styles.categoryTitle}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                    {i18n.t(`shopping.storeDepartments.${group.departmentId}`)}
                   </Text>
                   <View style={styles.categoryItems}>
-                    {toBuy[category].map(item => (
+                    {group.items.map(item => (
                       <ShoppingItemCard key={item.id} item={item} />
                     ))}
                   </View>

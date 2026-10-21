@@ -521,12 +521,14 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Notifications cancelled when tasks are completed
 
 ### 2. **Shopping List**
-**Components:** ShoppingItemCard, AddShoppingItemDialog  
+**Components:** ShoppingItemCard, AddShoppingItemDialog, StoreDepartmentPicker, ShoppingDepartmentOrderModal  
 **Screens:** ShoppingListScreen, ShoppingModeScreen  
 **Entity:** ShoppingListItem  
+**Docs:** [SHOPPING_STORE_LAYOUT.md](./SHOPPING_STORE_LAYOUT.md) — aisle grouping & custom store order  
 **Features:**
 - Add items with quantity and units
-- Category-based organization
+- **Store aisle grouping:** `store_department` with auto-detect (HE/EN keywords), manual override, list grouped in household walking order (`preferences/shopping_department_order`, shared in partner space)
+- Category-based organization (legacy product category, separate from store department)
 - Shopping mode with guided flow
 - Purchase tracking
 - Auto-add to inventory on purchase

@@ -186,7 +186,23 @@
         "addToList": "הוסף לרשימה",
         "adding": "מוסיף...",
         "pleaseEnterItemName": "אנא הזן שם למוצר",
-        "errorAddingItem": "אירעה שגיאה בהוספת המוצר"
+        "errorAddingItem": "אירעה שגיאה בהוספת המוצר",
+        "storeDepartment": "מדור בחנות",
+        "groupedByAisle": "מקובץ לפי מדורים בחנות",
+        "storeLayoutTitle": "סדר המדורים",
+        "storeLayoutSubtitle": "סדרו את המדורים לפי איך אתם הולכים בסופר. משותף עם בן/בת הזוג.",
+        "storeDepartments": {
+            "produce": "פירות וירקות",
+            "bakery": "מאפייה",
+            "dairy": "חלב וביצים",
+            "meat_fish": "בשר ודגים",
+            "frozen": "מוקפאים",
+            "dry_goods": "מזון יבש",
+            "drinks": "משקאות",
+            "cleaning": "ניקוי",
+            "personal_care": "טיפוח",
+            "other": "אחר"
+        }
     },
     "app": {
         "loadingApp": "טוען את האפליקציה...",

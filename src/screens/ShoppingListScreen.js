@@ -23,7 +23,17 @@ import { InventoryItem } from "../entities/InventoryItem";
 import { User } from "../entities/User";
 import AutoCompleteInput from "../components/common/AutoCompleteInput";
 import { autoDetectCategory, getDefaultUnitForCategory } from "../constants/categories";
+import {
+  autoDetectStoreDepartment,
+  groupItemsByStoreDepartment,
+  resolveStoreDepartment,
+} from "../constants/storeDepartments";
 import { pickImage, uploadImage } from "../services/imageService";
+import { subscribeShoppingDepartmentOrder } from "../services/shoppingDepartmentOrderService";
+import StoreDepartmentPicker from "../components/shopping/StoreDepartmentPicker";
+import ShoppingDepartmentOrderModal from "../components/shopping/ShoppingDepartmentOrderModal";
+import i18n from "../localization/i18n";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +56,9 @@ export default function ShoppingListScreen({ navigation, route }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [viewingImageUrl, setViewingImageUrl] = useState("");
+  const [newItemStoreDepartment, setNewItemStoreDepartment] = useState("other");
+  const [departmentOrder, setDepartmentOrder] = useState(null);
+  const [showStoreLayoutModal, setShowStoreLayoutModal] = useState(false);
 
   // Load data when component mounts (with loading indicator)
   useEffect(() => {
@@ -60,6 +73,13 @@ export default function ShoppingListScreen({ navigation, route }) {
       }, 300);
     }
   }, [route?.params?.openAddDialog]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeShoppingDepartmentOrder((order) => {
+      setDepartmentOrder(order);
+    });
+    return unsubscribe;
+  }, []);
 
   // Refresh data when screen comes into focus (e.g., after returning from shopping mode)
   // Don't show loading indicator on refresh to avoid flashing
@@ -139,6 +159,7 @@ export default function ShoppingListScreen({ navigation, route }) {
   const handleNameChange = (name) => {
     const detectedCategory = autoDetectCategory(name);
     const defaultUnit = getDefaultUnitForCategory(detectedCategory);
+    const detectedDepartment = autoDetectStoreDepartment(name);
     
     setNewItemName(name);
     // Auto-update category and unit if they're still default
@@ -147,6 +168,9 @@ export default function ShoppingListScreen({ navigation, route }) {
     }
     if (newItemUnit === "pcs") {
       setNewItemUnit(defaultUnit);
+    }
+    if (newItemStoreDepartment === "other" && detectedDepartment !== "other") {
+      setNewItemStoreDepartment(detectedDepartment);
     }
   };
 
@@ -165,6 +189,11 @@ export default function ShoppingListScreen({ navigation, route }) {
       }
       if (suggestion.link) {
         setNewItemLink(suggestion.link);
+      }
+      if (suggestion.store_department) {
+        setNewItemStoreDepartment(suggestion.store_department);
+      } else {
+        setNewItemStoreDepartment(autoDetectStoreDepartment(suggestion.name));
       }
     }
   };
@@ -272,6 +301,7 @@ export default function ShoppingListScreen({ navigation, route }) {
         name: newItemName.trim(),
         quantity: parseInt(newItemQuantity) || 1,
         category: newItemCategory,
+        store_department: newItemStoreDepartment,
         unit: newItemUnit,
         image_url: newItemImageUrl || "",
         link: newItemLink.trim() || "",
@@ -285,11 +315,13 @@ export default function ShoppingListScreen({ navigation, route }) {
       setNewItemName("");
       setNewItemQuantity("1");
       setNewItemCategory("other");
+      setNewItemStoreDepartment("other");
       setNewItemUnit("pcs");
       setNewItemImage(null);
       setNewItemImageUrl("");
       setNewItemLink("");
       setNewItemNotes("");
+      setNewItemStoreDepartment("other");
       setShowAddDialog(false);
       loadData();
     } catch (error) {
@@ -325,6 +357,7 @@ export default function ShoppingListScreen({ navigation, route }) {
     setEditingItem(item);
     setNewItemName(item.name);
     setNewItemQuantity(item.quantity.toString());
+    setNewItemStoreDepartment(resolveStoreDepartment(item));
     setNewItemImageUrl(item.image_url || "");
     setNewItemLink(item.link || "");
     setNewItemNotes(item.notes || "");
@@ -342,6 +375,7 @@ export default function ShoppingListScreen({ navigation, route }) {
       await ShoppingListItem.update(editingItem.id, {
         name: newItemName.trim(),
         quantity: parseInt(newItemQuantity) || 1,
+        store_department: newItemStoreDepartment,
         image_url: newItemImageUrl || "",
         link: newItemLink.trim() || "",
         notes: newItemNotes.trim() || "",
@@ -390,6 +424,23 @@ export default function ShoppingListScreen({ navigation, route }) {
 
   const pendingItems = filteredItems.filter(item => !item.is_purchased);
   const purchasedItems = filteredItems.filter(item => item.is_purchased);
+  const pendingGroups = groupItemsByStoreDepartment(pendingItems, departmentOrder);
+  const purchasedGroups = groupItemsByStoreDepartment(purchasedItems, departmentOrder);
+
+  const renderDepartmentSections = (groups) =>
+    groups.map((group) => (
+      <View key={group.departmentId} style={styles.departmentSection}>
+        <View style={styles.departmentHeader}>
+          <Text style={styles.departmentTitle}>
+            {i18n.t(`shopping.storeDepartments.${group.departmentId}`)}
+          </Text>
+          <Text style={styles.departmentCount}>{group.items.length}</Text>
+        </View>
+        {group.items.map((item) => (
+          <ShoppingItemCard key={item.id} item={item} />
+        ))}
+      </View>
+    ));
 
   const handleStartShopping = () => {
     const itemIds = pendingItems.map(item => item.id);
@@ -427,6 +478,9 @@ export default function ShoppingListScreen({ navigation, route }) {
             </Text>
             <Text style={styles.itemQuantity}>
               {item.quantity} {item.unit || 'pcs'}
+            </Text>
+            <Text style={styles.itemDepartment}>
+              {i18n.t(`shopping.storeDepartments.${resolveStoreDepartment(item)}`)}
             </Text>
             {item.auto_added && (
               <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
@@ -511,10 +565,16 @@ export default function ShoppingListScreen({ navigation, route }) {
         <View style={styles.header}>
           <View style={styles.headerText}>
             <Text style={styles.title}>Shopping List</Text>
-            <Text style={styles.subtitle}>What do you need to buy?</Text>
+            <Text style={styles.subtitle}>{i18n.t("shopping.groupedByAisle")}</Text>
           </View>
           
           <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.layoutButton}
+              onPress={() => setShowStoreLayoutModal(true)}
+            >
+              <Icon name="store" size={22} color={COLORS.primary} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={[styles.shopButton, pendingItems.length === 0 && styles.disabledButton]}
               onPress={handleStartShopping}
@@ -574,9 +634,7 @@ export default function ShoppingListScreen({ navigation, route }) {
           {pendingItems.length > 0 && (
             <View style={styles.itemsSection}>
               <Text style={styles.sectionTitle}>To Buy</Text>
-              {pendingItems.map((item) => (
-                <ShoppingItemCard key={item.id} item={item} />
-              ))}
+              {renderDepartmentSections(pendingGroups)}
             </View>
           )}
 
@@ -584,9 +642,7 @@ export default function ShoppingListScreen({ navigation, route }) {
           {purchasedItems.length > 0 && (
             <View style={styles.itemsSection}>
               <Text style={[styles.sectionTitle, styles.purchasedSectionTitle]}>Purchased</Text>
-              {purchasedItems.map((item) => (
-                <ShoppingItemCard key={item.id} item={item} />
-              ))}
+              {renderDepartmentSections(purchasedGroups)}
             </View>
           )}
 
@@ -649,6 +705,14 @@ export default function ShoppingListScreen({ navigation, route }) {
                   showSmartSuggestions={false}
                 />
               </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{i18n.t("shopping.storeDepartment")}</Text>
+              <StoreDepartmentPicker
+                value={newItemStoreDepartment}
+                onChange={setNewItemStoreDepartment}
+              />
             </View>
 
             <View style={styles.inputGroup}>
@@ -790,6 +854,14 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{i18n.t("shopping.storeDepartment")}</Text>
+              <StoreDepartmentPicker
+                value={newItemStoreDepartment}
+                onChange={setNewItemStoreDepartment}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Quantity</Text>
               <TextInput
                 style={styles.input}
@@ -901,6 +973,11 @@ export default function ShoppingListScreen({ navigation, route }) {
           />
         </View>
       </Modal>
+
+      <ShoppingDepartmentOrderModal
+        visible={showStoreLayoutModal}
+        onClose={() => setShowStoreLayoutModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -949,6 +1026,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  layoutButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  departmentSection: {
+    marginBottom: SPACING.l,
+  },
+  departmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.s,
+    marginBottom: SPACING.s,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  departmentTitle: {
+    ...TYPOGRAPHY.overline,
+    color: COLORS.textSecondary,
+  },
+  departmentCount: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textTertiary,
   },
   shopButton: {
     flexDirection: 'row',
@@ -1111,6 +1216,11 @@ const styles = StyleSheet.create({
   itemQuantity: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  itemDepartment: {
+    fontSize: 12,
+    color: COLORS.textTertiary,
+    marginTop: 2,
   },
   autoAddedText: {
     fontSize: 12,
