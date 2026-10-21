@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  ScrollView,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import PremiumCard from "../components/premium/PremiumCard";
+import PremiumTextField from "../components/premium/PremiumTextField";
+import GradientButton from "../components/premium/GradientButton";
+import PressableScale from "../components/premium/PressableScale";
 import {
   registerUser,
   loginUser,
@@ -30,6 +31,7 @@ import { useAppTheme } from "../context/ThemeContext";
 
 const AuthScreen = ({ navigation }) => {
   const { colors } = useAppTheme();
+  const themed = useMemo(() => createThemedStyles(colors), [colors]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -183,334 +185,161 @@ const AuthScreen = ({ navigation }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>{i18n.t("common.loading")}</Text>
-      </SafeAreaView>
-    );
-  }
+  const heroTitle = user ? i18n.t("navigation.drawer.profile") : "CoupleTasks";
+  const heroSubtitle = user
+    ? user.email
+    : isLogin
+      ? i18n.t("auth.signIn")
+      : i18n.t("auth.signUp");
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <KeyboardAvoidingView
+      style={themed.keyboardView}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <PremiumScreenShell
+        loading={loading}
+        loadingLabel={i18n.t("common.loading")}
+        title={heroTitle}
+        subtitle={user ? "Organize together" : "Organize together with your partner"}
+        contentStyle={themed.scrollPad}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
+        {user ? (
+          <PremiumCard style={themed.profileCard}>
+            <View style={[themed.avatar, { backgroundColor: colors.primaryMuted }]}>
+              <MaterialIcons name="person" size={32} color={colors.primary} />
             </View>
-            <Text style={styles.appName}>CoupleTasks</Text>
-            <Text style={styles.subtitle}>Organize together</Text>
-          </View>
-
-          {user ? (
-            <View style={styles.userSection}>
-              <View style={styles.userCard}>
-                <View style={styles.userAvatar}>
-                  <MaterialIcons name="person" size={32} color={COLORS.primary} />
-                </View>
-                <Text style={styles.welcomeText}>{i18n.t("common.welcome")}</Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
-
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} disabled={loading}>
-                  <Text style={styles.logoutButtonText}>{i18n.t("auth.signOut")}</Text>
-                </TouchableOpacity>
+            <Text style={[themed.welcomeText, { color: colors.text }]}>{i18n.t("common.welcome")}</Text>
+            <Text style={[themed.userEmail, { color: colors.textSecondary }]}>{user.email}</Text>
+            <GradientButton
+              label={i18n.t("auth.signOut")}
+              onPress={handleLogout}
+              disabled={loading}
+              style={themed.fullWidth}
+            />
+          </PremiumCard>
+        ) : (
+          <PremiumCard>
+            <Text style={[themed.formTitle, { color: colors.text }]}>
+              {isLogin ? i18n.t("auth.signIn") : i18n.t("auth.signUp")}
+            </Text>
+            {!isLogin && (
+              <PremiumTextField
+                label={i18n.t("auth.fullName")}
+                placeholder={i18n.t("auth.enterFullName")}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
+            )}
+            <PremiumTextField
+              label={i18n.t("auth.email")}
+              placeholder={i18n.t("auth.enterEmail")}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <PremiumTextField
+              label={i18n.t("auth.password")}
+              placeholder={i18n.t("auth.enterPassword")}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            {!isLogin && (
+              <PremiumTextField
+                label={i18n.t("auth.confirmPassword")}
+                placeholder={i18n.t("auth.confirmPassword")}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+            )}
+            <GradientButton
+              label={isLogin ? i18n.t("auth.signIn") : i18n.t("auth.createAccount")}
+              onPress={handleAuth}
+              loading={loading}
+              style={themed.cta}
+            />
+            <View style={themed.divider}>
+              <View style={[themed.dividerLine, { backgroundColor: colors.border }]} />
+              <Text style={[themed.dividerText, { color: colors.textTertiary }]}>or</Text>
+              <View style={[themed.dividerLine, { backgroundColor: colors.border }]} />
+            </View>
+            <PressableScale onPress={handleGoogleSignIn} disabled={loading}>
+              <View style={[themed.googleButton, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+                <MaterialIcons name="g-mobiledata" size={24} color={colors.textSecondary} />
+                <Text style={[themed.googleButtonText, { color: colors.textSecondary }]}>
+                  {i18n.t("auth.signInWithGoogle")}
+                </Text>
               </View>
-            </View>
-          ) : (
-            <View style={styles.formContainer}>
-              <Text style={styles.title}>
-                {isLogin ? i18n.t("auth.signIn") : i18n.t("auth.signUp")}
+            </PressableScale>
+            <TouchableOpacity style={themed.toggleButton} onPress={toggleAuthMode}>
+              <Text style={[themed.toggleHint, { color: colors.textSecondary }]}>
+                {isLogin ? i18n.t("auth.noAccount") : i18n.t("auth.hasAccount")}
               </Text>
-
-              {!isLogin && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{i18n.t("auth.fullName")}</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={i18n.t("auth.enterFullName")}
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                    placeholderTextColor={COLORS.textTertiary}
-                  />
-                </View>
-              )}
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>{i18n.t("auth.email")}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={i18n.t("auth.enterEmail")}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  placeholderTextColor={COLORS.textTertiary}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>{i18n.t("auth.password")}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={i18n.t("auth.enterPassword")}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  placeholderTextColor={COLORS.textTertiary}
-                />
-              </View>
-
-              {!isLogin && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{i18n.t("auth.confirmPassword")}</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={i18n.t("auth.confirmPassword")}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    placeholderTextColor={COLORS.textTertiary}
-                  />
-                </View>
-              )}
-
-              <TouchableOpacity style={styles.authButton} onPress={handleAuth} disabled={loading}>
-                <Text style={styles.authButtonText}>
-                  {isLogin ? i18n.t("auth.signIn") : i18n.t("auth.createAccount")}
+              <Text style={[themed.toggleAction, { color: colors.primary }]}>
+                {isLogin ? i18n.t("auth.createAccount") : i18n.t("auth.loginToAccount")}
+              </Text>
+            </TouchableOpacity>
+            {isLogin && (
+              <TouchableOpacity style={themed.forgotPassword} onPress={handleForgotPassword} disabled={loading}>
+                <Text style={[themed.forgotPasswordText, { color: colors.primary }]}>
+                  {i18n.t("auth.forgotPassword")}
                 </Text>
               </TouchableOpacity>
-
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <TouchableOpacity
-                style={styles.googleButton}
-                onPress={handleGoogleSignIn}
-                disabled={loading}
-              >
-                <MaterialIcons name="g-mobiledata" size={24} color={COLORS.textSecondary} />
-                <Text style={styles.googleButtonText}>{i18n.t("auth.signInWithGoogle")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.toggleButton} onPress={toggleAuthMode}>
-                <Text style={styles.toggleButtonText}>
-                  {isLogin ? i18n.t("auth.noAccount") : i18n.t("auth.hasAccount")}
-                </Text>
-                <Text style={styles.toggleButtonAction}>
-                  {isLogin ? i18n.t("auth.createAccount") : i18n.t("auth.loginToAccount")}
-                </Text>
-              </TouchableOpacity>
-
-              {isLogin && (
-                <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword} disabled={loading}>
-                  <Text style={styles.forgotPasswordText}>{i18n.t("auth.forgotPassword")}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            )}
+          </PremiumCard>
+        )}
+      </PremiumScreenShell>
+    </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: SPACING.xl,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.l,
-  },
-  header: {
-    alignItems: "center",
-    marginTop: SPACING.xxl,
-    marginBottom: SPACING.xxxl,
-  },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: RADIUS.l,
-    backgroundColor: COLORS.primaryMuted,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: SPACING.l,
-  },
-  appName: {
-    ...TYPOGRAPHY.displayMedium,
-    marginBottom: SPACING.xs,
-  },
-  subtitle: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-  },
-  title: {
-    ...TYPOGRAPHY.h1,
-    textAlign: "center",
-    marginBottom: SPACING.xxl,
-  },
-  formContainer: {
-    width: "100%",
-    maxWidth: 400,
-    alignSelf: "center",
-  },
-  inputGroup: {
-    marginBottom: SPACING.l,
-  },
-  label: {
-    ...TYPOGRAPHY.label,
-    marginBottom: SPACING.s,
-  },
-  input: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.m,
-    paddingHorizontal: SPACING.l,
-    paddingVertical: SPACING.m,
-    fontSize: 16,
-    color: COLORS.text,
-    ...SHADOWS.xs,
-  },
-  authButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.m,
-    paddingVertical: SPACING.l,
-    alignItems: "center",
-    marginTop: SPACING.s,
-    ...SHADOWS.sm,
-  },
-  authButtonText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textInverse,
-    fontWeight: "600",
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: SPACING.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-  dividerText: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.textTertiary,
-    marginHorizontal: SPACING.l,
-  },
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.m,
-    paddingVertical: SPACING.m,
-    ...SHADOWS.xs,
-  },
-  googleButtonText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-    marginLeft: SPACING.s,
-  },
-  toggleButton: {
-    alignItems: "center",
-    marginTop: SPACING.xl,
-  },
-  toggleButtonText: {
-    ...TYPOGRAPHY.bodySmall,
-    marginBottom: SPACING.xs,
-  },
-  toggleButtonAction: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  forgotPassword: {
-    alignItems: "center",
-    marginTop: SPACING.l,
-  },
-  forgotPasswordText: {
-    ...TYPOGRAPHY.bodySmall,
-    color: COLORS.primary,
-  },
-  userSection: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  userCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.l,
-    padding: SPACING.xxl,
-    width: "100%",
-    maxWidth: 400,
-    alignItems: "center",
-    ...SHADOWS.md,
-  },
-  userAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.primaryMuted,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: SPACING.l,
-  },
-  welcomeText: {
-    ...TYPOGRAPHY.h2,
-    marginBottom: SPACING.xs,
-  },
-  userEmail: {
-    ...TYPOGRAPHY.bodySmall,
-    marginBottom: SPACING.xxl,
-  },
-  logoutButton: {
-    backgroundColor: COLORS.error,
-    borderRadius: RADIUS.m,
-    paddingVertical: SPACING.m,
-    paddingHorizontal: SPACING.xxl,
-    width: "100%",
-    alignItems: "center",
-  },
-  logoutButtonText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textInverse,
-    fontWeight: "600",
-  },
-});
+function createThemedStyles(colors) {
+  return StyleSheet.create({
+    keyboardView: { flex: 1 },
+    scrollPad: { paddingTop: SPACING.s },
+    profileCard: { alignItems: "center" },
+    avatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: SPACING.l,
+    },
+    welcomeText: { ...TYPOGRAPHY.h2, marginBottom: SPACING.xs },
+    userEmail: { ...TYPOGRAPHY.bodySmall, marginBottom: SPACING.xl },
+    fullWidth: { alignSelf: "stretch", width: "100%" },
+    formTitle: { ...TYPOGRAPHY.h2, textAlign: "center", marginBottom: SPACING.l },
+    cta: { marginTop: SPACING.s },
+    divider: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: SPACING.xl,
+    },
+    dividerLine: { flex: 1, height: 1 },
+    dividerText: { ...TYPOGRAPHY.caption, marginHorizontal: SPACING.l },
+    googleButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: RADIUS.m,
+      paddingVertical: SPACING.m,
+      ...SHADOWS.xs,
+    },
+    googleButtonText: { ...TYPOGRAPHY.body, marginLeft: SPACING.s },
+    toggleButton: { alignItems: "center", marginTop: SPACING.xl },
+    toggleHint: { ...TYPOGRAPHY.bodySmall, marginBottom: SPACING.xs },
+    toggleAction: { ...TYPOGRAPHY.body, fontWeight: "600" },
+    forgotPassword: { alignItems: "center", marginTop: SPACING.l },
+    forgotPasswordText: { ...TYPOGRAPHY.bodySmall },
+  });
+}
 
 export default AuthScreen;

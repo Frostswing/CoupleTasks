@@ -1,13 +1,19 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { TYPOGRAPHY } from "../../constants/theme";
+import { COLORS, TYPOGRAPHY } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
 
 /** Simple ring using border trick (works on web + native). */
-export default function ProgressRing({ progress = 0, size = 56, stroke = 5, label }) {
+export default function ProgressRing({ progress = 0, size = 56, stroke = 5, label, onHero }) {
   const { colors } = useAppTheme();
   const pct = Math.min(1, Math.max(0, progress));
-  const ringColor = pct >= 1 ? colors.success : colors.primary;
+  const ringColor = onHero
+    ? COLORS.heroText
+    : pct >= 1
+      ? colors.success
+      : colors.primary;
+  const trackColor = onHero ? COLORS.heroTextSubtle : colors.borderLight;
+  const labelColor = onHero ? COLORS.heroText : colors.text;
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
@@ -19,7 +25,7 @@ export default function ProgressRing({ progress = 0, size = 56, stroke = 5, labe
             height: size,
             borderRadius: size / 2,
             borderWidth: stroke,
-            borderColor: colors.borderLight,
+            borderColor: trackColor,
           },
         ]}
       />
@@ -40,7 +46,7 @@ export default function ProgressRing({ progress = 0, size = 56, stroke = 5, labe
           },
         ]}
       />
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
     </View>
   );
 }

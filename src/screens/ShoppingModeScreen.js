@@ -1,23 +1,25 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   Modal,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { ShoppingListItem } from "../entities/ShoppingListItem";
-import {COLORS, SPACING, screenBackgroundStyle, SHADOWS} from "../constants/theme";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
-import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
-import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import PremiumScreenShell, { PremiumHeroProgress } from "../components/premium/PremiumScreenShell";
+import PremiumCard from "../components/premium/PremiumCard";
+import EmptyState from "../components/premium/EmptyState";
+import GradientButton from "../components/premium/GradientButton";
+import PressableScale from "../components/premium/PressableScale";
+import ShoppingDepartmentSection from "../components/shopping/ShoppingDepartmentSection";
+import ShoppingListItemRow from "../components/shopping/ShoppingListItemRow";
 import i18n from "../localization/i18n";
 import { InventoryItem } from "../entities/InventoryItem";
 import { handleError, showSuccess } from "../services/errorHandlingService";
@@ -38,6 +40,12 @@ export default function ShoppingModeScreen({ navigation, route }) {
   const [error, setError] = useState(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [collapsedDepartments, setCollapsedDepartments] = useState({});
+  const [purchasedCollapsed, setPurchasedCollapsed] = useState(false);
+
+  const toggleDepartmentCollapsed = useCallback((departmentId) => {
+    setCollapsedDepartments((prev) => ({ ...prev, [departmentId]: !prev[departmentId] }));
+  }, []);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -248,50 +256,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
     return { toBuyGroups: groups, bought: purchased };
   }, [items, departmentOrder]);
   const hasBoughtItems = bought.length > 0;
-
-  const ShoppingItemCard = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}
-      onPress={() => handleTogglePurchased(item)}
-    >
-      <View style={styles.itemContent}>
-        <Icon
-          name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
-          size={24}
-          color={item.is_purchased ? colors.success : colors.textTertiary}
-        />
-        <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
-            {item.name}
-          </Text>
-          <Text style={styles.itemQuantity}>
-            {item.quantity} {item.unit || 'pcs'}
-          </Text>
-          {item.auto_added && (
-            <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
-          )}
-          {/* Display notes */}
-          {item.notes && (
-            <Text style={styles.itemNotes} numberOfLines={2}>
-              {item.notes}
-            </Text>
-          )}
-          {/* Display image thumbnail */}
-          {item.image_url && (
-            <View style={styles.imageThumbnailContainer}>
-              <Image
-                source={{ uri: item.image_url }}
-                style={styles.imageThumbnail}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-                transition={200}
-              />
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const tripProgress = items.length > 0 ? bought.length / items.length : 0;
 
   if (isLoading) {
     return (
@@ -301,103 +266,114 @@ export default function ShoppingModeScreen({ navigation, route }) {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-        <View style={styles.errorContainer}>
-          <Icon name="shopping-cart" size={60} color={colors.textTertiary} />
-          <Text style={styles.errorTitle}>No Items to Shop For</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.addItemsButton}
-            onPress={() => navigation.navigate('ShoppingList')}
-          >
-            <Icon name="add-shopping-cart" size={20} color={COLORS.textInverse} />
-            <Text style={styles.addItemsButtonText}>Add Items to Shopping List</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <PremiumScreenShell
+        title={i18n.t("navigation.drawer.shoppingMode")}
+        subtitle={i18n.t("shopping.groupedByAisle")}
+      >
+        <EmptyState
+          icon="shopping-cart"
+          title="No items to shop for"
+          message={error}
+          actionLabel="Go to shopping list"
+          onAction={() => navigation.navigate("ShoppingList")}
+        />
+      </PremiumScreenShell>
     );
   }
 
+  const heroSlot = (
+    <>
+      <PremiumHeroProgress
+        progress={tripProgress}
+        label={`${bought.length} of ${items.length} in cart`}
+      />
+      <PressableScale onPress={() => setShowCancelDialog(true)} style={styles.cancelChip}>
+        <Icon name="close" size={18} color={COLORS.heroText} />
+        <Text style={styles.cancelChipText}>Cancel trip</Text>
+      </PressableScale>
+    </>
+  );
+
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Icon name="shopping-bag" size={24} color={colors.primary} />
-        </View>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => setShowCancelDialog(true)}
-        >
-          <Icon name="close" size={20} color={colors.error} />
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
+    <>
+    <PremiumScreenShell
+      noHorizontalPadding
+      title={i18n.t("navigation.drawer.shoppingMode")}
+      subtitle={i18n.t("shopping.groupedByAisle")}
+      heroStats={[
+        { label: "To buy", value: String(items.length - bought.length) },
+        { label: "In cart", value: String(bought.length) },
+      ]}
+      heroSlot={heroSlot}
+      contentStyle={styles.shellContent}
+    >
+      <View style={styles.innerPad}>
+        {toBuyGroups.length > 0 ? (
+          toBuyGroups.map((group) => (
+            <ShoppingDepartmentSection
+              key={group.departmentId}
+              departmentId={group.departmentId}
+              items={group.items}
+              colors={colors}
+              collapsed={!!collapsedDepartments[group.departmentId]}
+              onToggleCollapsed={() => toggleDepartmentCollapsed(group.departmentId)}
+              onTogglePurchased={handleTogglePurchased}
+              onEdit={(item) => handleTogglePurchased(item)}
+              onDelete={() => {}}
+              disableSwipe
+            />
+          ))
+        ) : (
+          <EmptyState
+            icon="check-circle"
+            title="All items purchased!"
+            message="Great job completing your shopping list."
+          />
+        )}
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Progress */}
-          <View style={styles.progressContainer}>
-            <Text style={styles.progressText}>
-              {bought.length} of {items.length} items purchased
-            </Text>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${items.length > 0 ? (bought.length / items.length) * 100 : 0}%` }
-                ]} 
-              />
-            </View>
-          </View>
-
-          {/* Shopping Categories */}
-          {toBuyGroups.length > 0 ? (
-            <View style={styles.categoriesContainer}>
-              {toBuyGroups.map((group) => (
-                <View key={group.departmentId} style={styles.categorySection}>
-                  <Text style={styles.categoryTitle}>
-                    {i18n.t(`shopping.storeDepartments.${group.departmentId}`)}
-                  </Text>
-                  <View style={styles.categoryItems}>
-                    {group.items.map(item => (
-                      <ShoppingItemCard key={item.id} item={item} />
-                    ))}
-                  </View>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.allDoneContainer}>
-              <Icon name="check-circle" size={80} color={colors.success} />
-              <Text style={styles.allDoneTitle}>All items purchased!</Text>
-              <Text style={styles.allDoneSubtitle}>Great job completing your shopping list.</Text>
-            </View>
-          )}
-
-          {/* Cart Section */}
-          {hasBoughtItems && (
-            <View style={styles.cartSection}>
-              <Text style={styles.cartTitle}>In Your Cart ({bought.length} items)</Text>
-              <View style={styles.cartItems}>
-                {bought.map(item => (
-                  <ShoppingItemCard key={item.id} item={item} />
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Finish Button */}
-          {hasBoughtItems && (
+        {hasBoughtItems && (
+          <View style={styles.cartBlock}>
             <TouchableOpacity
-              style={styles.finishButton}
-              onPress={() => setShowFinishDialog(true)}
+              style={styles.cartHeader}
+              onPress={() => setPurchasedCollapsed((v) => !v)}
             >
-              <Icon name="flag" size={24} color={COLORS.textInverse} />
-              <Text style={styles.finishButtonText}>Finish Shopping</Text>
+              <Text style={[styles.cartTitle, { color: colors.textSecondary }]}>
+                In your cart ({bought.length})
+              </Text>
+              <Icon
+                name={purchasedCollapsed ? "expand-more" : "expand-less"}
+                size={22}
+                color={colors.textTertiary}
+              />
             </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
+            {!purchasedCollapsed && (
+              <PremiumCard padded={false}>
+                {bought.map((item, index) => (
+                  <ShoppingListItemRow
+                    key={item.id}
+                    item={item}
+                    colors={colors}
+                    onTogglePurchased={handleTogglePurchased}
+                    onEdit={(it) => handleTogglePurchased(it)}
+                    onDelete={() => {}}
+                    isLastInGroup={index === bought.length - 1}
+                    disableSwipe
+                  />
+                ))}
+              </PremiumCard>
+            )}
+          </View>
+        )}
+
+        {hasBoughtItems && (
+          <GradientButton
+            label="Finish shopping"
+            onPress={() => setShowFinishDialog(true)}
+            style={styles.finishCta}
+          />
+        )}
+      </View>
+    </PremiumScreenShell>
 
       {/* Cancel Dialog */}
       <Modal
@@ -466,12 +442,51 @@ export default function ShoppingModeScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
 
 function createStyles(colors) {
   return StyleSheet.create({
+  shellContent: {
+    paddingBottom: SPACING.xxxl,
+  },
+  innerPad: {
+    paddingHorizontal: SPACING.l,
+  },
+  cancelChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.s,
+    alignSelf: "flex-start",
+    marginTop: SPACING.m,
+    paddingVertical: SPACING.s,
+    paddingHorizontal: SPACING.m,
+    borderRadius: RADIUS.m,
+    backgroundColor: COLORS.overlayOnPrimary,
+  },
+  cancelChipText: {
+    color: COLORS.heroText,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  cartBlock: {
+    marginTop: SPACING.l,
+  },
+  cartHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.s,
+    marginBottom: SPACING.s,
+  },
+  cartTitle: {
+    ...TYPOGRAPHY.overline,
+  },
+  finishCta: {
+    marginTop: SPACING.xl,
+    marginHorizontal: SPACING.s,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -121,7 +121,12 @@ export default function HomeScreen({ navigation }) {
 
   const heroSlot = (
     <View style={styles.heroRow}>
-      <ProgressRing progress={taskDoneRatio} label={`${Math.round(taskDoneRatio * 100)}%`} size={64} />
+      <ProgressRing
+        onHero
+        progress={taskDoneRatio}
+        label={`${Math.round(taskDoneRatio * 100)}%`}
+        size={64}
+      />
       <View style={styles.heroActions}>
         <PressableScale onPress={() => handleNavigate("AddTask")} style={styles.heroChip}>
           <Icon name="add-task" size={18} color={colors.textInverse} />

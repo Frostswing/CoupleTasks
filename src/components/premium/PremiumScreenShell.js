@@ -150,9 +150,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   heroSubtitle: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.overlayOnPrimary,
-    opacity: 0.95,
+    fontSize: TYPOGRAPHY.body.fontSize,
+    lineHeight: TYPOGRAPHY.body.lineHeight,
+    fontWeight: TYPOGRAPHY.body.fontWeight,
+    color: COLORS.heroTextMuted,
   },
   statsRow: {
     flexDirection: "row",
@@ -173,9 +174,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   statLabel: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.textInverse,
-    opacity: 0.85,
+    fontSize: TYPOGRAPHY.caption.fontSize,
+    lineHeight: TYPOGRAPHY.caption.lineHeight,
+    color: COLORS.heroTextMuted,
     marginTop: 2,
   },
   body: {
@@ -211,8 +212,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.textInverse,
   },
   progressLabel: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.textInverse,
+    fontSize: TYPOGRAPHY.caption.fontSize,
+    lineHeight: TYPOGRAPHY.caption.lineHeight,
+    color: COLORS.heroTextMuted,
     fontWeight: "600",
   },
 });

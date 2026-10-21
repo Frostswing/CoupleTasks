@@ -38,6 +38,10 @@ export const COLORS = {
   overlayMedium: "rgba(0, 0, 0, 0.6)",
   overlayHeavy: "rgba(0, 0, 0, 0.9)",
   overlayOnPrimary: "rgba(255, 255, 255, 0.2)",
+  /** Text on premium gradient heroes */
+  heroText: "#FFFFFF",
+  heroTextMuted: "rgba(255, 255, 255, 0.8)",
+  heroTextSubtle: "rgba(255, 255, 255, 0.55)",
   
   // Dark mode support
   dark: {

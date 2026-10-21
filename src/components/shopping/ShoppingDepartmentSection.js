@@ -15,6 +15,7 @@ export default function ShoppingDepartmentSection({
   onTogglePurchased,
   onEdit,
   onDelete,
+  disableSwipe,
 }) {
   const dept = getStoreDepartmentById(departmentId);
   const title = i18n.t(`shopping.storeDepartments.${departmentId}`);
@@ -60,6 +61,7 @@ export default function ShoppingDepartmentSection({
               onEdit={onEdit}
               onDelete={onDelete}
               isLastInGroup={index === items.length - 1}
+              disableSwipe={disableSwipe}
             />
           ))}
         </View>

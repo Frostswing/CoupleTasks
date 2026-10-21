@@ -23,6 +23,7 @@ export default function ShoppingListItemRow({
   onEdit,
   onDelete,
   isLastInGroup,
+  disableSwipe,
 }) {
   const scale = useRef(new Animated.Value(1)).current;
   const locale = i18n.locale;
@@ -133,6 +134,10 @@ export default function ShoppingListItemRow({
       </Pressable>
     </Animated.View>
   );
+
+  if (disableSwipe) {
+    return row;
+  }
 
   return (
     <Swipeable

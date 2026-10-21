@@ -7,14 +7,16 @@ import {
   Alert,
   I18nManager,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from '../constants/theme';
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n, { changeLanguage, loadLanguagePreference } from '../localization/i18n';
 import { handleError } from '../services/errorHandlingService';
 import { useAppTheme } from '../context/ThemeContext';
-import { screenBackgroundStyle } from '../constants/theme';
+import PremiumScreenShell from '../components/premium/PremiumScreenShell';
+import PremiumCard from '../components/premium/PremiumCard';
+import GradientButton from '../components/premium/GradientButton';
+import PressableScale from '../components/premium/PressableScale';
 
 const LanguageSelectionScreen = ({ onComplete }) => {
   const { colors } = useAppTheme();
@@ -102,208 +104,121 @@ const LanguageSelectionScreen = ({ onComplete }) => {
       name: 'עברית',
       nativeName: 'עברית',
       flag: '🇮🇱',
-      direction: 'rtl'
     },
     {
       code: 'en',
       name: 'English',
       nativeName: 'English',
       flag: '🇺🇸',
-      direction: 'ltr'
     }
   ];
 
   return (
-    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]} edges={['bottom']}>
-      <View style={styles.header}>
-        <View style={styles.logoBox}>
-          <MaterialIcons name="favorite" size={32} color={colors.primary} />
-        </View>
-        <Text style={styles.appName}>CoupleTasks</Text>
-        <Text style={styles.subtitle}>Together we organize</Text>
-      </View>
+    <PremiumScreenShell
+      title="CoupleTasks"
+      subtitle="Choose your preferred language"
+      heroStats={[
+        { label: 'שפה', value: selectedLanguage === 'he' ? 'עב' : 'EN' },
+      ]}
+      contentStyle={styles.contentPad}
+    >
+      <Text style={[styles.description, { color: colors.textSecondary }]}>
+        בחר את השפה המועדפת עליך{'\n'}
+        Choose your preferred language
+      </Text>
 
-      <View style={styles.content}>
-        <Text style={styles.description}>
-          בחר את השפה המועדפת עליך{'\n'}
-          Choose your preferred language
-        </Text>
-
-        <View style={styles.languageList}>
-          {languages.map((language) => (
-            <TouchableOpacity
-              key={language.code}
-              style={[
-                styles.languageOption,
-                selectedLanguage === language.code && styles.selectedLanguage
-              ]}
-              onPress={() => handleLanguageSelect(language.code)}
-              disabled={isLoading}
-            >
-              <View style={styles.languageContent}>
-                <Text style={styles.flag}>{language.flag}</Text>
-                <View style={styles.languageText}>
-                  <Text style={[
-                    styles.languageName,
-                    selectedLanguage === language.code && styles.selectedLanguageText
-                  ]}>
-                    {language.nativeName}
-                  </Text>
-                  <Text style={[
-                    styles.languageSubtext,
-                    selectedLanguage === language.code && styles.selectedLanguageSubtext
-                  ]}>
-                    {language.name}
-                  </Text>
+      <View style={styles.languageList}>
+        {languages.map((language) => {
+          const active = selectedLanguage === language.code;
+          return (
+            <PressableScale key={language.code} onPress={() => handleLanguageSelect(language.code)}>
+              <PremiumCard
+                style={[
+                  styles.languageOption,
+                  active && { borderColor: colors.primary, borderWidth: 2 },
+                ]}
+              >
+                <View style={styles.languageContent}>
+                  <Text style={styles.flag}>{language.flag}</Text>
+                  <View style={styles.languageText}>
+                    <Text style={[styles.languageName, { color: colors.text }]}>{language.nativeName}</Text>
+                    <Text style={[styles.languageSubtext, { color: colors.textSecondary }]}>{language.name}</Text>
+                  </View>
                 </View>
-              </View>
-              {selectedLanguage === language.code && (
-                <View style={styles.checkmark}>
-                  <Text style={styles.checkmarkText}>✓</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity
-          style={[styles.continueButton, isLoading && styles.disabledButton]}
-          onPress={() => completeLanguageSelection()}
-          disabled={isLoading}
-        >
-          <Text style={styles.continueButtonText}>
-            {isLoading ? 'טוען... / Loading...' : 'המשך / Continue'}
-          </Text>
-        </TouchableOpacity>
+                {active ? (
+                  <View style={[styles.checkmark, { backgroundColor: colors.primary }]}>
+                    <MaterialIcons name="check" size={18} color={COLORS.textInverse} />
+                  </View>
+                ) : null}
+              </PremiumCard>
+            </PressableScale>
+          );
+        })}
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Made for couples who organize together
-        </Text>
-      </View>
-    </SafeAreaView>
+      <GradientButton
+        label={isLoading ? 'טוען... / Loading...' : 'המשך / Continue'}
+        onPress={() => completeLanguageSelection()}
+        disabled={isLoading}
+        style={styles.continueBtn}
+      />
+
+      <Text style={[styles.footerText, { color: colors.textTertiary }]}>
+        Made for couples who organize together
+      </Text>
+    </PremiumScreenShell>
   );
 };
 
 function createStyles(colors) {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    header: {
-      alignItems: 'center',
-      paddingTop: 80,
-      paddingBottom: 40,
-    },
-    logoBox: {
-      width: 64,
-      height: 64,
-      borderRadius: 16,
-      backgroundColor: colors.primaryMuted,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-    },
-    appName: {
-      ...TYPOGRAPHY.h1,
-      color: colors.text,
-      marginBottom: 8,
-    },
-    subtitle: {
-      ...TYPOGRAPHY.body,
-      color: colors.textSecondary,
-      fontStyle: 'italic',
-    },
-    content: {
-      flex: 1,
-      paddingHorizontal: 24,
+    contentPad: {
+      paddingTop: SPACING.s,
     },
     description: {
       ...TYPOGRAPHY.body,
-      color: colors.textSecondary,
       textAlign: 'center',
-      lineHeight: 24,
-      marginBottom: 40,
+      marginBottom: SPACING.xl,
     },
     languageList: {
-      gap: 16,
-      marginBottom: 40,
+      gap: SPACING.m,
+      marginBottom: SPACING.xl,
     },
     languageOption: {
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 20,
-      borderWidth: 2,
-      borderColor: 'transparent',
-    },
-    selectedLanguage: {
-      borderColor: colors.primary,
-      backgroundColor: colors.borderLight,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     languageContent: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: SPACING.m,
     },
     flag: {
-      fontSize: 32,
-      marginRight: 16,
+      fontSize: 28,
     },
     languageText: {
-      flex: 1,
+      gap: 2,
     },
     languageName: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 4,
-    },
-    selectedLanguageText: {
-      color: colors.primary,
+      ...TYPOGRAPHY.h3,
     },
     languageSubtext: {
-      fontSize: 14,
-      color: colors.textSecondary,
-    },
-    selectedLanguageSubtext: {
-      color: colors.primary,
+      ...TYPOGRAPHY.caption,
     },
     checkmark: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: colors.primary,
+      width: 28,
+      height: 28,
+      borderRadius: RADIUS.full,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    checkmarkText: {
-      color: COLORS.textInverse,
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    continueButton: {
-      backgroundColor: colors.primary,
-      borderRadius: 16,
-      paddingVertical: 16,
-      paddingHorizontal: 32,
-      alignItems: 'center',
-    },
-    disabledButton: {
-      opacity: 0.5,
-    },
-    continueButtonText: {
-      color: COLORS.textInverse,
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    footer: {
-      alignItems: 'center',
-      paddingBottom: 40,
+    continueBtn: {
+      marginBottom: SPACING.xl,
     },
     footerText: {
-      fontSize: 14,
-      color: colors.textTertiary,
-      fontStyle: 'italic',
+      ...TYPOGRAPHY.caption,
+      textAlign: 'center',
     },
   });
 }
