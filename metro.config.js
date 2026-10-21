@@ -1,5 +1,15 @@
+const path = require("path");
 const { getDefaultConfig } = require("expo/metro-config");
 const config = getDefaultConfig(__dirname);
+
+// @firebase/auth is nested under firebase; point Metro at the RN build entry.
+config.resolver.extraNodeModules = {
+  ...(config.resolver.extraNodeModules || {}),
+  "@firebase/auth": path.resolve(
+    __dirname,
+    "node_modules/firebase/node_modules/@firebase/auth"
+  ),
+};
 
 // -----------------------------------------------------------------------------
 // Firebase / Expo SDK 53: allow ".cjs" files and use classic Node "exports"

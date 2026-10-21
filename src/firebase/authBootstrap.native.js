@@ -3,7 +3,7 @@ import {
   getAuth,
   initializeAuth,
   getReactNativePersistence,
-} from "@firebase/auth/dist/rn/index.js";
+} from "@firebase/auth";
 
 /**
  * Native Firebase Auth with AsyncStorage persistence (survives app restarts).
