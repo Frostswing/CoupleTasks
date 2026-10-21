@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getShoppingSuggestions, getTaskSuggestions, getSmartSuggestions } from '../../services/historyService';
+import { getCurrentUser, getUserProfile } from '../../services/userService';
 import { ShoppingListItem } from '../../entities/ShoppingListItem';
-import { User } from '../../entities/User';
 
 const AutoCompleteInput = ({ 
   value, 
@@ -68,13 +68,14 @@ const AutoCompleteInput = ({
   // Load archived items once (similar to ArchiveScreen)
   const loadArchivedItems = async () => {
     try {
-      const user = await User.me();
-      if (!user) return;
-      
-      const userEmails = [user.email];
-      if (user.partner_email) userEmails.push(user.partner_email);
-      
-      // Load all archived items
+      const authUser = getCurrentUser();
+      if (!authUser) return;
+      const profileResult = await getUserProfile(authUser.uid);
+      const profile = profileResult.success ? profileResult.profile : {};
+
+      const userEmails = [authUser.email];
+      if (profile.partner_email) userEmails.push(profile.partner_email);
+
       const allArchivedItems = await ShoppingListItem.filter({ is_archived: true }, '-purchased_date');
       const relevantProducts = allArchivedItems.filter(item => 
         userEmails.includes(item.created_by) || userEmails.includes(item.added_by)

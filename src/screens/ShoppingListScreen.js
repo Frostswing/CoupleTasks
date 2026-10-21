@@ -20,7 +20,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
-import { User } from "../entities/User";
+import { getCurrentUser, getUserProfile } from "../services/userService";
 import AutoCompleteInput from "../components/common/AutoCompleteInput";
 import { autoDetectCategory, getDefaultUnitForCategory } from "../constants/categories";
 import {
@@ -37,6 +37,16 @@ import { COLORS, SPACING, RADIUS, TYPOGRAPHY, screenBackgroundStyle } from "../c
 import { useAppTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
+
+async function loadCurrentUserProfile() {
+  const authUser = getCurrentUser();
+  if (!authUser) return null;
+  const result = await getUserProfile(authUser.uid);
+  if (!result.success) {
+    return { uid: authUser.uid, email: authUser.email, full_name: authUser.displayName || "User" };
+  }
+  return { uid: authUser.uid, email: authUser.email, ...result.profile };
+}
 
 export default function ShoppingListScreen({ navigation, route }) {
   const { colors } = useAppTheme();
@@ -62,63 +72,37 @@ export default function ShoppingListScreen({ navigation, route }) {
   const [departmentOrder, setDepartmentOrder] = useState(null);
   const [showStoreLayoutModal, setShowStoreLayoutModal] = useState(false);
 
-  // Load data when component mounts (with loading indicator)
-  useEffect(() => {
-    loadData(true); // Show loading on initial mount
-    checkAutoAddItems();
-    
-    // Check if we should auto-open add dialog (from home screen shortcut)
-    if (route?.params?.openAddDialog) {
-      // Small delay to ensure screen is fully loaded
-      setTimeout(() => {
-        setShowAddDialog(true);
-      }, 300);
-    }
-  }, [route?.params?.openAddDialog]);
-
-  useEffect(() => {
-    const unsubscribe = subscribeShoppingDepartmentOrder((order) => {
-      setDepartmentOrder(order);
-    });
-    return unsubscribe;
-  }, []);
-
-  // Refresh data when screen comes into focus (e.g., after returning from shopping mode)
-  // Don't show loading indicator on refresh to avoid flashing
-  useFocusEffect(
-    useCallback(() => {
-      console.log('ShoppingListScreen: Screen focused, refreshing data...');
-      loadData(false); // Don't show loading on refresh
-    }, [loadData])
-  );
-
   const loadData = useCallback(async (showLoading = false) => {
     if (showLoading) {
       setIsLoading(true);
     }
     try {
       const [user, shoppingItems] = await Promise.all([
-        User.me(),
+        loadCurrentUserProfile(),
         ShoppingListItem.list('-created_date')
       ]);
-      
+
+      if (!user) {
+        setItems([]);
+        return;
+      }
+
       setCurrentUser(user);
-      
+
       // Filter items for current user and partner
       const userEmails = [user.email];
       if (user.partner_email) userEmails.push(user.partner_email);
-      const filteredItems = shoppingItems.filter(item => 
+      const filteredItems = shoppingItems.filter(item =>
         !item.is_archived &&
         (userEmails.includes(item.created_by) || userEmails.includes(item.added_by))
       );
-      
-      // Debug: Log items with images
+
       filteredItems.forEach(item => {
         if (item.image_url) {
           console.log('Item with image:', item.name, 'image_url:', item.image_url);
         }
       });
-      
+
       setItems(filteredItems);
     } catch (error) {
       console.error("Error loading shopping list:", error);
@@ -127,19 +111,22 @@ export default function ShoppingListScreen({ navigation, route }) {
     }
   }, []);
 
-  const checkAutoAddItems = async () => {
+  const checkAutoAddItems = useCallback(async () => {
     try {
+      const user = await loadCurrentUserProfile();
+      if (!user?.email) return;
+
       const inventoryItems = await InventoryItem.list();
-      const lowStockItems = inventoryItems.filter(item => 
+      const lowStockItems = inventoryItems.filter(item =>
         item.current_amount < item.minimum_amount
       );
 
       for (const item of lowStockItems) {
-        const existingItem = await ShoppingListItem.filter({ 
-          name: item.name, 
-          is_purchased: false 
+        const existingItem = await ShoppingListItem.filter({
+          name: item.name,
+          is_purchased: false
         });
-        
+
         if (existingItem.length === 0) {
           await ShoppingListItem.create({
             name: item.name,
@@ -147,16 +134,42 @@ export default function ShoppingListScreen({ navigation, route }) {
             quantity: item.minimum_amount - item.current_amount,
             unit: item.unit,
             auto_added: true,
-            added_by: (await User.me()).email
+            added_by: user.email
           });
         }
       }
-      
+
       loadData();
     } catch (error) {
       console.error("Error checking auto-add items:", error);
     }
-  };
+  }, [loadData]);
+
+  // Load data when component mounts (with loading indicator)
+  useEffect(() => {
+    loadData(true);
+    checkAutoAddItems();
+
+    if (route?.params?.openAddDialog) {
+      setTimeout(() => {
+        setShowAddDialog(true);
+      }, 300);
+    }
+  }, [route?.params?.openAddDialog, loadData, checkAutoAddItems]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeShoppingDepartmentOrder((order) => {
+      setDepartmentOrder(order);
+    });
+    return unsubscribe;
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('ShoppingListScreen: Screen focused, refreshing data...');
+      loadData(false);
+    }, [loadData])
+  );
 
   const handleNameChange = (name) => {
     const detectedCategory = autoDetectCategory(name);
