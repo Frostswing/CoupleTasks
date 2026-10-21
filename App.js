@@ -15,6 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DrawerNavigator from "./src/navigation/DrawerNavigator";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AuthScreen from "./src/screens/AuthScreen";
+import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import LanguageSelectionScreen from "./src/screens/LanguageSelectionScreen";
 import { subscribeToAuthChanges } from "./src/services/userService";
 import { loadLanguagePreference } from "./src/localization/i18n";
@@ -135,6 +136,7 @@ function AppContent() {
           }}
         >
           <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         </Stack.Navigator>
       );
     }

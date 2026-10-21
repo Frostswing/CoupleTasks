@@ -9,6 +9,11 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import {
+  normalizeResetEmail,
+  shouldObfuscateResetSuccess,
+  mapFirebaseResetSendError,
+} from "../utils/passwordReset";
+import {
   ref,
   set,
   get,
@@ -206,16 +211,24 @@ export const logoutUser = async () => {
  * @param {string} email - אימייל המשתמש
  * @returns {Promise} - הבטחה שמתרחשת עם סיום הפעולה
  */
-export const resetPassword = async (email) => {
+export const resetPassword = async (email, options = {}) => {
   try {
-    // וודא שהאימות מוכן
     await waitForAuth();
 
-    await sendPasswordResetEmail(auth, email);
+    const normalizedEmail = normalizeResetEmail(email);
+    const languageCode = options.languageCode;
+    if (languageCode === "he" || languageCode === "en") {
+      auth.languageCode = languageCode;
+    }
+
+    await sendPasswordResetEmail(auth, normalizedEmail);
     return { success: true };
   } catch (error) {
+    if (shouldObfuscateResetSuccess(error)) {
+      return { success: true };
+    }
     console.error("שגיאה בשליחת אימייל לאיפוס סיסמה:", error);
-    return { success: false, error };
+    return { success: false, errorKey: mapFirebaseResetSendError(error), error };
   }
 };
 

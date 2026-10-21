@@ -67,7 +67,21 @@
         "registrationError": "שגיאה בהרשמה",
         "logoutSuccess": "התנתקות בוצעה בהצלחה",
         "enterEmailForReset": "אנא הזן כתובת דוא\"ל תחילה",
-        "passwordResetEmailSent": "אימייל לאיפוס סיסמה נשלח! אנא בדוק את תיבת הדואר הנכנס שלך."
+        "passwordResetEmailSent": "אם קיים חשבון לכתובת זו, יישלח לך קישור לאיפוס הסיסמה בקרוב.",
+        "forgotPasswordTitle": "שכחת סיסמה",
+        "forgotPasswordSubtitle": "נשלח לך קישור מאובטח לבחירת סיסמה חדשה.",
+        "forgotPasswordSuccessSubtitle": "כמעט סיימנו.",
+        "forgotPasswordHint": "הזינו את הדוא\"ל שבו אתם משתמשים להתחברות. אם החשבון קיים, נשלח הוראות איפוס.",
+        "forgotPasswordMissingEmail": "אנא הזינו כתובת דוא\"ל",
+        "resetPassword": "איפוס סיסמה",
+        "sendResetLink": "שליחת קישור איפוס",
+        "sendingResetEmail": "שולחים אימייל איפוס…",
+        "checkYourInbox": "בדקו את תיבת הדואר",
+        "backToSignIn": "חזרה להתחברות",
+        "resendResetEmail": "שליחה חוזרת",
+        "resendResetCooldown": "שליחה חוזרת תוך {{seconds}} שניות",
+        "resetTooManyRequests": "יותר מדי ניסיונות. המתינו כמה דקות ונסו שוב.",
+        "resetEmailFailed": "לא הצלחנו לשלוח אימייל איפוס. נסו שוב."
     },
     "kudos": {
         "title": "קרדיט",

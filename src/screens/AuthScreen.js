@@ -20,7 +20,6 @@ import {
   logoutUser,
   getCurrentUser,
   subscribeToAuthChanges,
-  resetPassword,
 } from "../services/userService";
 import { simpleGoogleSignIn } from "../services/googleAuthService";
 import { handleError, showSuccess } from "../services/errorHandlingService";
@@ -155,34 +154,8 @@ const AuthScreen = ({ navigation }) => {
     setName("");
   };
 
-  const handleForgotPassword = async () => {
-    if (!email) {
-      Alert.alert(i18n.t("common.error"), i18n.t("auth.enterEmailForReset") || "Please enter your email address first");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert(i18n.t("common.error"), i18n.t("auth.invalidEmail"));
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const result = await resetPassword(email);
-      if (result.success) {
-        Alert.alert(
-          i18n.t("common.success") || "Success",
-          i18n.t("auth.passwordResetEmailSent") || "Password reset email sent!"
-        );
-      } else {
-        handleError(result.error, "resetPassword");
-      }
-    } catch (error) {
-      handleError(error, "resetPassword");
-    } finally {
-      setLoading(false);
-    }
+  const handleForgotPassword = () => {
+    navigation.navigate("ForgotPassword", { email });
   };
 
   const heroTitle = user ? i18n.t("navigation.drawer.profile") : i18n.t("app.displayName");
