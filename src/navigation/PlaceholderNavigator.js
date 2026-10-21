@@ -29,7 +29,7 @@ const PlaceholderNavigator = () => {
       initialRouteName={initialRouteName}
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#14B8A6",
+          backgroundColor: "#2563EB",
         },
         headerTintColor: "#fff",
         headerTitleStyle: {

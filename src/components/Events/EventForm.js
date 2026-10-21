@@ -126,7 +126,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerIcon}>
-            <Icon name="event" size={24} color="#14B8A6" />
+            <Icon name="event" size={24} color="#2563EB" />
           </View>
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
@@ -258,7 +258,7 @@ export default function EventForm({ event, onSubmit, onCancel, title = "Create N
               style={styles.submitButtonContainer}
             >
               <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
+                colors={["#2563EB", "#06B6D4", "#3B82F6"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.button, styles.submitButton]}
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

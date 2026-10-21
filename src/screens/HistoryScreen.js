@@ -207,7 +207,7 @@ const HistoryScreen = () => {
           </Text>
         </View>
         <View style={styles.popularItemBadge}>
-          <Icon name="trending-up" size={12} color="#14B8A6" />
+          <Icon name="trending-up" size={12} color="#2563EB" />
         </View>
       </View>
     );
@@ -244,7 +244,7 @@ const HistoryScreen = () => {
           style={[styles.tab, activeTab === 'shopping' && styles.activeTab]}
           onPress={() => setActiveTab('shopping')}
         >
-          <Icon name="shopping-cart" size={20} color={activeTab === 'shopping' ? '#14B8A6' : '#6B7280'} />
+          <Icon name="shopping-cart" size={20} color={activeTab === 'shopping' ? '#2563EB' : '#6B7280'} />
           <Text style={[styles.tabText, activeTab === 'shopping' && styles.activeTabText]}>
             קניות
           </Text>
@@ -254,7 +254,7 @@ const HistoryScreen = () => {
           style={[styles.tab, activeTab === 'tasks' && styles.activeTab]}
           onPress={() => setActiveTab('tasks')}
         >
-          <Icon name="task-alt" size={20} color={activeTab === 'tasks' ? '#14B8A6' : '#6B7280'} />
+          <Icon name="task-alt" size={20} color={activeTab === 'tasks' ? '#2563EB' : '#6B7280'} />
           <Text style={[styles.tabText, activeTab === 'tasks' && styles.activeTabText]}>
             מטלות
           </Text>
@@ -307,7 +307,7 @@ const HistoryScreen = () => {
             style={styles.actionButton}
             onPress={() => setShowExportModal(true)}
           >
-            <Icon name="download" size={20} color="#14B8A6" />
+            <Icon name="download" size={20} color="#2563EB" />
             <Text style={styles.actionButtonText}>ייצא היסטוריה</Text>
           </TouchableOpacity>
           
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   activeTabText: {
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   content: {
     flex: 1,
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: '#2563EB',
     marginLeft: 8,
   },
   dangerButtonText: {
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     borderRadius: 12,
     paddingVertical: 16,
   },

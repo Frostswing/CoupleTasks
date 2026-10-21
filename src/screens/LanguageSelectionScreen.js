@@ -6,13 +6,12 @@ import {
   TouchableOpacity,
   Alert,
   I18nManager,
-  Dimensions,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n, { changeLanguage, loadLanguagePreference } from '../localization/i18n';
 import { handleError } from '../services/errorHandlingService';
-
-const { width } = Dimensions.get('window');
 
 const LanguageSelectionScreen = ({ onComplete }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('he');
@@ -119,7 +118,9 @@ const LanguageSelectionScreen = ({ onComplete }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.appIcon}>💜</Text>
+        <View style={styles.logoBox}>
+          <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
+        </View>
         <Text style={styles.appName}>CoupleTasks</Text>
         <Text style={styles.subtitle}>Together we organize</Text>
       </View>
@@ -181,7 +182,7 @@ const LanguageSelectionScreen = ({ onComplete }) => {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Made with 💜 for couples
+          Made for couples who organize together
         </Text>
       </View>
     </View>
@@ -198,8 +199,13 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     paddingBottom: 40,
   },
-  appIcon: {
-    fontSize: 60,
+  logoBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: COLORS.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
   appName: {
@@ -251,7 +257,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   selectedLanguage: {
-    borderColor: '#14B8A6',
+    borderColor: '#2563EB',
     backgroundColor: '#F3F4F6',
   },
   languageContent: {
@@ -272,20 +278,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   selectedLanguageText: {
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   languageSubtext: {
     fontSize: 14,
     color: '#6B7280',
   },
   selectedLanguageSubtext: {
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   checkmark: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -295,7 +301,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   continueButton: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 32,

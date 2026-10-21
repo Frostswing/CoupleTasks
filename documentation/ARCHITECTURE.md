@@ -14,7 +14,7 @@ CoupleTasks is a React Native mobile application built with Expo, designed to he
 - **Navigation:** React Navigation 7 (Drawer Navigator with nested Stack Navigator)
 - **State Management:** React Hooks (useState, useEffect, useCallback, useReducer)
 - **UI Components:** Native React Native components
-- **Icons:** react-native-vector-icons (Material Icons)
+- **Icons:** `@expo/vector-icons` (Material Icons in-app); launcher assets in `assets/` (see `npm run generate-icons`)
 - **Internationalization:** i18n-js with English and Hebrew support
 
 ### Backend
@@ -914,13 +914,13 @@ useEffect(() => {
 ## 🎨 UI/UX Architecture
 
 ### Design System
-- **Color Palette:**
-  - Primary: Purple (#8B5CF6)
-  - Secondary: Blue (#2563EB)
-  - Success: Green (#16A34A)
-  - Danger: Red (#DC2626)
-  - Warning: Orange (#F59E0B)
-  - Background: Light Gray (#F8FAFC)
+See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) for full tokens and icon workflow.
+
+- **Color Palette (2026 refresh):**
+  - Primary accent: Blue (#2563EB)
+  - Background: #FAFAFA, Surface: #FFFFFF
+  - Text: #18181B / secondary #52525B
+  - Success / Warning / Error: semantic greens, ambers, reds (used sparingly)
 
 - **Typography:**
   - System fonts (default)
@@ -1359,8 +1359,8 @@ const styles = StyleSheet.create({
 
 ---
 
-**Last Updated:** December 2024  
-**Version:** 2.0.0  
+**Last Updated:** October 2026  
+**Version:** 2.1.0  
 **Maintained By:** Development Team
 
 ---

@@ -167,7 +167,7 @@ export default function CalendarView({
       <View style={styles.weekContainer}>
         <View style={styles.weekHeader}>
           <TouchableOpacity onPress={() => navigateWeek('prev')} style={styles.navButton}>
-            <Icon name="chevron-left" size={24} color="#14B8A6" />
+            <Icon name="chevron-left" size={24} color="#2563EB" />
           </TouchableOpacity>
           <Text style={styles.monthYearText}>
             {weekStart.getMonth() === weekEnd.getMonth() 
@@ -175,7 +175,7 @@ export default function CalendarView({
               : `${format(weekStart, 'MMM')} - ${format(weekEnd, 'MMM yyyy')}`}
           </Text>
           <TouchableOpacity onPress={() => navigateWeek('next')} style={styles.navButton}>
-            <Icon name="chevron-right" size={24} color="#14B8A6" />
+            <Icon name="chevron-right" size={24} color="#2563EB" />
           </TouchableOpacity>
         </View>
 
@@ -237,13 +237,13 @@ export default function CalendarView({
       <View style={styles.monthContainer}>
         <View style={styles.monthHeader}>
           <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.navButton}>
-            <Icon name="chevron-left" size={24} color="#14B8A6" />
+            <Icon name="chevron-left" size={24} color="#2563EB" />
           </TouchableOpacity>
           <Text style={styles.monthYearText}>
             {format(selectedDate, 'MMMM yyyy')}
           </Text>
           <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.navButton}>
-            <Icon name="chevron-right" size={24} color="#14B8A6" />
+            <Icon name="chevron-right" size={24} color="#2563EB" />
           </TouchableOpacity>
         </View>
 
@@ -366,18 +366,18 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   todayColumn: {
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
   },
   selectedColumn: {
     backgroundColor: '#CCFBF1',
     borderWidth: 2,
-    borderColor: '#14B8A6',
+    borderColor: '#2563EB',
   },
   dayTasks: {
     gap: 4,
   },
   taskItem: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     padding: 6,
     borderRadius: 6,
     marginBottom: 4,
@@ -427,12 +427,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   monthToday: {
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
   },
   monthSelected: {
     backgroundColor: '#CCFBF1',
     borderWidth: 2,
-    borderColor: '#14B8A6',
+    borderColor: '#2563EB',
   },
   monthDayNumber: {
     fontSize: 14,
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
   },
   monthTodayText: {
-    color: '#14B8A6',
+    color: '#2563EB',
     fontWeight: '700',
   },
   monthTaskIndicator: {
@@ -455,11 +455,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
   },
   monthTaskCount: {
     fontSize: 10,
-    color: '#14B8A6',
+    color: '#2563EB',
     marginLeft: 2,
     fontWeight: '600',
   },

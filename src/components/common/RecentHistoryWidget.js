@@ -104,7 +104,7 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
         </Text>
         <TouchableOpacity onPress={onSeeAll} style={styles.seeAllButton}>
           <Text style={styles.seeAllText}>{i18n.t('history.all')}</Text>
-          <Icon name="chevron-left" size={16} color="#14B8A6" />
+          <Icon name="chevron-left" size={16} color="#2563EB" />
         </TouchableOpacity>
       </View>
       
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: '#14B8A6',
+    color: '#2563EB',
     fontWeight: '600',
     marginRight: 4,
   },

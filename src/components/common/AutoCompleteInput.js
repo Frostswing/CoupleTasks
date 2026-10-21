@@ -241,9 +241,9 @@ const AutoCompleteInput = ({
         <View style={styles.suggestionContent}>
           <View style={styles.suggestionIcon}>
             {isSmartSuggestion ? (
-              <Icon name="auto-awesome" size={16} color="#14B8A6" />
+              <Icon name="auto-awesome" size={16} color="#2563EB" />
             ) : isFromArchive ? (
-              <Icon name="archive" size={16} color="#14B8A6" />
+              <Icon name="archive" size={16} color="#2563EB" />
             ) : frequency > 0 ? (
               <Icon name="history" size={16} color="#6B7280" />
             ) : (
@@ -467,13 +467,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   smartSuggestionText: {
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   archiveSuggestionItem: {
     backgroundColor: '#F8FAFF',
   },
   archiveSuggestionText: {
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   addTypedOption: {
     backgroundColor: '#EFF6FF',
@@ -487,13 +487,13 @@ const styles = StyleSheet.create({
   },
   archiveLabel: {
     fontSize: 11,
-    color: '#14B8A6',
+    color: '#2563EB',
     marginTop: 2,
     fontWeight: '600',
   },
   smartLabel: {
     fontSize: 11,
-    color: '#14B8A6',
+    color: '#2563EB',
     marginTop: 2,
     fontWeight: '600',
   },

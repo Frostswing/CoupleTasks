@@ -216,7 +216,7 @@ export default function TaskPlanningScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#14B8A6" />
+          <ActivityIndicator size="large" color="#2563EB" />
           <Text style={styles.loadingText}>Loading calendar...</Text>
         </View>
       </SafeAreaView>
@@ -236,7 +236,7 @@ export default function TaskPlanningScreen({ navigation }) {
             <Icon 
               name={viewMode === 'week' ? 'view-week' : 'calendar-month'} 
               size={24} 
-              color="#14B8A6" 
+              color="#2563EB" 
             />
             <Text style={styles.toggleText}>
               {viewMode === 'week' ? 'Month' : 'Week'}
@@ -527,19 +527,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
     gap: 6,
   },
   toggleText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   addButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   createTemplateButton: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,

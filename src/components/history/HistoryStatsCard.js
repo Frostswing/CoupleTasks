@@ -68,7 +68,7 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
           <Icon 
             name={isTask ? 'analytics' : 'bar-chart'} 
             size={20} 
-            color="#14B8A6" 
+            color="#2563EB" 
           />
         </View>
         <Text style={styles.headerTitle}>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#14B8A6',
+    color: '#2563EB',
     marginBottom: 4,
   },
   statLabel: {

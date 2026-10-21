@@ -10,8 +10,9 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
-  Dimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
 import {
   registerUser,
   loginUser,
@@ -24,8 +25,7 @@ import { simpleGoogleSignIn } from "../services/googleAuthService";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { validateForm, commonRules } from "../utils/validation";
 import i18n from "../localization/i18n";
-
-const { width } = Dimensions.get('window');
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
 
 const AuthScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -37,11 +37,9 @@ const AuthScreen = ({ navigation }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // האזנה לשינויים במצב האימות
     const unsubscribe = subscribeToAuthChanges((user) => {
       setUser(user);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -57,10 +55,10 @@ const AuthScreen = ({ navigation }) => {
     }
 
     const errors = validateForm({ email, password, name, confirmPassword }, rules);
-    
+
     if (Object.keys(errors).length > 0) {
       const firstError = Object.values(errors)[0];
-      Alert.alert(i18n.t('common.error'), firstError);
+      Alert.alert(i18n.t("common.error"), firstError);
       return false;
     }
 
@@ -81,21 +79,16 @@ const AuthScreen = ({ navigation }) => {
       }
 
       if (result.success) {
-        // Reset form fields
         setEmail("");
         setPassword("");
         setConfirmPassword("");
         setName("");
-        showSuccess(
-          isLogin ? i18n.t('auth.loginSuccess') : i18n.t('auth.registrationSuccess')
-        );
-        // Navigation will happen automatically when auth state changes in App.js
-        // No need to manually navigate - the DrawerNavigator will be shown automatically
+        showSuccess(isLogin ? i18n.t("auth.loginSuccess") : i18n.t("auth.registrationSuccess"));
       } else {
-        handleError(result.error, isLogin ? 'loginUser' : 'registerUser');
+        handleError(result.error, isLogin ? "loginUser" : "registerUser");
       }
     } catch (error) {
-      handleError(error, isLogin ? 'loginUser' : 'registerUser');
+      handleError(error, isLogin ? "loginUser" : "registerUser");
     } finally {
       setLoading(false);
     }
@@ -105,73 +98,46 @@ const AuthScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const result = await simpleGoogleSignIn();
-      
+
       if (result.requiresDevBuild) {
-        // Show informative message about development build requirement
-        Alert.alert(
-          'Google Sign In Not Available',
-          result.error,
-          [
-            { text: 'OK', style: 'default' }
-          ]
-        );
+        Alert.alert("Google Sign In", result.error, [{ text: "OK" }]);
       } else if (result.success) {
-        // This case is for future when Google Sign In works
         const googleUser = result.user;
-        const firebaseResult = await registerUser(googleUser.email, 'google-auth-' + googleUser.id, googleUser.name);
-        
+        const firebaseResult = await registerUser(
+          googleUser.email,
+          "google-auth-" + googleUser.id,
+          googleUser.name
+        );
+
         if (firebaseResult.success) {
-          showSuccess(i18n.t('auth.loginSuccess'));
-          // Navigation will happen automatically when auth state changes in App.js
+          showSuccess(i18n.t("auth.loginSuccess"));
         } else {
-          // If user already exists, try to login
-          const loginResult = await loginUser(googleUser.email, 'google-auth-' + googleUser.id);
+          const loginResult = await loginUser(googleUser.email, "google-auth-" + googleUser.id);
           if (loginResult.success) {
-            showSuccess(i18n.t('auth.loginSuccess'));
-            // Navigation will happen automatically when auth state changes in App.js
+            showSuccess(i18n.t("auth.loginSuccess"));
           } else {
-            handleError(loginResult.error, 'googleSignIn');
+            handleError(loginResult.error, "googleSignIn");
           }
         }
       } else {
-        if (result.error !== 'Login cancelled') {
-          handleError(result.error, 'googleSignIn');
+        if (result.error !== "Login cancelled") {
+          handleError(result.error, "googleSignIn");
         }
       }
     } catch (error) {
-      handleError(error, 'googleSignIn');
+      handleError(error, "googleSignIn");
     } finally {
       setLoading(false);
     }
-  };
-
-  const getErrorMessage = (error) => {
-    if (error?.code) {
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          return i18n.t('auth.emailAlreadyInUse');
-        case 'auth/invalid-email':
-          return i18n.t('auth.invalidEmail');
-        case 'auth/user-not-found':
-          return i18n.t('auth.userNotFound');
-        case 'auth/wrong-password':
-          return i18n.t('auth.wrongPassword');
-        case 'auth/weak-password':
-          return i18n.t('auth.weakPassword');
-        default:
-          return error.message || (isLogin ? i18n.t('auth.loginError') : i18n.t('auth.registrationError'));
-      }
-    }
-    return error?.message || (isLogin ? i18n.t('auth.loginError') : i18n.t('auth.registrationError'));
   };
 
   const handleLogout = async () => {
     setLoading(true);
     try {
       await logoutUser();
-      showSuccess(i18n.t('auth.logoutSuccess'));
+      showSuccess(i18n.t("auth.logoutSuccess"));
     } catch (error) {
-      handleError(error, 'logoutUser');
+      handleError(error, "logoutUser");
     } finally {
       setLoading(false);
     }
@@ -179,7 +145,6 @@ const AuthScreen = ({ navigation }) => {
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
-    // איפוס הטופס
     setEmail("");
     setPassword("");
     setConfirmPassword("");
@@ -188,20 +153,13 @@ const AuthScreen = ({ navigation }) => {
 
   const handleForgotPassword = async () => {
     if (!email) {
-      Alert.alert(
-        i18n.t('common.error'),
-        i18n.t('auth.enterEmailForReset') || 'Please enter your email address first'
-      );
+      Alert.alert(i18n.t("common.error"), i18n.t("auth.enterEmailForReset") || "Please enter your email address first");
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert(
-        i18n.t('common.error'),
-        i18n.t('auth.invalidEmail')
-      );
+      Alert.alert(i18n.t("common.error"), i18n.t("auth.invalidEmail"));
       return;
     }
 
@@ -210,15 +168,14 @@ const AuthScreen = ({ navigation }) => {
       const result = await resetPassword(email);
       if (result.success) {
         Alert.alert(
-          i18n.t('common.success') || 'Success',
-          i18n.t('auth.passwordResetEmailSent') || 'Password reset email sent! Please check your inbox.',
-          [{ text: 'OK', style: 'default' }]
+          i18n.t("common.success") || "Success",
+          i18n.t("auth.passwordResetEmailSent") || "Password reset email sent!"
         );
       } else {
-        handleError(result.error, 'resetPassword');
+        handleError(result.error, "resetPassword");
       }
     } catch (error) {
-      handleError(error, 'resetPassword');
+      handleError(error, "resetPassword");
     } finally {
       setLoading(false);
     }
@@ -226,385 +183,331 @@ const AuthScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#14B8A6" />
-        <Text style={styles.loadingText}>{i18n.t('common.loading')}</Text>
-      </View>
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>{i18n.t("common.loading")}</Text>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.appIcon}>💜</Text>
-          <Text style={styles.appName}>CoupleTasks</Text>
-          <Text style={styles.subtitle}>Together we organize</Text>
-        </View>
-
-        {user ? (
-          // אם המשתמש מחובר, הצג את המידע שלו
-          <View style={styles.userInfoContainer}>
-            <View style={styles.userCard}>
-              <Text style={styles.welcomeText}>{i18n.t('common.welcome')}</Text>
-              <Text style={styles.userEmail}>{user.email}</Text>
-              
-              <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleLogout}
-                disabled={loading}
-              >
-                <Text style={styles.logoutButtonText}>{i18n.t('auth.signOut')}</Text>
-              </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
             </View>
+            <Text style={styles.appName}>CoupleTasks</Text>
+            <Text style={styles.subtitle}>Organize together</Text>
           </View>
-        ) : (
-          // אם אין משתמש מחובר, הצג טופס הרשמה/כניסה
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>
-              {isLogin ? i18n.t('auth.signIn') : i18n.t('auth.signUp')}
-            </Text>
 
-            {!isLogin && (
+          {user ? (
+            <View style={styles.userSection}>
+              <View style={styles.userCard}>
+                <View style={styles.userAvatar}>
+                  <MaterialIcons name="person" size={32} color={COLORS.primary} />
+                </View>
+                <Text style={styles.welcomeText}>{i18n.t("common.welcome")}</Text>
+                <Text style={styles.userEmail}>{user.email}</Text>
+
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} disabled={loading}>
+                  <Text style={styles.logoutButtonText}>{i18n.t("auth.signOut")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>
+                {isLogin ? i18n.t("auth.signIn") : i18n.t("auth.signUp")}
+              </Text>
+
+              {!isLogin && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>{i18n.t("auth.fullName")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={i18n.t("auth.enterFullName")}
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                    placeholderTextColor={COLORS.textTertiary}
+                  />
+                </View>
+              )}
+
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>{i18n.t('auth.fullName')}</Text>
+                <Text style={styles.label}>{i18n.t("auth.email")}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder={i18n.t('auth.enterFullName')}
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                  placeholderTextColor="#9CA3AF"
+                  placeholder={i18n.t("auth.enterEmail")}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor={COLORS.textTertiary}
                 />
               </View>
-            )}
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{i18n.t('auth.email')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={i18n.t('auth.enterEmail')}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{i18n.t('auth.password')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={i18n.t('auth.enterPassword')}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            {!isLogin && (
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>{i18n.t('auth.confirmPassword')}</Text>
+                <Text style={styles.label}>{i18n.t("auth.password")}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder={i18n.t('auth.confirmPassword')}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+                  placeholder={i18n.t("auth.enterPassword")}
+                  value={password}
+                  onChangeText={setPassword}
                   secureTextEntry
                   autoCapitalize="none"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={COLORS.textTertiary}
                 />
               </View>
-            )}
 
-            <TouchableOpacity 
-              style={styles.authButton} 
-              onPress={handleAuth}
-              disabled={loading}
-            >
-              <Text style={styles.authButtonText}>
-                {isLogin ? i18n.t('auth.signIn') : i18n.t('auth.createAccount')}
-              </Text>
-            </TouchableOpacity>
+              {!isLogin && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>{i18n.t("auth.confirmPassword")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={i18n.t("auth.confirmPassword")}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    placeholderTextColor={COLORS.textTertiary}
+                  />
+                </View>
+              )}
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>או</Text>
-              <View style={styles.dividerLine} />
-            </View>
+              <TouchableOpacity style={styles.authButton} onPress={handleAuth} disabled={loading}>
+                <Text style={styles.authButtonText}>
+                  {isLogin ? i18n.t("auth.signIn") : i18n.t("auth.createAccount")}
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.googleButton, styles.disabledGoogleButton]} 
-              onPress={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <Text style={styles.googleIcon}>🔍</Text>
-              <View style={styles.googleButtonContent}>
-                <Text style={styles.googleButtonText}>{i18n.t('auth.signInWithGoogle')}</Text>
-                <Text style={styles.googleButtonSubtext}>(Requires Dev Build)</Text>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or</Text>
+                <View style={styles.dividerLine} />
               </View>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.toggleButton}
-              onPress={toggleAuthMode}
-            >
-              <Text style={styles.toggleButtonText}>
-                {isLogin ? i18n.t('auth.noAccount') : i18n.t('auth.hasAccount')}
-              </Text>
-              <Text style={styles.toggleButtonAction}>
-                {isLogin ? i18n.t('auth.createAccount') : i18n.t('auth.loginToAccount')}
-              </Text>
-            </TouchableOpacity>
-
-            {isLogin && (
-              <TouchableOpacity 
-                style={styles.forgotPassword}
-                onPress={handleForgotPassword}
+              <TouchableOpacity
+                style={styles.googleButton}
+                onPress={handleGoogleSignIn}
                 disabled={loading}
               >
-                <Text style={styles.forgotPasswordText}>{i18n.t('auth.forgotPassword')}</Text>
+                <MaterialIcons name="g-mobiledata" size={24} color={COLORS.textSecondary} />
+                <Text style={styles.googleButtonText}>{i18n.t("auth.signInWithGoogle")}</Text>
               </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+              <TouchableOpacity style={styles.toggleButton} onPress={toggleAuthMode}>
+                <Text style={styles.toggleButtonText}>
+                  {isLogin ? i18n.t("auth.noAccount") : i18n.t("auth.hasAccount")}
+                </Text>
+                <Text style={styles.toggleButtonAction}>
+                  {isLogin ? i18n.t("auth.createAccount") : i18n.t("auth.loginToAccount")}
+                </Text>
+              </TouchableOpacity>
+
+              {isLogin && (
+                <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword} disabled={loading}>
+                  <Text style={styles.forgotPasswordText}>{i18n.t("auth.forgotPassword")}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: COLORS.background,
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    padding: 24,
+    padding: SPACING.xl,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: COLORS.background,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#6B7280",
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.l,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
-    marginTop: 40,
+    alignItems: "center",
+    marginTop: SPACING.xxl,
+    marginBottom: SPACING.xxxl,
   },
-  appIcon: {
-    fontSize: 60,
-    marginBottom: 16,
+  logoContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: RADIUS.l,
+    backgroundColor: COLORS.primaryMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.l,
   },
   appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
+    ...TYPOGRAPHY.displayMedium,
+    marginBottom: SPACING.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    fontStyle: 'italic',
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 32,
-    color: "#1F2937",
+    ...TYPOGRAPHY.h1,
     textAlign: "center",
+    marginBottom: SPACING.xxl,
   },
   formContainer: {
     width: "100%",
     maxWidth: 400,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: SPACING.l,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-    textAlign: 'right',
+    ...TYPOGRAPHY.label,
+    marginBottom: SPACING.s,
   },
   input: {
-    height: 56,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.m,
+    paddingHorizontal: SPACING.l,
+    paddingVertical: SPACING.m,
     fontSize: 16,
-    backgroundColor: "white",
-    textAlign: "right",
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    color: COLORS.text,
+    ...SHADOWS.xs,
   },
   authButton: {
-    backgroundColor: "#14B8A6",
-    height: 56,
-    borderRadius: 12,
-    justifyContent: "center",
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.m,
+    paddingVertical: SPACING.l,
     alignItems: "center",
-    marginVertical: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    marginTop: SPACING.s,
+    ...SHADOWS.sm,
   },
   authButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+    ...TYPOGRAPHY.body,
+    color: COLORS.textInverse,
+    fontWeight: "600",
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: SPACING.xl,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.border,
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-    color: '#6B7280',
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textTertiary,
+    marginHorizontal: SPACING.l,
   },
   googleButton: {
-    backgroundColor: "white",
-    height: 56,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: "center",
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    justifyContent: "center",
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  disabledGoogleButton: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#D1D5DB',
-  },
-  googleIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  googleButtonContent: {
-    alignItems: 'center',
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.m,
+    paddingVertical: SPACING.m,
+    ...SHADOWS.xs,
   },
   googleButtonText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  googleButtonSubtext: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    marginTop: 2,
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
+    marginLeft: SPACING.s,
   },
   toggleButton: {
     alignItems: "center",
-    marginVertical: 16,
+    marginTop: SPACING.xl,
   },
   toggleButtonText: {
-    color: "#6B7280",
-    fontSize: 14,
-    marginBottom: 4,
+    ...TYPOGRAPHY.bodySmall,
+    marginBottom: SPACING.xs,
   },
   toggleButtonAction: {
-    color: "#14B8A6",
-    fontSize: 16,
+    ...TYPOGRAPHY.body,
+    color: COLORS.primary,
     fontWeight: "600",
   },
   forgotPassword: {
-    alignItems: 'center',
-    marginTop: 16,
+    alignItems: "center",
+    marginTop: SPACING.l,
   },
   forgotPasswordText: {
-    color: "#14B8A6",
-    fontSize: 14,
-    textDecorationLine: 'underline',
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.primary,
   },
-  userInfoContainer: {
-    width: "100%",
-    alignItems: "center",
+  userSection: {
     flex: 1,
-    justifyContent: 'center',
-  },
-  userCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 32,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  userEmail: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  logoutButton: {
-    backgroundColor: "#EF4444",
-    width: "100%",
-    height: 48,
-    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
+  userCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.l,
+    padding: SPACING.xxl,
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+    ...SHADOWS.md,
+  },
+  userAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.primaryMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.l,
+  },
+  welcomeText: {
+    ...TYPOGRAPHY.h2,
+    marginBottom: SPACING.xs,
+  },
+  userEmail: {
+    ...TYPOGRAPHY.bodySmall,
+    marginBottom: SPACING.xxl,
+  },
+  logoutButton: {
+    backgroundColor: COLORS.error,
+    borderRadius: RADIUS.m,
+    paddingVertical: SPACING.m,
+    paddingHorizontal: SPACING.xxl,
+    width: "100%",
+    alignItems: "center",
+  },
   logoutButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    ...TYPOGRAPHY.body,
+    color: COLORS.textInverse,
+    fontWeight: "600",
   },
 });
 

@@ -392,7 +392,7 @@ export default function DailyTasksScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#14B8A6" />
+          <ActivityIndicator size="large" color="#2563EB" />
           <Text style={styles.loadingText}>Loading your tasks...</Text>
         </View>
       </SafeAreaView>
@@ -412,8 +412,8 @@ export default function DailyTasksScreen({ navigation }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={["#14B8A6"]}
-            tintColor="#14B8A6"
+            colors={["#2563EB"]}
+            tintColor="#2563EB"
           />
         }
         showsVerticalScrollIndicator={false}
@@ -441,7 +441,7 @@ export default function DailyTasksScreen({ navigation }) {
         {totalTasks === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="check-circle" size={48} color="#14B8A6" />
+              <Icon name="check-circle" size={48} color="#2563EB" />
             </View>
             <Text style={styles.emptyTitle}>All caught up!</Text>
             <Text style={styles.emptySubtitle}>
@@ -459,7 +459,7 @@ export default function DailyTasksScreen({ navigation }) {
           <>
             {renderTaskGroup('Overdue', groupedTasks.overdue, 'warning', '#DC2626')}
             {renderTaskGroup('Today', groupedTasks.today, 'today', '#2563EB')}
-            {renderTaskGroup('This Week', groupedTasks.thisWeek, 'calendar-today', '#0D9488')}
+            {renderTaskGroup('This Week', groupedTasks.thisWeek, 'calendar-today', '#1D4ED8')}
             {renderTaskGroup('Coming Soon', groupedTasks.comingSoon, 'schedule', '#16A34A')}
           </>
         )}
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 16,
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   deferOption: {
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
   deferOptionText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#0D9488',
+    color: '#1D4ED8',
   },
   cancelButton: {
     padding: 12,

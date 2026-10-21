@@ -38,7 +38,7 @@ const UnitSelector = ({ value, onValueChange, placeholder = 'בחר יחידה' 
         <Text style={styles.shortName}>({item.shortName})</Text>
       </View>
       {item.id === value && (
-        <Icon name="check" size={20} color="#14B8A6" />
+        <Icon name="check" size={20} color="#2563EB" />
       )}
     </TouchableOpacity>
   );
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   selectedUnitText: {
     fontWeight: '600',
-    color: '#14B8A6',
+    color: '#2563EB',
   },
   shortName: {
     fontSize: 14,

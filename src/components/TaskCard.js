@@ -12,12 +12,12 @@ const { width } = Dimensions.get('window');
 const TaskCard = ({ task, onStatusChange, onEdit, onSubtaskToggle, currentUser }) => {
   const getCategoryColor = (category) => {
     const colors = {
-      household: '#14B8A6',
+      household: '#2563EB',
       errands: '#06B6D4',
       planning: '#F59E0B',
       finance: '#10B981',
       health: '#EF4444',
-      social: '#EC4899',
+      social: '#2563EB',
       personal: '#6366F1',
       other: '#6B7280',
     };
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   assignedToMe: {
-    color: '#14B8A6',
+    color: '#2563EB',
     fontWeight: '600',
   },
   subtasksContainer: {

@@ -6,290 +6,162 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, SHADOWS, TYPOGRAPHY } from "../constants/theme";
 
 export default function HomeScreen({ navigation }) {
-  // Quick action cards configuration - ordered by priority (most used at top)
   const quickActions = [
-    {
-      id: "events",
-      title: i18n.t("navigation.drawer.events"),
-      description: "Manage partner events and availability",
-      icon: "event",
-      color: COLORS.accent,
-      backgroundColor: COLORS.accentBg,
-      screen: "Events",
-      size: "large",
-      gradient: COLORS.gradientAccent,
-    },
     {
       id: "dailyTasks",
       title: i18n.t("navigation.drawer.dailyTasks"),
-      description: "See what's due today and this week",
+      description: "View today's tasks and upcoming items",
       icon: "today",
-      color: COLORS.primaryLight,
-      backgroundColor: COLORS.primaryBg,
       screen: "DailyTasks",
-      size: "small",
-    },
-    {
-      id: "addShoppingItem",
-      title: i18n.t("home.addShoppingItem"),
-      description: i18n.t("home.addShoppingItemDescription"),
-      icon: "add-shopping-cart",
-      color: COLORS.info,
-      backgroundColor: COLORS.infoBg,
-      screen: "ShoppingList",
-      params: { openAddDialog: true },
-      size: "small",
     },
     {
       id: "taskPlanning",
       title: i18n.t("navigation.drawer.taskPlanning"),
-      description: "Plan your tasks on calendar",
-      icon: "event",
-      color: COLORS.primary,
-      backgroundColor: COLORS.primaryBg,
+      description: "Plan and schedule your tasks",
+      icon: "event-note",
       screen: "TaskPlanning",
-      size: "small",
-    },
-    {
-      id: "addTask",
-      title: i18n.t("navigation.drawer.addTask"),
-      description: "Create a new task quickly",
-      icon: "add-circle",
-      color: COLORS.primaryLight,
-      backgroundColor: COLORS.primaryBg,
-      screen: "AddTask",
-      size: "small",
     },
     {
       id: "shoppingList",
       title: i18n.t("navigation.drawer.shoppingList"),
-      description: "Manage your shopping items",
+      description: "Manage your shopping list",
       icon: "shopping-cart",
-      color: COLORS.info,
-      backgroundColor: COLORS.infoBg,
       screen: "ShoppingList",
-      size: "small",
-    },
-    {
-      id: "shoppingMode",
-      title: i18n.t("navigation.drawer.shoppingMode"),
-      description: "Guided shopping flow",
-      icon: "shopping-bag",
-      color: COLORS.secondary,
-      backgroundColor: COLORS.secondaryBg,
-      screen: "ShoppingMode",
-      size: "small",
     },
     {
       id: "inventory",
       title: i18n.t("navigation.drawer.inventory"),
-      description: "Track household items",
+      description: "Track household inventory",
       icon: "inventory-2",
-      color: COLORS.success,
-      backgroundColor: COLORS.successBg,
       screen: "Inventory",
-      size: "large",
     },
     {
-      id: "history",
-      title: i18n.t("navigation.drawer.history"),
-      description: "View completion stats",
-      icon: "history",
-      color: COLORS.warning,
-      backgroundColor: COLORS.warningBg,
-      screen: "History",
-      size: "small",
+      id: "events",
+      title: i18n.t("navigation.drawer.events"),
+      description: "Partner events and availability",
+      icon: "event",
+      screen: "Events",
     },
     {
       id: "management",
       title: i18n.t("navigation.drawer.management"),
-      description: "Comprehensive statistics and analytics dashboard",
-      icon: "analytics",
-      color: COLORS.primaryLight,
-      backgroundColor: COLORS.primaryBg,
+      description: "Statistics and insights",
+      icon: "insights",
       screen: "Management",
-      size: "large",
-      gradient: COLORS.gradientPrimary,
     },
   ];
 
   const handleNavigate = (screen, params) => {
     try {
-      if (params) {
-        navigation.navigate(screen, params);
-      } else {
-        navigation.navigate(screen);
-      }
+      navigation.navigate(screen, params);
     } catch (error) {
-      console.error(`Error navigating to ${screen}:`, error);
+      console.error(`Navigation error: ${screen}`, error);
     }
   };
 
-  const renderCard = (action) => {
-    const isLarge = action.size === "large";
-    const isInventory = action.id === "inventory";
-    return (
-      <TouchableOpacity
-        key={action.id}
-        style={[
-          styles.card,
-          isLarge ? styles.cardLarge : styles.cardSmall,
-        ]}
-        onPress={() => handleNavigate(action.screen, action.params)}
-        activeOpacity={0.7}
-      >
-        {isLarge && !isInventory ? (
-          // Large card layout: centered icon and content with gradient
-          <LinearGradient
-            colors={action.gradient || COLORS.gradientPrimary}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.cardGradient}
-          >
-            <View style={styles.cardLargeContainer}>
-              <View
-                style={[
-                  styles.cardIconContainer,
-                  styles.cardIconContainerLarge,
-                  { backgroundColor: "rgba(255, 255, 255, 0.3)" },
-                ]}
-              >
-                <Icon name={action.icon} size={48} color="#FFFFFF" />
-              </View>
-              <View style={styles.cardContentLarge}>
-                <Text style={styles.cardTitleLargeWhite} numberOfLines={2}>
-                  {action.title}
-                </Text>
-                <Text style={styles.cardDescriptionLargeWhite} numberOfLines={2}>
-                  {action.description}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color="#FFFFFF" />
-            </View>
-          </LinearGradient>
-        ) : isLarge && isInventory ? (
-          // Large card layout without gradient for inventory
-          <>
-            <View style={styles.cardLargeContainer}>
-              <View
-                style={[
-                  styles.cardIconContainer,
-                  { backgroundColor: action.backgroundColor },
-                ]}
-              >
-                <Icon name={action.icon} size={48} color={action.color} />
-              </View>
-              <View style={styles.cardContentLarge}>
-                <Text style={styles.cardTitleLarge} numberOfLines={2}>
-                  {action.title}
-                </Text>
-                <Text style={styles.cardDescriptionLarge} numberOfLines={2}>
-                  {action.description}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color={action.color} />
-            </View>
-          </>
-        ) : (
-          // Small card layout: original layout
-          <>
-            <View
-              style={[
-                styles.cardIconContainer,
-                { backgroundColor: action.backgroundColor },
-              ]}
-            >
-              <Icon name={action.icon} size={40} color={action.color} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle} numberOfLines={2}>
-                {action.title}
-              </Text>
-              <Text style={styles.cardDescription} numberOfLines={2}>
-                {action.description}
-              </Text>
-            </View>
-            <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color={action.color} />
-            </View>
-          </>
-        )}
-      </TouchableOpacity>
-    );
-  };
+  const renderQuickAction = (action, index) => (
+    <TouchableOpacity
+      key={action.id}
+      style={styles.actionCard}
+      onPress={() => handleNavigate(action.screen, action.params)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.actionIconContainer}>
+        <Icon name={action.icon} size={24} color={COLORS.primary} />
+      </View>
+      <View style={styles.actionContent}>
+        <Text style={styles.actionTitle}>{action.title}</Text>
+        <Text style={styles.actionDescription} numberOfLines={1}>
+          {action.description}
+        </Text>
+      </View>
+      <Icon name="chevron-right" size={20} color={COLORS.textTertiary} />
+    </TouchableOpacity>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Welcome Section */}
-        <LinearGradient
-          colors={COLORS.gradientPrimary}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.welcomeSection}
-        >
-          <Text style={styles.welcomeEmoji}>💜</Text>
-          <Text style={styles.welcomeText}>
-            {i18n.t("home.welcome")}
-          </Text>
-          <Text style={styles.subtitleText}>
-            {i18n.t("home.subtitle")}
-          </Text>
-        </LinearGradient>
-
-        {/* Quick Access Cards */}
-        <View style={styles.cardsContainer}>
-          {/* First Row - Events (Large, Full Width) */}
-          <View style={styles.row}>
-            {renderCard(quickActions[0])}
+        {/* Hero Section */}
+        <View style={styles.hero}>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroTitle}>
+              {i18n.t("home.welcome")}
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              {i18n.t("home.subtitle")}
+            </Text>
           </View>
+        </View>
 
-          {/* Second Row - Daily Tasks + Add Shopping Item */}
-          <View style={styles.row}>
-            {renderCard(quickActions[1])}
-            {renderCard(quickActions[2])}
+        {/* Quick Add Actions */}
+        <View style={styles.quickAddRow}>
+          <TouchableOpacity
+            style={styles.quickAddButton}
+            onPress={() => handleNavigate("AddTask")}
+            activeOpacity={0.8}
+          >
+            <Icon name="add" size={20} color={COLORS.textInverse} />
+            <Text style={styles.quickAddText}>Add Task</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.quickAddButton, styles.quickAddButtonSecondary]}
+            onPress={() => handleNavigate("ShoppingList", { openAddDialog: true })}
+            activeOpacity={0.8}
+          >
+            <Icon name="add-shopping-cart" size={20} color={COLORS.primary} />
+            <Text style={[styles.quickAddText, styles.quickAddTextSecondary]}>
+              Add Item
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Main Navigation */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Access</Text>
+          <View style={styles.actionsList}>
+            {quickActions.map(renderQuickAction)}
           </View>
+        </View>
 
-          {/* Third Row - Task Planning + Add Task */}
-          <View style={styles.row}>
-            {renderCard(quickActions[3])}
-            {renderCard(quickActions[4])}
-          </View>
-
-          {/* Fourth Row - Shopping List + Shopping Mode */}
-          <View style={styles.row}>
-            {renderCard(quickActions[5])}
-            {renderCard(quickActions[6])}
-          </View>
-
-          {/* Fifth Row - Inventory (Large, Full Width) */}
-          <View style={styles.row}>
-            {renderCard(quickActions[7])}
-          </View>
-
-          {/* Sixth Row - History */}
-          <View style={styles.row}>
-            {renderCard(quickActions[8])}
-          </View>
-
-          {/* Seventh Row - Management (Large, Full Width) */}
-          <View style={styles.row}>
-            {renderCard(quickActions[9])}
+        {/* Secondary Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>More</Text>
+          <View style={styles.secondaryActions}>
+            <TouchableOpacity
+              style={styles.secondaryAction}
+              onPress={() => handleNavigate("Archive")}
+            >
+              <Icon name="archive" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.secondaryActionText}>Archive</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.secondaryAction}
+              onPress={() => handleNavigate("History")}
+            >
+              <Icon name="history" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.secondaryActionText}>History</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.secondaryAction}
+              onPress={() => handleNavigate("Settings")}
+            >
+              <Icon name="settings" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.secondaryActionText}>Settings</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -306,133 +178,115 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: SPACING.xxxl,
   },
-  welcomeSection: {
-    alignItems: "center",
-    marginTop: 24,
-    marginBottom: 32,
-    marginHorizontal: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    borderRadius: 20,
+  hero: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.xxl,
   },
-  cardGradient: {
-    borderRadius: RADIUS.l,
-    padding: SPACING.m,
-    ...SHADOWS.medium,
-    position: "relative",
-  },
-  welcomeEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  welcomeText: {
-    ...TYPOGRAPHY.h1,
-    color: COLORS.surface,
-    marginBottom: SPACING.s,
-    textAlign: "center",
-  },
-  subtitleText: {
-    ...TYPOGRAPHY.body,
-    color: "rgba(255, 255, 255, 0.9)",
-    textAlign: "center",
-    paddingHorizontal: SPACING.m,
-  },
-  cardsContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.l,
-    padding: SPACING.m,
-    ...SHADOWS.small,
-    flexDirection: "column",
+  heroContent: {
     alignItems: "flex-start",
-    justifyContent: "space-between",
-    position: "relative",
   },
-  cardLarge: {
+  heroTitle: {
+    ...TYPOGRAPHY.displayMedium,
+    marginBottom: SPACING.s,
+  },
+  heroSubtitle: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
+  },
+  quickAddRow: {
+    flexDirection: "row",
+    paddingHorizontal: SPACING.xl,
+    marginBottom: SPACING.xxl,
+    gap: SPACING.m,
+  },
+  quickAddButton: {
     flex: 1,
-    minHeight: 100,
-    alignItems: "center",
-  },
-  cardSmall: {
-    flex: 1,
-    minHeight: 130,
-  },
-  cardIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  cardContent: {
-    flex: 1,
-    width: "100%",
-    paddingRight: 32,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 6,
-    flexWrap: "wrap",
-  },
-  cardDescription: {
-    fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 18,
-    flexWrap: "wrap",
-  },
-  cardArrow: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    opacity: 0.6,
-  },
-  cardLargeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    paddingRight: 32,
+    justifyContent: "center",
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.m,
+    paddingHorizontal: SPACING.l,
+    borderRadius: RADIUS.m,
+    gap: SPACING.s,
+    ...SHADOWS.sm,
   },
-  cardIconContainerLarge: {
-    marginRight: 16,
-    marginBottom: 0,
+  quickAddButtonSecondary: {
+    backgroundColor: COLORS.primaryMuted,
   },
-  cardContentLarge: {
+  quickAddText: {
+    ...TYPOGRAPHY.label,
+    color: COLORS.textInverse,
+    fontWeight: "600",
+  },
+  quickAddTextSecondary: {
+    color: COLORS.primary,
+  },
+  section: {
+    marginBottom: SPACING.xxl,
+  },
+  sectionTitle: {
+    ...TYPOGRAPHY.overline,
+    paddingHorizontal: SPACING.xl,
+    marginBottom: SPACING.m,
+  },
+  actionsList: {
+    paddingHorizontal: SPACING.xl,
+    gap: SPACING.s,
+  },
+  actionCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.surface,
+    paddingVertical: SPACING.l,
+    paddingHorizontal: SPACING.l,
+    borderRadius: RADIUS.m,
+    ...SHADOWS.xs,
+  },
+  actionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.m,
+    backgroundColor: COLORS.primaryMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: SPACING.l,
+  },
+  actionContent: {
     flex: 1,
+    marginRight: SPACING.m,
   },
-  cardTitleLarge: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 4,
+  actionTitle: {
+    ...TYPOGRAPHY.h3,
+    marginBottom: SPACING.xxs,
   },
-  cardTitleLargeWhite: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 4,
+  actionDescription: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textTertiary,
   },
-  cardDescriptionLarge: {
-    fontSize: 14,
-    color: "#6B7280",
-    lineHeight: 20,
+  secondaryActions: {
+    flexDirection: "row",
+    paddingHorizontal: SPACING.xl,
+    gap: SPACING.m,
   },
-  cardDescriptionLargeWhite: {
-    fontSize: 14,
-    color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: 20,
+  secondaryAction: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.surface,
+    paddingVertical: SPACING.m,
+    paddingHorizontal: SPACING.l,
+    borderRadius: RADIUS.m,
+    gap: SPACING.s,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  secondaryActionText: {
+    ...TYPOGRAPHY.label,
+    color: COLORS.textSecondary,
   },
 });
-

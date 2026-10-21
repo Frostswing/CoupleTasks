@@ -117,7 +117,7 @@ export default function TaskFilters({
           <Icon 
             name="favorite" 
             size={16} 
-            color={filters.assigned_to === 'me' ? '#FFFFFF' : '#EC4899'} 
+            color={filters.assigned_to === 'me' ? '#FFFFFF' : '#2563EB'} 
           />
           <Text style={[
             styles.quickFilterText,
@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   activeQuickFilter: {
-    backgroundColor: '#EC4899',
-    borderColor: '#EC4899',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   inactiveQuickFilter: {
     backgroundColor: '#FFFFFF',
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   inactiveQuickFilterText: {
-    color: '#EC4899',
+    color: '#2563EB',
   },
   inactiveQuickFilterTextCompleted: {
     color: '#16A34A',
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   inactiveBadgeText: {
-    color: '#EC4899',
+    color: '#2563EB',
   },
   inactiveBadgeTextCompleted: {
     color: '#16A34A',

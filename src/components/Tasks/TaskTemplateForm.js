@@ -184,7 +184,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           <View style={styles.pickerModalHeader}>
             <Text style={styles.pickerModalTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Icon name="check" size={24} color="#14B8A6" />
+              <Icon name="check" size={24} color="#2563EB" />
             </TouchableOpacity>
           </View>
           {children}
@@ -682,8 +682,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dayButtonSelected: {
-    backgroundColor: '#14B8A6',
-    borderColor: '#14B8A6',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   dayButtonDisabled: {
     opacity: 0.5,
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   switchActive: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
   },
   switchThumb: {
     width: 24,
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   submitButton: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#2563EB',
   },
   submitButtonText: {
     fontSize: 16,

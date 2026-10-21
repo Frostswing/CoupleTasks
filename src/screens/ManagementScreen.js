@@ -411,7 +411,7 @@ export default function ManagementScreen({ navigation }) {
     }
   };
 
-  const StatCard = ({ icon, title, value, subtitle, color = "#14B8A6" }) => (
+  const StatCard = ({ icon, title, value, subtitle, color = "#2563EB" }) => (
     <View style={[styles.statCard, { borderLeftColor: color }]}>
       <View style={styles.statCardHeader}>
         <Icon name={icon} size={24} color={color} />
@@ -465,7 +465,7 @@ export default function ManagementScreen({ navigation }) {
   if (isLoading && !stats) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#14B8A6" />
+        <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.loadingText}>{i18n.t('management.loading')}</Text>
       </SafeAreaView>
     );
@@ -483,7 +483,7 @@ export default function ManagementScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <Icon name="analytics" size={32} color="#14B8A6" />
+            <Icon name="analytics" size={32} color="#2563EB" />
             <Text style={styles.title}>{i18n.t('management.title')}</Text>
           </View>
           <Text style={styles.subtitle}>{i18n.t('management.subtitle', { days: ARCHIVE_DAYS })}</Text>
@@ -733,7 +733,7 @@ export default function ManagementScreen({ navigation }) {
                   title={i18n.t('management.completionRate')}
                   value={`${stats.completionRate}%`}
                   subtitle={i18n.t('management.ofTotalTasks')}
-                  color="#14B8A6"
+                  color="#2563EB"
                 />
               </View>
             </View>
@@ -1024,8 +1024,8 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   filterButtonActive: {
-    backgroundColor: '#14B8A6',
-    borderColor: '#14B8A6',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   filterButtonText: {
     fontSize: 13,
@@ -1053,8 +1053,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   dateRangeButtonActive: {
-    backgroundColor: '#14B8A6',
-    borderColor: '#14B8A6',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   dateRangeButtonText: {
     fontSize: 13,

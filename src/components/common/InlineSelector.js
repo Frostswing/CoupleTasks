@@ -40,7 +40,7 @@ export default function InlineSelector({
                   {option.label}
                 </Text>
                 {isSelected && (
-                  <Icon name="check-circle" size={20} color="#14B8A6" />
+                  <Icon name="check-circle" size={20} color="#2563EB" />
                 )}
               </View>
             </TouchableOpacity>
@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     width: '46%',
   },
   optionButtonSelected: {
-    borderColor: "#14B8A6",
-    backgroundColor: "#E6FFFA",
+    borderColor: "#2563EB",
+    backgroundColor: "#DBEAFE",
   },
   optionContent: {
     flexDirection: "row",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   optionTextSelected: {
-    color: "#14B8A6",
+    color: "#2563EB",
     fontWeight: "600",
   },
 });

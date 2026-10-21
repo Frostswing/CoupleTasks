@@ -1,148 +1,71 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
+import React from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
+import { COLORS, SPACING, TYPOGRAPHY } from "../../constants/theme";
 
-const LoadingScreen = ({ status, message }) => {
-  const spinValue = useRef(new Animated.Value(0)).current;
-  const pulseValue = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Spin animation for the outer ring
-    Animated.loop(
-      Animated.timing(spinValue, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-
-    // Pulse animation for the inner heart
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseValue, {
-          toValue: 1.2,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseValue, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
+export default function LoadingScreen({ message, status }) {
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[COLORS.background, "#F0FDFA", "#E0F2FE"]}
-        style={StyleSheet.absoluteFill}
-      />
-      
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-          {/* Animated Outer Ring */}
-          <Animated.View
-            style={[
-              styles.ring,
-              { transform: [{ rotate: spin }] }
-            ]}
-          >
-            <LinearGradient
-              colors={[COLORS.primary, "transparent"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.ringGradient}
-            />
-          </Animated.View>
-
-          {/* Pulsing Heart */}
-          <Animated.Text 
-            style={[
-              styles.emoji,
-              { transform: [{ scale: pulseValue }] }
-            ]}
-          >
-            💜
-          </Animated.Text>
+          <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
         </View>
-
-        <Text style={styles.title}>CoupleTasks</Text>
         
-        <View style={styles.statusContainer}>
-          <Text style={styles.message}>{message || "Loading..."}</Text>
-          {status && (
-            <Text style={styles.statusDetails}>
-              {typeof status === 'string' ? status : JSON.stringify(status)}
-            </Text>
-          )}
-        </View>
+        <Text style={styles.appName}>CoupleTasks</Text>
+        
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={styles.spinner}
+        />
+        
+        <Text style={styles.message}>{message || "Loading..."}</Text>
+        
+        {status?.error && (
+          <Text style={styles.errorText}>{status.error}</Text>
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
-    alignItems: 'center',
+    alignItems: "center",
+    paddingHorizontal: SPACING.xxl,
   },
   logoContainer: {
-    width: 120,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.xl,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: COLORS.primaryMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.l,
   },
-  ring: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 4,
-    borderColor: 'transparent',
-    position: 'absolute',
-  },
-  ringGradient: {
-    flex: 1,
-    borderRadius: 50,
-  },
-  emoji: {
-    fontSize: 48,
-  },
-  title: {
+  appName: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.primaryDark,
-    marginBottom: SPACING.m,
+    marginBottom: SPACING.xxl,
   },
-  statusContainer: {
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
+  spinner: {
+    marginBottom: SPACING.l,
   },
   message: {
     ...TYPOGRAPHY.body,
     color: COLORS.textSecondary,
-    marginBottom: SPACING.s,
-    textAlign: 'center',
+    textAlign: "center",
   },
-  statusDetails: {
+  errorText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.textTertiary,
-    textAlign: 'center',
+    color: COLORS.error,
+    marginTop: SPACING.m,
+    textAlign: "center",
   },
 });
-
-export default LoadingScreen;

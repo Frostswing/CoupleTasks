@@ -63,7 +63,7 @@ export default function SettingsScreen({ navigation }) {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#EC4899" />
+        <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.loadingText}>Loading settings...</Text>
       </SafeAreaView>
     );
@@ -82,7 +82,7 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.cardTitleContainer}>
-              <Icon name="link" size={24} color="#EC4899" />
+              <Icon name="link" size={24} color="#2563EB" />
               <Text style={styles.cardTitle}>Link Your Partner</Text>
             </View>
             <Text style={styles.cardDescription}>
@@ -109,7 +109,7 @@ export default function SettingsScreen({ navigation }) {
             {/* Info Alert */}
             <View style={styles.infoAlert}>
               <View style={styles.alertIcon}>
-                <Icon name="favorite" size={16} color="#EC4899" />
+                <Icon name="favorite" size={16} color="#2563EB" />
               </View>
               <View style={styles.alertContent}>
                 <Text style={styles.alertTitle}>For a complete sync</Text>
@@ -163,7 +163,7 @@ export default function SettingsScreen({ navigation }) {
               <View style={styles.profileItem}>
                 <Text style={styles.profileLabel}>Partner</Text>
                 <View style={styles.partnerInfo}>
-                  <Icon name="favorite" size={16} color="#EC4899" />
+                  <Icon name="favorite" size={16} color="#2563EB" />
                   <Text style={styles.profileValue}>{currentUser.partner_email}</Text>
                 </View>
               </View>
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EC4899',
+    backgroundColor: '#2563EB',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',

@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { format, parseISO } from "date-fns";
 
@@ -24,7 +23,7 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
       case 'invitation':
         return '#F59E0B'; // Orange
       case 'solo_ok':
-        return '#14B8A6'; // Turquoise
+        return '#2563EB'; // Turquoise
       default:
         return '#6B7280'; // Gray
     }
@@ -186,13 +185,7 @@ export default function EventCard({ event, currentUserId, onPress, onRespond }) 
         )}
       </View>
       </View>
-      {/* Iridescent border gradient */}
-      <LinearGradient
-        colors={["#14B8A6", "#06B6D4", "#3B82F6", "#8B5CF6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.gradientBorder}
-      />
+      <View style={styles.accentBorder} />
     </TouchableOpacity>
   );
 }
@@ -216,12 +209,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  gradientBorder: {
+  accentBorder: {
     position: 'absolute',
     left: 0,
     top: 0,
     bottom: 0,
     width: 4,
+    backgroundColor: '#2563EB',
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
   },

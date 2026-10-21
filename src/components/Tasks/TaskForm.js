@@ -194,7 +194,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerIcon}>
-            <Icon name="favorite" size={24} color="#EC4899" />
+            <Icon name="favorite" size={24} color="#2563EB" />
           </View>
           <Text style={styles.headerTitle}>{title}</Text>
         </View>
@@ -260,7 +260,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
               placeholderTextColor="#9CA3AF"
             />
             <TouchableOpacity style={styles.addButton} onPress={addSubtask}>
-              <Icon name="add" size={20} color="#14B8A6" />
+              <Icon name="add" size={20} color="#2563EB" />
               <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>
           </View>
@@ -414,7 +414,7 @@ export default function TaskForm({ task, onSubmit, onCancel, title = "Create New
             style={styles.submitButtonWrapper}
           >
             <LinearGradient
-              colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
+              colors={["#2563EB", "#06B6D4", "#3B82F6"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[styles.button, styles.submitButton]}
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E6FFFA',
+    backgroundColor: '#DBEAFE',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   addButtonText: {
-    color: '#14B8A6',
+    color: '#2563EB',
     fontWeight: '600',
     marginLeft: 4,
     fontSize: 14,
@@ -610,8 +610,8 @@ const styles = StyleSheet.create({
     margin: 4,
   },
   dayButtonSelected: {
-    backgroundColor: '#14B8A6',
-    borderColor: '#14B8A6',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   dayButtonText: {
     fontSize: 12,

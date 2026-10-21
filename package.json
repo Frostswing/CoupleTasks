@@ -7,14 +7,15 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "generate-icons": "node scripts/generate-icons.js",
     "build:android": "expo prebuild --platform android --clean && npx expo run:android --variant release",
     "prebuild:android": "expo prebuild --platform android"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~5.0.5",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/datetimepicker": "^8.2.0",
-    "@react-native-community/masked-view": "^0.1.11",
     "@react-native-picker/picker": "^2.8.1",
     "@react-navigation/drawer": "^7.3.11",
     "@react-navigation/native": "^7.1.8",
@@ -34,17 +35,20 @@
     "firebase": "^11.7.1",
     "i18n-js": "^4.4.3",
     "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-native": "0.79.5",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-web": "^0.20.0",
     "updates": "^16.9.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "sharp": "^0.35.5"
   },
   "private": true
 }

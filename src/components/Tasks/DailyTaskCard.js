@@ -11,10 +11,10 @@ import { format, parseISO } from "date-fns";
 const categoryColors = {
   household: { bg: '#DBEAFE', text: '#2563EB' },
   errands: { bg: '#DCFCE7', text: '#16A34A' },
-  planning: { bg: '#E6FFFA', text: '#0D9488' },
+  planning: { bg: '#DBEAFE', text: '#1D4ED8' },
   finance: { bg: '#FEF3C7', text: '#D97706' },
   health: { bg: '#FEE2E2', text: '#DC2626' },
-  social: { bg: '#FCE7F3', text: '#EC4899' },
+  social: { bg: '#FCE7F3', text: '#2563EB' },
   personal: { bg: '#E0E7FF', text: '#6366F1' },
   other: { bg: '#F3F4F6', text: '#6B7280' }
 };
@@ -85,7 +85,7 @@ export default function DailyTaskCard({ task, onComplete, onDefer, onPostponeBiw
           
           {isAssignedToMe && (
             <View style={styles.assignedBadge}>
-              <Icon name="favorite" size={12} color="#0D9488" />
+              <Icon name="favorite" size={12} color="#1D4ED8" />
             </View>
           )}
         </View>
@@ -97,7 +97,7 @@ export default function DailyTaskCard({ task, onComplete, onDefer, onPostponeBiw
             onPress={() => onPostponeBiweekly(task)}
             style={styles.postponeButton}
           >
-            <Icon name="next-week" size={20} color="#0D9488" />
+            <Icon name="next-week" size={20} color="#1D4ED8" />
           </TouchableOpacity>
         )}
         {onDefer && (
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   assignedToMe: {
     borderLeftWidth: 3,
-    borderLeftColor: '#0D9488',
+    borderLeftColor: '#1D4ED8',
   },
   checkbox: {
     marginRight: 12,

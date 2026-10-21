@@ -9,7 +9,6 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { Event } from "../entities/Event";
 import { User } from "../entities/User";
@@ -239,98 +238,43 @@ export default function EventsScreen({ navigation }) {
     e.status === 'pending' && e.created_by !== currentUser?.uid && e.event_type === 'invitation'
   ).length;
 
+  const renderFilterChip = (key, label, showBadge = false) => {
+    const active = filter === key;
+    return (
+      <TouchableOpacity
+        key={key}
+        onPress={() => setFilter(key)}
+        style={[styles.filterButton, active && styles.filterButtonActiveSolid]}
+      >
+        <View style={styles.filterButtonWithBadge}>
+          <Text style={active ? styles.filterTextActive : styles.filterText}>{label}</Text>
+          {showBadge && pendingCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{pendingCount}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Header with Filter and Add Button */}
       <View style={styles.header}>
         <View style={styles.filterContainer}>
-          <TouchableOpacity
-            onPress={() => setFilter("all")}
-            style={styles.filterButtonWrapper}
-          >
-            {filter === "all" ? (
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.filterButton, styles.filterButtonActive]}
-              >
-                <Text style={styles.filterTextActive}>All</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.filterButton}>
-                <Text style={styles.filterText}>All</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilter("upcoming")}
-            style={styles.filterButtonWrapper}
-          >
-            {filter === "upcoming" ? (
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.filterButton, styles.filterButtonActive]}
-              >
-                <Text style={styles.filterTextActive}>Upcoming</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.filterButton}>
-                <Text style={styles.filterText}>Upcoming</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilter("pending")}
-            style={styles.filterButtonWrapper}
-          >
-            {filter === "pending" ? (
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.filterButton, styles.filterButtonActive]}
-              >
-                <View style={styles.filterButtonWithBadge}>
-                  <Text style={styles.filterTextActive}>Pending</Text>
-                  {pendingCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{pendingCount}</Text>
-                    </View>
-                  )}
-                </View>
-              </LinearGradient>
-            ) : (
-              <View style={styles.filterButton}>
-                <View style={styles.filterButtonWithBadge}>
-                  <Text style={styles.filterText}>Pending</Text>
-                  {pendingCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{pendingCount}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            )}
-          </TouchableOpacity>
+          {renderFilterChip("all", "All")}
+          {renderFilterChip("upcoming", "Upcoming")}
+          {renderFilterChip("pending", "Pending", true)}
         </View>
         <TouchableOpacity
           onPress={() => {
             setEditingEvent(null);
             setShowAddModal(true);
           }}
-          style={styles.addButtonContainer}
+          style={styles.addButton}
         >
-          <LinearGradient
-            colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.addButton}
-          >
-            <Icon name="add" size={24} color="#FFFFFF" />
-          </LinearGradient>
+          <Icon name="add" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -507,20 +451,14 @@ const styles = StyleSheet.create({
     gap: 8,
     flex: 1,
   },
-  filterButtonWrapper: {
-    borderRadius: 20,
-    overflow: "hidden",
-  },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: "#F3F4F6",
   },
-  filterButtonActive: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  filterButtonActiveSolid: {
+    backgroundColor: "#2563EB",
   },
   filterButtonWithBadge: {
     flexDirection: "row",
@@ -549,15 +487,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "bold",
   },
-  addButtonContainer: {
-    marginLeft: 12,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
   addButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    marginLeft: 12,
+    backgroundColor: "#2563EB",
     justifyContent: "center",
     alignItems: "center",
   },
