@@ -10,7 +10,8 @@ import "react-native-gesture-handler";
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { I18nManager, LogBox } from "react-native";
+import { I18nManager, LogBox, Platform } from "react-native";
+import { initializeGoogleSignIn } from "./src/services/googleAuthService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DrawerNavigator from "./src/navigation/DrawerNavigator";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -91,6 +92,9 @@ function AppContent() {
 
   useEffect(() => {
     if (!firebaseReady) return;
+    if (Platform.OS !== "web") {
+      initializeGoogleSignIn();
+    }
 
     const unsubscribe = subscribeToAuthChanges((user) => {
       setUser(user);

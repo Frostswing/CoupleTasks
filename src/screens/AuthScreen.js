@@ -21,7 +21,13 @@ import {
   getCurrentUser,
   subscribeToAuthChanges,
 } from "../services/userService";
-import { simpleGoogleSignIn } from "../services/googleAuthService";
+import {
+  signInWithGoogle,
+  resolveGoogleRedirectResult,
+} from "../services/googleAuthService";
+import { linkGoogleAfterPasswordLogin } from "../services/googleAuthCore";
+import { GOOGLE_SIGN_IN_ERROR } from "../utils/googleAuthErrors";
+import { getGoogleSignInErrorMessage } from "../utils/googleAuthMessages";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { validateForm, commonRules } from "../utils/validation";
 import i18n from "../localization/i18n";
@@ -37,7 +43,9 @@ const AuthScreen = ({ navigation }) => {
   const [name, setName] = useState("");
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [googleLink, setGoogleLink] = useState(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((user) => {
@@ -45,6 +53,111 @@ const AuthScreen = ({ navigation }) => {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return undefined;
+    let active = true;
+    (async () => {
+      const result = await resolveGoogleRedirectResult();
+      if (!active || !result) return;
+      if (result.success) {
+        setGoogleLink(null);
+        showSuccess(i18n.t("auth.loginSuccess"));
+        return;
+      }
+      if (result.errorKey === GOOGLE_SIGN_IN_ERROR.ACCOUNT_EXISTS_PASSWORD) {
+        setGoogleLink({
+          email: result.email,
+          pendingCredential: result.pendingCredential,
+        });
+        if (result.email) setEmail(result.email);
+        return;
+      }
+      const message = getGoogleSignInErrorMessage(result.errorKey);
+      if (message) {
+        Alert.alert(i18n.t("common.error"), message);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const processGoogleSignInResult = (result) => {
+    if (result.redirecting) {
+      return;
+    }
+    if (result.cancelled || result.errorKey === GOOGLE_SIGN_IN_ERROR.CANCELLED) {
+      return;
+    }
+    if (result.success) {
+      setGoogleLink(null);
+      showSuccess(i18n.t("auth.loginSuccess"));
+      return;
+    }
+    if (
+      result.errorKey === GOOGLE_SIGN_IN_ERROR.ACCOUNT_EXISTS_PASSWORD &&
+      result.pendingCredential
+    ) {
+      setGoogleLink({
+        email: result.email,
+        pendingCredential: result.pendingCredential,
+      });
+      if (result.email) setEmail(result.email);
+      Alert.alert(i18n.t("common.error"), i18n.t("auth.googleAccountExistsWithPassword"));
+      return;
+    }
+    const message = getGoogleSignInErrorMessage(result.errorKey);
+    if (message) {
+      Alert.alert(i18n.t("common.error"), message);
+    } else if (result.error) {
+      handleError(result.error, "googleSignIn");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      processGoogleSignInResult(result);
+    } catch (error) {
+      handleError(error, "googleSignIn");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleLinkGoogleAccount = async () => {
+    if (!googleLink?.pendingCredential) return;
+    if (!email || !password) {
+      Alert.alert(i18n.t("common.error"), i18n.t("auth.googleLinkEnterPassword"));
+      return;
+    }
+    setGoogleLoading(true);
+    try {
+      const result = await linkGoogleAfterPasswordLogin(
+        email,
+        password,
+        googleLink.pendingCredential
+      );
+      if (result.success) {
+        setGoogleLink(null);
+        setPassword("");
+        showSuccess(i18n.t("auth.googleLinkSuccess"));
+      } else {
+        const message = getGoogleSignInErrorMessage(result.errorKey);
+        if (message) {
+          Alert.alert(i18n.t("common.error"), message);
+        } else {
+          handleError(result.error, "googleLink");
+        }
+      }
+    } catch (error) {
+      handleError(error, "googleLink");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const validateAuthForm = () => {
     const rules = {
@@ -97,43 +210,6 @@ const AuthScreen = ({ navigation }) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      const result = await simpleGoogleSignIn();
-
-      if (result.requiresDevBuild) {
-        Alert.alert("Google Sign In", result.error, [{ text: "OK" }]);
-      } else if (result.success) {
-        const googleUser = result.user;
-        const firebaseResult = await registerUser(
-          googleUser.email,
-          "google-auth-" + googleUser.id,
-          googleUser.name
-        );
-
-        if (firebaseResult.success) {
-          showSuccess(i18n.t("auth.loginSuccess"));
-        } else {
-          const loginResult = await loginUser(googleUser.email, "google-auth-" + googleUser.id);
-          if (loginResult.success) {
-            showSuccess(i18n.t("auth.loginSuccess"));
-          } else {
-            handleError(loginResult.error, "googleSignIn");
-          }
-        }
-      } else {
-        if (result.error !== "Login cancelled") {
-          handleError(result.error, "googleSignIn");
-        }
-      }
-    } catch (error) {
-      handleError(error, "googleSignIn");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
     setLoading(true);
     try {
@@ -171,8 +247,8 @@ const AuthScreen = ({ navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <PremiumScreenShell
-        loading={loading}
-        loadingLabel={i18n.t("common.loading")}
+        loading={loading || googleLoading}
+        loadingLabel={googleLoading ? i18n.t("auth.googleSigningIn") : i18n.t("common.loading")}
         title={heroTitle}
         subtitle={i18n.t("auth.subtitle")}
         contentStyle={themed.scrollPad}
@@ -243,7 +319,20 @@ const AuthScreen = ({ navigation }) => {
               <Text style={[themed.dividerText, { color: colors.textTertiary }]}>or</Text>
               <View style={[themed.dividerLine, { backgroundColor: colors.border }]} />
             </View>
-            <PressableScale onPress={handleGoogleSignIn} disabled={loading}>
+            {googleLink ? (
+              <View style={[themed.linkBanner, { backgroundColor: colors.primaryMuted, borderColor: colors.primary }]}>
+                <Text style={[themed.linkBannerText, { color: colors.text }]}>
+                  {i18n.t("auth.googleLinkPasswordPrompt")}
+                </Text>
+                <GradientButton
+                  label={i18n.t("auth.linkGoogleAccount")}
+                  onPress={handleLinkGoogleAccount}
+                  loading={googleLoading}
+                  style={themed.linkCta}
+                />
+              </View>
+            ) : null}
+            <PressableScale onPress={handleGoogleSignIn} disabled={loading || googleLoading}>
               <View style={[themed.googleButton, { borderColor: colors.border, backgroundColor: colors.surface }]}>
                 <MaterialIcons name="g-mobiledata" size={24} color={colors.textSecondary} />
                 <Text style={[themed.googleButtonText, { color: colors.textSecondary }]}>
@@ -313,6 +402,14 @@ function createThemedStyles(colors) {
     toggleAction: { ...TYPOGRAPHY.body, fontWeight: "600" },
     forgotPassword: { alignItems: "center", marginTop: SPACING.l },
     forgotPasswordText: { ...TYPOGRAPHY.bodySmall },
+    linkBanner: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: RADIUS.m,
+      padding: SPACING.m,
+      marginBottom: SPACING.l,
+    },
+    linkBannerText: { ...TYPOGRAPHY.bodySmall, marginBottom: SPACING.m, textAlign: "center" },
+    linkCta: { alignSelf: "stretch" },
   });
 }
 

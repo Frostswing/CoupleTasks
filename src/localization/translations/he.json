@@ -81,7 +81,18 @@
         "resendResetEmail": "שליחה חוזרת",
         "resendResetCooldown": "שליחה חוזרת תוך {{seconds}} שניות",
         "resetTooManyRequests": "יותר מדי ניסיונות. המתינו כמה דקות ונסו שוב.",
-        "resetEmailFailed": "לא הצלחנו לשלוח אימייל איפוס. נסו שוב."
+        "resetEmailFailed": "לא הצלחנו לשלוח אימייל איפוס. נסו שוב.",
+        "googleSigningIn": "מתחברים עם Google…",
+        "googleSignInFailed": "ההתחברות עם Google נכשלה. נסו שוב.",
+        "googleNotConfigured": "התחברות Google לא הוגדרה. הוסיפו EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID והפעילו Google ב-Firebase.",
+        "googlePlayServicesUnavailable": "שירותי Google Play לא זמינים במכשיר זה.",
+        "googleSignInInProgress": "התחברות Google כבר מתבצעת.",
+        "googlePopupBlocked": "חלון קופץ נחסם. מנסים התחברות בהפניה…",
+        "googleAccountExistsWithPassword": "כתובת זו כבר משתמשת בסיסמה. התחברו עם הסיסמה למטה ואז לחצו על קישור חשבון Google.",
+        "googleLinkPasswordPrompt": "הזינו את הסיסמה למעלה ואז קשרו את חשבון Google.",
+        "googleLinkEnterPassword": "הזינו סיסמת החשבון כדי לקשר Google.",
+        "linkGoogleAccount": "קישור חשבון Google",
+        "googleLinkSuccess": "חשבון Google קושר בהצלחה."
     },
     "kudos": {
         "title": "קרדיט",
