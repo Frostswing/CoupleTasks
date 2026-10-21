@@ -90,7 +90,7 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
           <Icon 
             name={type === 'shopping' ? 'shopping-basket' : 'task-alt'} 
             size={32} 
-            color=colors.border 
+            color={colors.border} 
           />
           <Text style={styles.emptyText}>
             {type === 'shopping' ? i18n.t('history.noShoppingYet') : i18n.t('history.noTasksYet')}

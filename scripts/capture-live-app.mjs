@@ -31,7 +31,8 @@ const LIGHT_SCREENS = [
   { file: "after-settings.png", drawer: "Settings" },
   { file: "after-sharing.png", drawer: "Sharing" },
   { file: "after-history.png", drawer: "History" },
-  { file: "after-management.png", drawer: "Management" },
+  { file: "after-management-light.png", drawer: "Management" },
+  { file: "after-shopping-mode-light.png", drawer: "Shopping Mode" },
   { file: "after-drawer.png", drawer: null },
 ];
 
@@ -42,6 +43,8 @@ const DARK_SCREENS = [
   { file: "after-dark-shopping.png", drawer: "Shopping List", waitText: ["חלב", "Bread"] },
   { file: "after-dark-inventory.png", drawer: "Inventory" },
   { file: "after-dark-settings.png", drawer: "Settings" },
+  { file: "after-management-dark.png", drawer: "Management" },
+  { file: "after-shopping-mode-dark.png", drawer: "Shopping Mode" },
 ];
 
 async function startServer() {

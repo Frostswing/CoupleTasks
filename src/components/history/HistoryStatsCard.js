@@ -102,7 +102,7 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
       {stats.mostPopular && (
         <View style={styles.popularSection}>
           <View style={styles.popularBadge}>
-            <Icon name="star" size={14} color=colors.warning />
+            <Icon name="star" size={14} color={colors.warning} />
             <Text style={styles.popularBadgeText}>{i18n.t('history.mostPopular')}</Text>
           </View>
           <Text style={styles.popularName}>

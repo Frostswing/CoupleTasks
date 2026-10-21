@@ -8,7 +8,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "generate-icons": "node scripts/generate-icons.js",
-    "test": "node scripts/test-store-departments.mjs",
+    "test": "node scripts/test-store-departments.mjs && node scripts/check-theme-hex.mjs",
     "capture-ui-previews": "node scripts/capture-screen-previews.mjs",
     "build:android": "expo prebuild --platform android --clean && npx expo run:android --variant release",
     "prebuild:android": "expo prebuild --platform android"

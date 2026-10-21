@@ -339,7 +339,7 @@ const AutoCompleteInput = ({
           >
             <View style={styles.suggestionContent}>
               <View style={[styles.suggestionIcon, { backgroundColor: colors.primaryMuted }]}>
-                <Icon name="add-circle" size={16} color=colors.primaryLight />
+                <Icon name="add-circle" size={16} color={colors.primaryLight} />
               </View>
               <View style={styles.suggestionTextContainer}>
                 <Text style={[styles.suggestionText, { color: colors.primaryLight, fontWeight: '600' }]}>
@@ -348,7 +348,7 @@ const AutoCompleteInput = ({
                 <Text style={styles.frequencyText}>Add new item</Text>
               </View>
             </View>
-            <Icon name="arrow-upward" size={16} color=colors.primaryLight style={styles.insertIcon} />
+            <Icon name="arrow-upward" size={16} color={colors.primaryLight} style={styles.insertIcon} />
           </TouchableOpacity>
           
           {/* Search results from archive and history */}

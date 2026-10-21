@@ -80,4 +80,5 @@ function createStyles(colors) {
     maxWidth: 80,
   },
 });
+}
 

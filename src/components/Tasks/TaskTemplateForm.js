@@ -782,4 +782,4 @@ function createStyles(colors) {
     color: COLORS.textInverse,
   },
 });
-
+}

@@ -445,7 +445,7 @@ export default function ManagementScreen({ navigation }) {
             <Text style={styles.categoryStatText}>{data.completed} {i18n.t('management.completed')}</Text>
           </View>
           <View style={styles.categoryStatItem}>
-            <Icon name="schedule" size={16} color=colors.warning />
+            <Icon name="schedule" size={16} color={colors.warning} />
             <Text style={styles.categoryStatText}>{data.pending} {i18n.t('management.pending')}</Text>
           </View>
           {data.overdue > 0 && (
@@ -716,7 +716,7 @@ export default function ManagementScreen({ navigation }) {
                   title={i18n.t('management.pending')}
                   value={stats.pendingTasks}
                   subtitle={i18n.t('management.activeTasks')}
-                  color=colors.warning
+                  color={colors.warning}
                 />
                 <StatCard
                   icon="warning"
