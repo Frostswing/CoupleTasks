@@ -1,22 +1,21 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import i18n from "../localization/i18n";
-import { SPACING, RADIUS, TYPOGRAPHY, COLORS } from "../constants/theme";
+import { SPACING, RADIUS, TYPOGRAPHY, COLORS, getPastelSurface } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { usePartnerMode } from "../context/HouseholdPartnerContext";
-import PremiumScreenShell from "../components/premium/PremiumScreenShell";
-import PremiumCard from "../components/premium/PremiumCard";
-import PressableScale from "../components/premium/PressableScale";
-import ProgressRing from "../components/premium/ProgressRing";
 import CoupleHomeHero from "../components/home/CoupleHomeHero";
+import GradientQuickActionCard from "../components/home/GradientQuickActionCard";
+import PastelStatCard from "../components/home/PastelStatCard";
 import { Task } from "../entities/Task";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
 import taskSchedulingService from "../services/taskSchedulingService";
 
 export default function HomeScreen({ navigation }) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     loading: partnerLoading,
@@ -29,8 +28,8 @@ export default function HomeScreen({ navigation }) {
 
   const [loading, setLoading] = useState(true);
   const [taskFocus, setTaskFocus] = useState(0);
-  const [taskDoneRatio, setTaskDoneRatio] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  const [completedThisWeek, setCompletedThisWeek] = useState(0);
   const [shoppingPending, setShoppingPending] = useState(0);
 
   const loadDashboard = useCallback(async () => {
@@ -55,7 +54,13 @@ export default function HomeScreen({ navigation }) {
       );
       const completed = tasks.filter((t) => t.status === "completed").length;
       setCompletedCount(completed);
-      setTaskDoneRatio(tasks.length ? completed / tasks.length : 0);
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      setCompletedThisWeek(
+        tasks.filter((t) => {
+          if (t.status !== "completed" || !t.completed_at) return false;
+          return new Date(t.completed_at).getTime() >= weekAgo;
+        }).length
+      );
 
       const shopping = await ShoppingListItem.list("-created_date");
       const pending = shopping.filter(
@@ -76,104 +81,145 @@ export default function HomeScreen({ navigation }) {
     loadDashboard();
   }, [loadDashboard]);
 
-  const quickActions = useMemo(
-    () =>
-      [
-        {
-          id: "dailyTasks",
-          title: i18n.t("navigation.drawer.dailyTasks"),
-          description: "Today's focus",
-          icon: "today",
-          screen: "DailyTasks",
-        },
-        {
-          id: "shoppingList",
-          title: i18n.t("navigation.drawer.shoppingList"),
-          description: "List & aisles",
-          icon: "shopping-cart",
-          screen: "ShoppingList",
-        },
-        {
-          id: "events",
-          title: i18n.t("navigation.drawer.events"),
-          description: isPartnered ? "Calendar & invites" : "Your calendar",
-          icon: "event",
-          screen: "Events",
-        },
-        {
-          id: "taskPlanning",
-          title: i18n.t("navigation.drawer.taskPlanning"),
-          description: "Plan ahead",
-          icon: "event-note",
-          screen: "TaskPlanning",
-        },
-        {
-          id: "inventory",
-          title: i18n.t("navigation.drawer.inventory"),
-          description: "Stock levels",
-          icon: "inventory-2",
-          screen: "Inventory",
-        },
-        {
-          id: "management",
-          title: i18n.t("navigation.drawer.management"),
-          description: "Insights",
-          icon: "insights",
-          screen: "Management",
-        },
-      ].filter((a) => !a.partnerOnly),
-    [isPartnered]
-  );
-
-  const openDrawer = () => {
-    try {
-      navigation.getParent()?.openDrawer?.();
-    } catch {
-      /* drawer optional */
+  const quickActions = useMemo(() => {
+    const coupled = [
+      {
+        id: "grocery",
+        featureKey: "grocery",
+        icon: "shopping-cart",
+        title: i18n.t("home.actions.grocery"),
+        subtitle: i18n.t("home.actions.grocerySub"),
+        screen: "ShoppingList",
+        partnerOnly: false,
+      },
+      {
+        id: "dateNight",
+        featureKey: "dateNight",
+        icon: "event",
+        title: i18n.t("home.actions.dateNight"),
+        subtitle: i18n.t("home.actions.dateNightSub"),
+        screen: "Events",
+        partnerOnly: true,
+      },
+      {
+        id: "tasks",
+        featureKey: "tasks",
+        icon: "check-circle",
+        title: i18n.t("home.actions.completeTasks"),
+        subtitle: i18n.t("home.actions.completeTasksSub"),
+        screen: "DailyTasks",
+        partnerOnly: false,
+      },
+      {
+        id: "kudos",
+        featureKey: "kudos",
+        icon: "star",
+        title: i18n.t("home.actions.kudos"),
+        subtitle: i18n.t("home.actions.kudosSub"),
+        screen: "FourthTab",
+        partnerOnly: true,
+      },
+      {
+        id: "budget",
+        featureKey: "budget",
+        icon: "savings",
+        title: i18n.t("home.actions.budget"),
+        subtitle: i18n.t("home.actions.budgetSub"),
+        screen: "Management",
+        partnerOnly: true,
+      },
+      {
+        id: "chat",
+        featureKey: "chat",
+        icon: "chat",
+        title: i18n.t("home.actions.chat"),
+        subtitle: i18n.t("home.actions.chatSub"),
+        screen: "Sharing",
+        partnerOnly: true,
+      },
+    ];
+    const soloFill = [
+      {
+        id: "planning",
+        featureKey: "planning",
+        icon: "event-note",
+        title: i18n.t("navigation.drawer.taskPlanning"),
+        subtitle: i18n.t("home.actions.planningSub"),
+        screen: "TaskPlanning",
+        partnerOnly: false,
+      },
+      {
+        id: "inventory",
+        featureKey: "inventory",
+        icon: "inventory-2",
+        title: i18n.t("navigation.drawer.inventory"),
+        subtitle: i18n.t("home.actions.inventorySub"),
+        screen: "Inventory",
+        partnerOnly: false,
+      },
+      {
+        id: "shoppingMode",
+        featureKey: "shoppingMode",
+        icon: "shopping-bag",
+        title: i18n.t("navigation.drawer.shoppingMode"),
+        subtitle: i18n.t("home.actions.shoppingModeSub"),
+        screen: "ShoppingMode",
+        partnerOnly: false,
+      },
+      {
+        id: "eventsSolo",
+        featureKey: "events",
+        icon: "calendar-today",
+        title: i18n.t("navigation.drawer.events"),
+        subtitle: i18n.t("home.actions.eventsSub"),
+        screen: "Events",
+        partnerOnly: false,
+      },
+    ];
+    let list = coupled.filter((a) => !a.partnerOnly || isPartnered);
+    if (!isPartnered) {
+      const ids = new Set(list.map((a) => a.id));
+      for (const item of soloFill) {
+        if (list.length >= 6) break;
+        if (!ids.has(item.id)) list.push(item);
+      }
     }
-  };
+    return list.slice(0, 6);
+  }, [isPartnered]);
 
   const handleNavigate = (screen, params) => {
     try {
-      navigation.navigate(screen, params);
+      if (["Home", "DailyTasks", "Settings", "FourthTab"].includes(screen)) {
+        navigation.navigate(screen, params);
+        return;
+      }
+      navigation.getParent()?.navigate(screen, params);
     } catch (error) {
       console.error(`Navigation error: ${screen}`, error);
     }
   };
 
-  const heroSlot = (
-    <View style={styles.heroRow}>
-      <ProgressRing
-        onHero
-        progress={taskDoneRatio}
-        label={`${Math.round(taskDoneRatio * 100)}%`}
-        size={64}
-      />
-      <View style={styles.heroActions}>
-        <PressableScale onPress={() => handleNavigate("AddTask")} style={styles.heroChip}>
-          <Icon name="add-task" size={18} color={colors.textInverse} />
-          <Text style={styles.heroChipText}>Add task</Text>
-        </PressableScale>
-        <PressableScale
-          onPress={() => handleNavigate("ShoppingList", { openAddDialog: true })}
-          style={[styles.heroChip, styles.heroChipGhost]}
-        >
-          <Icon name="add-shopping-cart" size={18} color={colors.textInverse} />
-          <Text style={styles.heroChipText}>Add item</Text>
-        </PressableScale>
-      </View>
-    </View>
-  );
+  const openDrawer = () => {
+    try {
+      navigation.getParent()?.getParent()?.openDrawer?.();
+    } catch {
+      /* optional */
+    }
+  };
 
   const tipText = isPartnered ? i18n.t("home.tipCouple") : i18n.t("home.tipSolo");
+  const tipBg = getPastelSurface("purple", isDark);
+
+  if (loading || partnerLoading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.textSecondary }}>{i18n.t("common.loading")}</Text>
+      </View>
+    );
+  }
 
   return (
-    <PremiumScreenShell
-      loading={loading || partnerLoading}
-      loadingLabel={i18n.t("common.loading")}
-      noHorizontalPadding
-      contentStyle={styles.scrollContent}
-    >
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
       <CoupleHomeHero
         isPartnered={isPartnered}
         userFirstName={userFirstName}
@@ -186,191 +232,123 @@ export default function HomeScreen({ navigation }) {
         onInvitePartner={() => handleNavigate("Settings")}
       />
 
-      <View style={styles.bodyPad}>
-        <PremiumCard style={styles.statsCard}>
-          {heroSlot}
-          <View style={styles.inlineStats}>
-            <View style={styles.inlineStat}>
-              <Text style={[styles.statVal, { color: colors.text }]}>{taskFocus}</Text>
-              <Text style={[styles.statLbl, { color: colors.textSecondary }]}>Focus</Text>
-            </View>
-            <View style={styles.inlineStat}>
-              <Text style={[styles.statVal, { color: colors.text }]}>{shoppingPending}</Text>
-              <Text style={[styles.statLbl, { color: colors.textSecondary }]}>To buy</Text>
-            </View>
-          </View>
-        </PremiumCard>
+      <View style={[styles.sheet, { backgroundColor: colors.background }]}>
+        <View style={styles.sectionHead}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{i18n.t("home.quickActions")}</Text>
+          <TouchableOpacity onPress={openDrawer}>
+            <Text style={[styles.seeAll, { color: colors.primary }]}>{i18n.t("home.seeAll")}</Text>
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.sectionOverline}>Quick Access</Text>
         <View style={styles.actionGrid}>
           {quickActions.map((action) => (
-            <PressableScale
+            <GradientQuickActionCard
               key={action.id}
-              onPress={() => handleNavigate(action.screen, action.params)}
-              style={styles.gridItem}
-            >
-              <PremiumCard style={styles.actionCard} padded>
-                <View style={[styles.actionIcon, { backgroundColor: colors.primaryMuted }]}>
-                  <Icon name={action.icon} size={22} color={colors.primary} />
-                </View>
-                <Text style={[styles.actionTitle, { color: colors.text }]} numberOfLines={1}>
-                  {action.title}
-                </Text>
-                <Text style={[styles.actionDesc, { color: colors.textTertiary }]} numberOfLines={2}>
-                  {action.description}
-                </Text>
-              </PremiumCard>
-            </PressableScale>
+              featureKey={action.featureKey}
+              icon={action.icon}
+              title={action.title}
+              subtitle={action.subtitle}
+              onPress={() => handleNavigate(action.screen)}
+            />
           ))}
         </View>
 
-        <PremiumCard style={[styles.tipCard, { backgroundColor: colors.primaryMuted }]}>
-          <Icon name="lightbulb-outline" size={22} color={colors.primary} />
-          <Text style={[styles.tipText, { color: colors.text }]}>{tipText}</Text>
-        </PremiumCard>
+        <View style={styles.statRow}>
+          <PastelStatCard
+            pastel="pink"
+            icon="event"
+            iconColor={isDark ? COLORS.pastelPink : COLORS.accentPink}
+            title={i18n.t("home.statTasksTitle", { count: taskFocus })}
+            subtitle={i18n.t("home.statTasksSub")}
+            onPress={() => handleNavigate("DailyTasks")}
+          />
+          <PastelStatCard
+            pastel="teal"
+            icon="emoji-events"
+            iconColor={colors.primary}
+            title={i18n.t("home.statWeekTitle")}
+            subtitle={i18n.t("home.statWeekSub", { count: completedThisWeek })}
+            onPress={() => handleNavigate("Management")}
+          />
+        </View>
 
-        <Text style={styles.sectionOverline}>More</Text>
-        <PremiumCard>
-          <View style={styles.moreRow}>
-            {[
-              { icon: "archive", label: "Archive", screen: "Archive" },
-              { icon: "history", label: "History", screen: "History" },
-              { icon: "settings", label: "Settings", screen: "Settings" },
-            ].map((item) => (
-              <PressableScale
-                key={item.screen}
-                onPress={() => handleNavigate(item.screen)}
-                style={styles.moreItem}
-              >
-                <View style={[styles.moreIcon, { backgroundColor: colors.borderLight }]}>
-                  <Icon name={item.icon} size={20} color={colors.textSecondary} />
-                </View>
-                <Text style={[styles.moreLabel, { color: colors.textSecondary }]}>{item.label}</Text>
-              </PressableScale>
-            ))}
+        <LinearGradient
+          colors={isDark ? [COLORS.pastelPurpleDark, COLORS.dark.surface] : [COLORS.pastelPurple, COLORS.pastelPink]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.tipCard}
+        >
+          <Icon name="star" size={28} color={colors.primary} />
+          <View style={styles.tipBody}>
+            <Text style={[styles.tipTitle, { color: colors.text }]}>{i18n.t("home.tipTitle")}</Text>
+            <Text style={[styles.tipText, { color: colors.textSecondary }]}>{tipText}</Text>
           </View>
-        </PremiumCard>
+          {isPartnered ? <Icon name="favorite" size={24} color={colors.primary} /> : null}
+        </LinearGradient>
       </View>
-    </PremiumScreenShell>
+    </View>
   );
 }
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    scrollContent: {
-      paddingBottom: SPACING.xxxl,
-    },
-    bodyPad: {
-      paddingHorizontal: SPACING.l,
-    },
-    statsCard: {
-      marginBottom: SPACING.m,
-    },
-    heroRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: SPACING.l,
-      marginBottom: SPACING.m,
-    },
-    heroActions: {
+    root: {
       flex: 1,
-      gap: SPACING.s,
     },
-    heroChip: {
+    loading: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sheet: {
+      flex: 1,
+      borderTopLeftRadius: RADIUS.xl,
+      borderTopRightRadius: RADIUS.xl,
+      marginTop: -SPACING.l,
+      paddingHorizontal: SPACING.l,
+      paddingTop: SPACING.l,
+      paddingBottom: SPACING.xxxl + 72,
+    },
+    sectionHead: {
       flexDirection: "row",
       alignItems: "center",
-      gap: SPACING.s,
-      backgroundColor: colors.primaryMuted,
-      paddingVertical: SPACING.s + 2,
-      paddingHorizontal: SPACING.m,
-      borderRadius: RADIUS.m,
-    },
-    heroChipGhost: {
-      opacity: 0.92,
-    },
-    heroChipText: {
-      ...TYPOGRAPHY.label,
-      color: colors.primary,
-      fontWeight: "600",
-    },
-    inlineStats: {
-      flexDirection: "row",
-      gap: SPACING.xl,
-    },
-    inlineStat: {
-      alignItems: "flex-start",
-    },
-    statVal: {
-      ...TYPOGRAPHY.h2,
-    },
-    statLbl: {
-      ...TYPOGRAPHY.caption,
-    },
-    sectionOverline: {
-      ...TYPOGRAPHY.overline,
-      color: colors.textTertiary,
+      justifyContent: "space-between",
       marginBottom: SPACING.m,
-      marginTop: SPACING.m,
+    },
+    sectionTitle: {
+      ...TYPOGRAPHY.h2,
+      fontSize: 18,
+    },
+    seeAll: {
+      ...TYPOGRAPHY.label,
+      fontWeight: "700",
     },
     actionGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: SPACING.s,
+      marginBottom: SPACING.l,
     },
-    gridItem: {
-      width: "48%",
-      flexGrow: 1,
-      minWidth: "46%",
-    },
-    actionCard: {
-      minHeight: 108,
-    },
-    actionIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: RADIUS.m,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: SPACING.s,
-    },
-    actionTitle: {
-      ...TYPOGRAPHY.h3,
-      fontSize: 15,
-      marginBottom: 2,
-    },
-    actionDesc: {
-      ...TYPOGRAPHY.caption,
+    statRow: {
+      flexDirection: "row",
+      gap: SPACING.s,
+      marginBottom: SPACING.l,
     },
     tipCard: {
       flexDirection: "row",
       alignItems: "center",
       gap: SPACING.m,
-      marginTop: SPACING.l,
+      borderRadius: RADIUS.l,
+      padding: SPACING.l,
+    },
+    tipBody: {
+      flex: 1,
+    },
+    tipTitle: {
+      ...TYPOGRAPHY.h3,
+      marginBottom: 4,
     },
     tipText: {
       ...TYPOGRAPHY.bodySmall,
-      flex: 1,
-    },
-    moreRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      gap: SPACING.s,
-    },
-    moreItem: {
-      flex: 1,
-      alignItems: "center",
-      paddingVertical: SPACING.s,
-    },
-    moreIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: RADIUS.m,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: SPACING.xs,
-    },
-    moreLabel: {
-      ...TYPOGRAPHY.caption,
-      fontWeight: "600",
     },
   });

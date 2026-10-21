@@ -11,7 +11,7 @@ import {
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { User } from "../entities/User";
 import { getCurrentUser, getUserProfile } from "../services/userService";
-import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import i18n from "../localization/i18n";
@@ -75,17 +75,21 @@ export default function SettingsScreen({ navigation }) {
   };
 
   if (isLoading) {
-    return <ThemedScreenShell loading loadingLabel="Loading settings..." />;
+    return (
+      <PremiumScreenShell loading loadingLabel="Loading settings..." title={i18n.t("navigation.settings")} />
+    );
   }
 
   return (
-    <ThemedScreenShell
+    <PremiumScreenShell
       scroll
       contentStyle={styles.scrollContent}
       title={i18n.t("navigation.settings")}
       subtitle={
         isPartnered ? i18n.t("settings.subtitleCouple") : i18n.t("settings.subtitleSolo")
       }
+      referenceBody
+      heroAccent="settings"
     >
 
       {!isPartnered ? (
@@ -194,7 +198,7 @@ export default function SettingsScreen({ navigation }) {
 
         </View>
       </View>
-    </ThemedScreenShell>
+    </PremiumScreenShell>
   );
 }
 

@@ -2,11 +2,11 @@
 // A calm, professional, minimal design with good contrast
 
 export const COLORS = {
-  // Primary - A sophisticated deep blue (the ONE accent color)
-  primary: "#2563EB",
-  primaryLight: "#3B82F6",
-  primaryDark: "#1D4ED8",
-  primaryMuted: "#DBEAFE",
+  // Primary — warm teal (reference header / active tab)
+  primary: "#0D9488",
+  primaryLight: "#14B8A6",
+  primaryDark: "#0F766E",
+  primaryMuted: "#CCFBF1",
   
   // Neutrals - Clean grayscale with warm undertones
   background: "#FAFAFA",
@@ -53,8 +53,17 @@ export const COLORS = {
     textTertiary: "#71717A",
     border: "#3F3F46",
     borderLight: "#27272A",
-    primaryMuted: "#1E3A5F",
-  }
+    primaryMuted: "#134E4A",
+  },
+
+  /** Pastel surfaces for home stat cards */
+  pastelPink: "#FCE7F3",
+  pastelTeal: "#CCFBF1",
+  pastelPurple: "#EDE9FE",
+  accentPink: "#DB2777",
+  pastelPinkDark: "#4A044E",
+  pastelTealDark: "#134E4A",
+  pastelPurpleDark: "#312E81",
 };
 
 /** Linear gradient color stops (e.g. IridescentGradient) */
@@ -67,14 +76,59 @@ export const GRADIENT_STOPS = {
     default: ["#2563EB", "#06B6D4", "#3B82F6"],
   },
   hero: {
-    light: ["#1D4ED8", "#2563EB", "#06B6D4"],
-    dark: ["#1E3A5F", "#2563EB", "#0F766E"],
+    light: ["#0F766E", "#14B8A6", "#2DD4BF"],
+    dark: ["#042F2E", "#0F766E", "#115E59"],
+  },
+  feature: {
+    grocery: ["#F472B6", "#FB923C"],
+    dateNight: ["#22D3EE", "#3B82F6"],
+    tasks: ["#A78BFA", "#C084FC"],
+    kudos: ["#14B8A6", "#34D399"],
+    budget: ["#FB923C", "#FACC15"],
+    chat: ["#6366F1", "#A855F7"],
+    planning: ["#38BDF8", "#818CF8"],
+    inventory: ["#4ADE80", "#2DD4BF"],
+    shoppingMode: ["#F9A8D4", "#F472B6"],
+    events: ["#22D3EE", "#0EA5E9"],
+    settings: ["#94A3B8", "#64748B"],
+    invite: ["#2563EB", "#06B6D4"],
+  },
+  fab: {
+    light: ["#EC4899", "#A855F7"],
+    dark: ["#BE185D", "#7E22CE"],
   },
 };
 
 /** Gradient stops for premium hero headers and primary CTAs. */
 export function getHeroGradient(isDark) {
   return isDark ? GRADIENT_STOPS.hero.dark : GRADIENT_STOPS.hero.light;
+}
+
+export function getFeatureGradient(featureKey, isDark) {
+  const stops = GRADIENT_STOPS.feature[featureKey] || GRADIENT_STOPS.feature.tasks;
+  if (!isDark) return stops;
+  return stops.map((c) => c);
+}
+
+export function getFabGradient(isDark) {
+  return isDark ? GRADIENT_STOPS.fab.dark : GRADIENT_STOPS.fab.light;
+}
+
+export function getPastelSurface(kind, isDark) {
+  if (isDark) {
+    const map = {
+      pink: COLORS.pastelPinkDark,
+      teal: COLORS.pastelTealDark,
+      purple: COLORS.pastelPurpleDark,
+    };
+    return map[kind] || COLORS.dark.surfaceElevated;
+  }
+  const map = {
+    pink: COLORS.pastelPink,
+    teal: COLORS.pastelTeal,
+    purple: COLORS.pastelPurple,
+  };
+  return map[kind] || COLORS.surface;
 }
 
 export const SPACING = {

@@ -411,6 +411,8 @@ export default function DailyTasksScreen({ navigation }) {
       loadingLabel="Loading your tasks..."
       title={heroTitle}
       subtitle={heroSubtitle}
+      referenceBody
+      heroAccent="tasks"
       heroStats={[
         { label: "Overdue", value: String(groupedTasks.overdue.length) },
         { label: "Today", value: String(groupedTasks.today.length) },

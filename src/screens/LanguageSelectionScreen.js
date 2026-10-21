@@ -115,7 +115,7 @@ const LanguageSelectionScreen = ({ onComplete }) => {
 
   return (
     <PremiumScreenShell
-      title="CoupleTasks"
+      title={i18n.t("app.displayName")}
       subtitle="Choose your preferred language"
       heroStats={[
         { label: 'שפה', value: selectedLanguage === 'he' ? 'עב' : 'EN' },

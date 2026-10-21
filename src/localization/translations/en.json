@@ -1,4 +1,7 @@
 {
+    "app": {
+        "displayName": "Couple of Tasks"
+    },
     "common": {
         "welcome": "Welcome",
         "loading": "Loading...",
@@ -66,7 +69,20 @@
         "enterEmailForReset": "Please enter your email address first",
         "passwordResetEmailSent": "Password reset email sent! Please check your inbox."
     },
+    "kudos": {
+        "title": "Kudos",
+        "subtitle": "Celebrate {{name}} today",
+        "heroLine": "Send a little appreciation",
+        "body": "A quick thank-you goes a long way. Mention something your partner did this week—or plan a date night from Events."
+    },
     "navigation": {
+        "tabs": {
+            "home": "Home",
+            "tasks": "Tasks",
+            "events": "Events",
+            "kudos": "Kudos",
+            "profile": "Profile"
+        },
         "tasks": "Tasks",
         "addTask": "Add Task",
         "taskTable": "Task Table",
@@ -117,6 +133,31 @@
         "fallbackName": "there",
         "tipSolo": "Small steps today make tomorrow easier.",
         "tipCouple": "Small tasks together make a big difference!",
+        "quickActions": "Quick Actions",
+        "seeAll": "See all",
+        "tipTitle": "Tip of the day",
+        "statTasksTitle": "{{count}} Tasks",
+        "statTasksSub": "To do",
+        "statWeekTitle": "This Week",
+        "statWeekSub": "{{count}} tasks completed",
+        "actions": {
+            "grocery": "Add Grocery",
+            "grocerySub": "What do we need?",
+            "dateNight": "Plan Date Night",
+            "dateNightSub": "Let's do something fun!",
+            "completeTasks": "Complete Tasks",
+            "completeTasksSub": "Mark what's done",
+            "kudos": "Give Kudos",
+            "kudosSub": "Appreciate each other",
+            "budget": "Budget Together",
+            "budgetSub": "Track shared expenses",
+            "chat": "Chat & Share",
+            "chatSub": "Talk about anything",
+            "planningSub": "Plan ahead",
+            "inventorySub": "What's at home",
+            "shoppingModeSub": "Shop by aisle",
+            "eventsSub": "Your schedule"
+        },
         "tasksDescription": "View and manage your tasks",
         "shoppingDescription": "Manage your shopping list",
         "addShoppingItem": "Add Shopping Item",

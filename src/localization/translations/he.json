@@ -1,4 +1,7 @@
 {
+    "app": {
+        "displayName": "Couple of Tasks"
+    },
     "common": {
         "welcome": "ברוכים הבאים",
         "loading": "טוען...",
@@ -66,7 +69,20 @@
         "enterEmailForReset": "אנא הזן כתובת דוא\"ל תחילה",
         "passwordResetEmailSent": "אימייל לאיפוס סיסמה נשלח! אנא בדוק את תיבת הדואר הנכנס שלך."
     },
+    "kudos": {
+        "title": "קרדיט",
+        "subtitle": "חגגו את {{name}} היום",
+        "heroLine": "שלחו הערכה קטנה",
+        "body": "תודה קצרה עושה הבדל. ציינו משהו שבן/בת הזוג עשו השבוע — או תכננו ערב זוגי באירועים."
+    },
     "navigation": {
+        "tabs": {
+            "home": "בית",
+            "tasks": "מטלות",
+            "events": "אירועים",
+            "kudos": "קרדיט",
+            "profile": "פרופיל"
+        },
         "tasks": "מטלות",
         "addTask": "הוספת מטלה",
         "taskTable": "טבלת מטלות",
@@ -117,6 +133,31 @@
         "fallbackName": "שם",
         "tipSolo": "צעדים קטנים היום מקלים על מחר.",
         "tipCouple": "מטלות קטנות יחד עושות הבדל גדול!",
+        "quickActions": "פעולות מהירות",
+        "seeAll": "הצג הכל",
+        "tipTitle": "טיפ היום",
+        "statTasksTitle": "{{count}} מטלות",
+        "statTasksSub": "לביצוע",
+        "statWeekTitle": "השבוע",
+        "statWeekSub": "{{count}} מטלות הושלמו",
+        "actions": {
+            "grocery": "הוסף לקניות",
+            "grocerySub": "מה חסר לנו?",
+            "dateNight": "תכנן ערב זוגי",
+            "dateNightSub": "בואו נעשה משהו כיף!",
+            "completeTasks": "סיים מטלות",
+            "completeTasksSub": "סמן מה בוצע",
+            "kudos": "תן קרדיט",
+            "kudosSub": "העריך אחד את השני",
+            "budget": "תקציב משותף",
+            "budgetSub": "עקוב אחר הוצאות",
+            "chat": "צ'אט ושיתוף",
+            "chatSub": "דברו על הכל",
+            "planningSub": "תכנון קדימה",
+            "inventorySub": "מה יש בבית",
+            "shoppingModeSub": "קניות לפי מחלקות",
+            "eventsSub": "הלו\"ז שלך"
+        },
         "tasksDescription": "צפו ונהלו את המטלות שלכם",
         "shoppingDescription": "נהלו את רשימת הקניות שלכם",
         "addShoppingItem": "הוסף מוצר לרשימה",

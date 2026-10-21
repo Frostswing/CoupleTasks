@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CoupleTasks",
+    "name": "Couple of Tasks",
     "slug": "CoupleTasks",
     "version": "1.1.1",
     "orientation": "portrait",
@@ -25,7 +25,10 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Couple of Tasks",
+      "shortName": "Couple of Tasks",
+      "description": "Tasks, shopping, and calendar for your household"
     },
     "scheme": "coupletasks",
     "extra": {
@@ -41,7 +44,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#2563EB",
+          "color": "#0D9488",
           "sounds": []
         }
       ]

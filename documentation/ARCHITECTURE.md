@@ -1,4 +1,4 @@
-# CoupleTasks - System Architecture
+# Couple of Tasks - System Architecture
 
 ## Overview
 CoupleTasks is a React Native mobile application built with Expo, designed to help couples manage household tasks, shopping lists, and inventory together in real-time.

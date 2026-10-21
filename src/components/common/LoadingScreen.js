@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS, SPACING, TYPOGRAPHY } from "../../constants/theme";
+import { APP_DISPLAY_NAME } from "../../constants/branding";
 
 export default function LoadingScreen({ message, status }) {
   return (
@@ -12,7 +13,7 @@ export default function LoadingScreen({ message, status }) {
           <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
         </View>
         
-        <Text style={styles.appName}>CoupleTasks</Text>
+        <Text style={styles.appName}>{APP_DISPLAY_NAME}</Text>
         
         <ActivityIndicator
           size="large"

@@ -17,6 +17,7 @@ import {
   SHADOWS,
   COLORS,
   getHeroGradient,
+  getFeatureGradient,
 } from "../../constants/theme";
 import { SkeletonList } from "./Skeleton";
 import PremiumFab from "./PremiumFab";
@@ -38,9 +39,13 @@ export default function PremiumScreenShell({
   refreshControl,
   fab,
   noHorizontalPadding,
+  heroAccent,
+  referenceBody,
 }) {
   const { colors, isDark } = useAppTheme();
-  const gradient = getHeroGradient(isDark);
+  const gradient = heroAccent
+    ? getFeatureGradient(heroAccent, isDark)
+    : getHeroGradient(isDark);
 
   if (loading) {
     return (
@@ -59,10 +64,16 @@ export default function PremiumScreenShell({
   }
 
   const bodyPadding = noHorizontalPadding ? styles.bodyFlush : styles.body;
+  const useReference = referenceBody || heroAccent;
 
   const heroBlock = title ? (
-    <View style={styles.heroWrap}>
-      <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+    <View style={useReference ? styles.heroWrapReference : styles.heroWrap}>
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={useReference ? styles.heroReference : styles.hero}
+      >
         <Text style={styles.heroTitle}>{title}</Text>
         {subtitle ? <Text style={styles.heroSubtitle}>{subtitle}</Text> : null}
         {heroStats?.length ? (
@@ -80,11 +91,28 @@ export default function PremiumScreenShell({
     </View>
   ) : null;
 
+  const bodyContent = (
+    <View
+      style={[
+        useReference ? styles.referenceSheet : null,
+        useReference ? { backgroundColor: colors.background } : null,
+        bodyPadding,
+        contentStyle,
+      ]}
+    >
+      {children}
+    </View>
+  );
+
   if (!scroll) {
     return (
       <SafeAreaView style={[styles.fill, screenBackgroundStyle(colors)]} edges={edges}>
         {heroBlock}
-        <View style={[styles.fill, bodyPadding, contentStyle]}>{children}</View>
+        {useReference ? (
+          bodyContent
+        ) : (
+          <View style={[styles.fill, bodyPadding, contentStyle]}>{children}</View>
+        )}
         {fab ? <PremiumFab {...fab} /> : null}
       </SafeAreaView>
     );
@@ -100,7 +128,7 @@ export default function PremiumScreenShell({
         refreshControl={refreshControl}
       >
         {heroBlock}
-        <View style={bodyPadding}>{children}</View>
+        {useReference ? bodyContent : <View style={bodyPadding}>{children}</View>}
       </ScrollView>
       {fab ? <PremiumFab {...fab} /> : null}
     </SafeAreaView>
@@ -131,7 +159,30 @@ export function PremiumHeroProgress({ progress, label }) {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   scrollEnd: {
-    paddingBottom: SPACING.xxxl + 56,
+    paddingBottom: SPACING.xxxl + 88,
+  },
+  heroWrapReference: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginBottom: -SPACING.xl,
+  },
+  heroReference: {
+    borderRadius: 0,
+    borderBottomLeftRadius: RADIUS.xl,
+    borderBottomRightRadius: RADIUS.xl,
+    paddingHorizontal: SPACING.l,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.xxl + SPACING.m,
+    ...SHADOWS.md,
+  },
+  referenceSheet: {
+    borderTopLeftRadius: RADIUS.xl,
+    borderTopRightRadius: RADIUS.xl,
+    marginTop: 0,
+    paddingTop: SPACING.l,
+    paddingHorizontal: SPACING.l,
+    minHeight: 120,
   },
   heroWrap: {
     paddingHorizontal: SPACING.l,

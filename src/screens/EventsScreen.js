@@ -277,6 +277,8 @@ export default function EventsScreen({ navigation }) {
       subtitle={
         isPartnered ? i18n.t("events.subtitleCouple") : i18n.t("events.subtitleSolo")
       }
+      referenceBody
+      heroAccent="events"
       heroStats={[
         { label: "Upcoming", value: String(upcomingCount) },
         ...(isPartnered ? [{ label: "Pending", value: String(pendingCount) }] : []),

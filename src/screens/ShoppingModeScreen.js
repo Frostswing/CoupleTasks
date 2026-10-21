@@ -300,6 +300,8 @@ export default function ShoppingModeScreen({ navigation, route }) {
       noHorizontalPadding
       title={i18n.t("navigation.drawer.shoppingMode")}
       subtitle={i18n.t("shopping.groupedByAisle")}
+      referenceBody
+      heroAccent="shoppingMode"
       heroStats={[
         { label: "To buy", value: String(items.length - bought.length) },
         { label: "In cart", value: String(bought.length) },

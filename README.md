@@ -1,4 +1,4 @@
-# CoupleTasks
+# Couple of Tasks
 
 Meant for all the couples out there fighting for doing chores
 

@@ -185,7 +185,7 @@ const AuthScreen = ({ navigation }) => {
     }
   };
 
-  const heroTitle = user ? i18n.t("navigation.drawer.profile") : "CoupleTasks";
+  const heroTitle = user ? i18n.t("navigation.drawer.profile") : i18n.t("app.displayName");
   const heroSubtitle = user
     ? user.email
     : isLogin
@@ -203,6 +203,7 @@ const AuthScreen = ({ navigation }) => {
         title={heroTitle}
         subtitle={i18n.t("auth.subtitle")}
         contentStyle={themed.scrollPad}
+        referenceBody
       >
         {user ? (
           <PremiumCard style={themed.profileCard}>

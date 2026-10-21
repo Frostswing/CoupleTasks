@@ -1,4 +1,4 @@
-# CoupleTasks Design System
+# Couple of Tasks Design System
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for overall system design.
 

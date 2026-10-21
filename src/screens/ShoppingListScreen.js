@@ -538,6 +538,8 @@ export default function ShoppingListScreen({ navigation, route }) {
     <PremiumScreenShell
       title={i18n.t("navigation.shoppingList")}
       subtitle={i18n.t("shopping.groupedByAisle")}
+      referenceBody
+      heroAccent="grocery"
       heroStats={[
         { label: "To buy", value: String(pendingItems.length) },
         { label: "Done", value: String(purchasedItems.length) },

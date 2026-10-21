@@ -15,13 +15,13 @@ import { getCurrentUser, signOut } from "../services/userService";
 import SyncIndicator from "../components/common/SyncIndicator";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
+import { APP_DISPLAY_NAME } from "../constants/branding";
 import { useAppTheme } from "../context/ThemeContext";
 import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 // Import all screens
-import HomeScreen from "../screens/HomeScreen";
+import MainTabNavigator from "./MainTabNavigator";
 import DashboardScreen from "../screens/DashboardScreen";
-import DailyTasksScreen from "../screens/Tasks/DailyTasksScreen";
 import TaskPlanningScreen from "../screens/Tasks/TaskPlanningScreen";
 import TaskTemplatesScreen from "../screens/Tasks/TaskTemplatesScreen";
 import TaskTableScreen from "../screens/TaskTableScreen";
@@ -33,7 +33,6 @@ import ArchiveScreen from "../screens/ArchiveScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import EventsScreen from "../screens/EventsScreen";
 import ManagementScreen from "../screens/ManagementScreen";
-import SettingsScreen from "../screens/SettingsScreen";
 import SharingScreen from "../screens/SharingScreen";
 import AuthScreen from "../screens/AuthScreen";
 import LanguageSelectionScreen from "../screens/LanguageSelectionScreen";
@@ -51,7 +50,7 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
 
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName="MainTabs"
       screenOptions={{
         headerStyle: {
           backgroundColor: colors.surface,
@@ -81,8 +80,7 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
         ),
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} options={{ title: i18n.t("home.title") }} />
-      <Stack.Screen name="DailyTasks" component={DailyTasksScreen} options={{ title: i18n.t("navigation.drawer.dailyTasks") }} />
+      <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: i18n.t("navigation.tasks") }} />
       <Stack.Screen name="TaskPlanning" component={TaskPlanningScreen} options={{ title: i18n.t("navigation.drawer.taskPlanning") }} />
       <Stack.Screen name="TaskTemplates" component={TaskTemplatesScreen} options={{ title: i18n.t("navigation.drawer.taskTemplates") }} />
@@ -95,7 +93,6 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
       <Stack.Screen name="History" component={HistoryScreen} options={{ title: i18n.t("navigation.drawer.history") }} />
       <Stack.Screen name="Events" component={EventsScreen} options={{ title: i18n.t("navigation.drawer.events") }} />
       <Stack.Screen name="Management" component={ManagementScreen} options={{ title: i18n.t("navigation.drawer.management") }} />
-      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: i18n.t("navigation.settings") }} />
       <Stack.Screen name="Sharing" component={SharingScreen} options={{ title: i18n.t("navigation.sharing") }} />
       <Stack.Screen name="Language" component={LanguageSelectionScreen} options={{ title: i18n.t("navigation.language") }} />
       <Stack.Screen name="Auth" component={AuthScreen} options={{ title: i18n.t("navigation.profile") }} />
@@ -115,6 +112,10 @@ const CustomDrawerContent = (props) => {
       if (drawerRoute?.name === "MainStack" && drawerRoute?.state) {
         const stackState = drawerRoute.state;
         const stackRoute = stackState.routes[stackState.index];
+        if (stackRoute?.name === "MainTabs" && stackRoute?.state) {
+          const tabRoute = stackRoute.state.routes[stackRoute.state.index];
+          return tabRoute?.name || "Home";
+        }
         return stackRoute?.name || "Home";
       }
       return drawerRoute?.name || "Home";
@@ -191,7 +192,20 @@ const CustomDrawerContent = (props) => {
 
   const navigateToScreen = (screenName) => {
     try {
-      props.navigation.navigate("MainStack", { screen: screenName, params: undefined });
+      const tabScreens = ["Home", "DailyTasks", "Settings", "FourthTab"];
+      if (tabScreens.includes(screenName)) {
+        props.navigation.navigate("MainStack", {
+          screen: "MainTabs",
+          params: { screen: screenName },
+        });
+      } else if (screenName === "Events" && !isPartnered) {
+        props.navigation.navigate("MainStack", {
+          screen: "MainTabs",
+          params: { screen: "FourthTab" },
+        });
+      } else {
+        props.navigation.navigate("MainStack", { screen: screenName, params: undefined });
+      }
       props.navigation.closeDrawer();
     } catch (error) {
       try {
@@ -210,7 +224,7 @@ const CustomDrawerContent = (props) => {
           <MaterialIcons name="favorite" size={24} color={COLORS.primary} />
         </View>
         <View style={styles.headerInfo}>
-          <Text style={styles.drawerTitle}>CoupleTasks</Text>
+          <Text style={styles.drawerTitle}>{APP_DISPLAY_NAME}</Text>
           {user && (
             <Text style={styles.drawerSubtitle} numberOfLines={1}>
               {user.email}
