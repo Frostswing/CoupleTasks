@@ -17,7 +17,7 @@ import {
 import { Image } from 'expo-image';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { InventoryItem } from "../entities/InventoryItem";
 import { User } from "../entities/User";
@@ -681,6 +681,7 @@ export default function ShoppingListScreen({ navigation, route }) {
               setNewItemName("");
               setNewItemQuantity("1");
               setNewItemCategory("other");
+              setNewItemStoreDepartment("other");
               setNewItemUnit("pcs");
               setNewItemImage(null);
               setNewItemImageUrl("");
@@ -815,6 +816,7 @@ export default function ShoppingListScreen({ navigation, route }) {
           setNewItemName("");
           setNewItemQuantity("1");
           setNewItemCategory("other");
+          setNewItemStoreDepartment("other");
           setNewItemUnit("pcs");
           setNewItemImage(null);
           setNewItemImageUrl("");
@@ -831,6 +833,7 @@ export default function ShoppingListScreen({ navigation, route }) {
               setNewItemName("");
               setNewItemQuantity("1");
               setNewItemCategory("other");
+              setNewItemStoreDepartment("other");
               setNewItemUnit("pcs");
               setNewItemImage(null);
               setNewItemImageUrl("");

@@ -26,8 +26,10 @@ import { handleError, showSuccess } from "../services/errorHandlingService";
 import { validateForm, commonRules } from "../utils/validation";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 const AuthScreen = ({ navigation }) => {
+  const { colors } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -191,7 +193,7 @@ const AuthScreen = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

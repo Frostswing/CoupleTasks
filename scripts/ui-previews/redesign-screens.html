@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CoupleTasks — After redesign (main screens)</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: #E4E4E7; padding: 24px; }
+    h1 { text-align: center; color: #18181B; margin-bottom: 24px; font-size: 20px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+    .phone { width: 320px; background: #FAFAFA; border-radius: 20px; border: 1px solid #E4E4E7; overflow: hidden; min-height: 560px; }
+    .label { text-align: center; font-size: 13px; color: #52525B; margin: 8px 0 16px; font-weight: 600; }
+    .nav { background: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #E4E4E7; font-weight: 600; }
+    .nav span { color: #2563EB; }
+    .body { padding: 16px; }
+    .h2 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+    .sub { color: #52525B; font-size: 14px; margin-bottom: 16px; }
+    .btn-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .btn { flex: 1; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 600; }
+    .btn-p { background: #2563EB; color: #fff; }
+    .btn-s { background: #DBEAFE; color: #2563EB; }
+    .card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+    .ico { width: 40px; height: 40px; border-radius: 10px; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .dept { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #52525B; border-bottom: 1px solid #E4E4E7; padding-bottom: 6px; margin: 12px 0 8px; }
+    .drawer { background: #fff; }
+    .drawer-head { padding: 20px; border-bottom: 1px solid #E4E4E7; display: flex; gap: 12px; align-items: center; }
+    .drawer-logo { width: 44px; height: 44px; background: #DBEAFE; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #2563EB; }
+    .drawer-item { padding: 12px 20px; color: #52525B; font-size: 15px; }
+    .drawer-item.active { background: #DBEAFE; color: #2563EB; font-weight: 600; }
+    .chip { display: inline-block; padding: 6px 12px; border-radius: 20px; background: #F4F4F5; font-size: 12px; margin-right: 6px; }
+    .chip.on { background: #2563EB; color: #fff; }
+    .task { border-left: 3px solid #2563EB; }
+    input { width: 100%; padding: 12px; border: 1px solid #E4E4E7; border-radius: 10px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>CoupleTasks — After redesign (main screens)</h1>
+  <div class="grid">
+    <div>
+      <div class="phone" id="auth">
+        <div class="body" style="text-align:center;padding-top:48px">
+          <div class="ico" style="margin:0 auto 16px;width:56px;height:56px">♥</div>
+          <div class="h2">CoupleTasks</div>
+          <div class="sub">Organize together</div>
+          <div class="h2" style="font-size:18px;margin-top:32px">Sign In</div>
+          <input placeholder="Email" />
+          <input placeholder="Password" type="password" />
+          <div class="btn btn-p" style="margin-top:8px">Sign In</div>
+        </div>
+      </div>
+      <div class="label">Auth</div>
+    </div>
+    <div>
+      <div class="phone" id="home">
+        <div class="nav"><span>☰</span> Home</div>
+        <div class="body">
+          <div class="h2">Welcome to CoupleTasks</div>
+          <div class="sub">Manage tasks and shopping together</div>
+          <div class="btn-row"><div class="btn btn-p">+ Add Task</div><div class="btn btn-s">+ Add Item</div></div>
+          <div class="card"><div class="ico">📅</div><div><strong>Daily Tasks</strong><br><span class="sub" style="margin:0">Today's tasks</span></div></div>
+          <div class="card"><div class="ico">🛒</div><div><strong>Shopping List</strong></div></div>
+        </div>
+      </div>
+      <div class="label">Home</div>
+    </div>
+    <div>
+      <div class="phone" id="tasks">
+        <div class="nav"><span>☰</span> Daily Tasks</div>
+        <div class="body">
+          <div class="dept">Today</div>
+          <div class="card task"><div><strong>Take out recycling</strong><br><span class="sub">Household</span></div></div>
+          <div class="dept">This week</div>
+          <div class="card"><div><strong>Grocery planning</strong></div></div>
+        </div>
+      </div>
+      <div class="label">Tasks (Daily)</div>
+    </div>
+    <div>
+      <div class="phone" id="shopping">
+        <div class="nav"><span>☰</span> Shopping List</div>
+        <div class="body">
+          <div class="sub">Grouped by store aisle</div>
+          <div class="dept">Produce · 2</div>
+          <div class="card"><div><strong>Cucumbers</strong></div></div>
+          <div class="dept">Dairy & eggs · 1</div>
+          <div class="card"><div><strong>Milk</strong></div></div>
+        </div>
+      </div>
+      <div class="label">Shopping list</div>
+    </div>
+    <div>
+      <div class="phone" id="events">
+        <div class="nav"><span>☰</span> Events</div>
+        <div class="body">
+          <div><span class="chip on">All</span><span class="chip">Upcoming</span><span class="chip">Pending</span></div>
+          <div class="dept" style="margin-top:16px">Today</div>
+          <div class="card" style="border-left:4px solid #2563EB"><div><strong>Dinner with friends</strong><br><span class="sub">7:00 PM</span></div></div>
+        </div>
+      </div>
+      <div class="label">Events</div>
+    </div>
+    <div>
+      <div class="phone drawer" id="drawer">
+        <div class="drawer-head"><div class="drawer-logo">♥</div><div><strong>CoupleTasks</strong><br><span class="sub">partner@email.com</span></div></div>
+        <div class="drawer-item active">Home</div>
+        <div class="drawer-item">Daily Tasks</div>
+        <div class="drawer-item">Shopping List</div>
+        <div class="drawer-item">Events</div>
+        <div class="drawer-item">Settings</div>
+      </div>
+      <div class="label">Drawer</div>
+    </div>
+  </div>
+</body>
+</html>

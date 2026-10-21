@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { User as UserEntity } from "../../entities/User";
 import taskGenerationService from "../../services/taskGenerationService";
 

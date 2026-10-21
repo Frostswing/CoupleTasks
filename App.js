@@ -21,6 +21,8 @@ import { loadLanguagePreference } from "./src/localization/i18n";
 import i18n from "./src/localization/i18n";
 import LoadingScreen from "./src/components/common/LoadingScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
+import { getNavigationTheme } from "./src/navigation/navigationTheme";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,7 +31,9 @@ LogBox.ignoreLogs([
   "Non-serializable values were found in the navigation state",
 ]);
 
-export default function App() {
+function AppContent() {
+  const { isDark, colors } = useAppTheme();
+  const navigationTheme = getNavigationTheme(isDark, colors);
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
   const [firebaseReady, setFirebaseReady] = useState(false);
@@ -107,7 +111,7 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <LoadingScreen message={statusMessage} status={firebaseStatus} />
-        <StatusBar style="dark" />
+        <StatusBar style={isDark ? "light" : "dark"} />
       </SafeAreaProvider>
     );
   }
@@ -116,7 +120,7 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <LanguageSelectionScreen onComplete={handleLanguageSelectionComplete} />
-        <StatusBar style="dark" />
+        <StatusBar style={isDark ? "light" : "dark"} />
       </SafeAreaProvider>
     );
   }
@@ -139,10 +143,18 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer theme={navigationTheme}>
         <RootNavigator />
-        <StatusBar style="dark" />
+        <StatusBar style={isDark ? "light" : "dark"} />
       </NavigationContainer>
     </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

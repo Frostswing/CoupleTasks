@@ -8,6 +8,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "generate-icons": "node scripts/generate-icons.js",
+    "test": "node scripts/test-store-departments.mjs",
+    "capture-ui-previews": "node scripts/capture-screen-previews.mjs",
     "build:android": "expo prebuild --platform android --clean && npx expo run:android --variant release",
     "prebuild:android": "expo prebuild --platform android"
   },
@@ -41,13 +43,13 @@
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
-    "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
     "updates": "^16.9.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "playwright": "^1.49.0",
     "sharp": "^0.35.5"
   },
   "private": true

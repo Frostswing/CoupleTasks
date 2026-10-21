@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { format, parseISO } from "date-fns";
 
 const categoryColors = {

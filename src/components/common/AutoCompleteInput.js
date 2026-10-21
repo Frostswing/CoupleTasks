@@ -9,7 +9,7 @@ import {
   Modal,
   Keyboard,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getShoppingSuggestions, getTaskSuggestions, getSmartSuggestions } from '../../services/historyService';
 import { ShoppingListItem } from '../../entities/ShoppingListItem';
 import { User } from '../../entities/User';

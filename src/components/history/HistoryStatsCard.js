@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getRecentHistory, getPopularItems } from '../../services/historyService';
 import i18n from '../../localization/i18n';
 

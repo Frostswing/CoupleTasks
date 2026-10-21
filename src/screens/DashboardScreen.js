@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../entities/Task";
 import { User } from "../entities/User";
 import TaskCard from "../components/Tasks/TaskCard";

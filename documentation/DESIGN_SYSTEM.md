@@ -7,7 +7,13 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for overall system design.
 - Calm, professional, minimal UI (no cartoon styling, heavy gradients, or emoji-as-UI).
 - One primary accent: blue (`#2563EB`).
 - Consistent spacing, typography, and elevation via `src/constants/theme.js`.
+- **Dark mode:** follows system appearance via `ThemeProvider` (`src/context/ThemeContext.js`) and React Navigation theme in `App.js`.
 - RTL/Hebrew: unchanged; language selection and i18n flows remain.
+
+## Auth persistence (native)
+
+- `src/firebase/authBootstrap.native.js` uses `@firebase/auth` RN build + AsyncStorage.
+- Web uses `authBootstrap.web.js` (`getAuth` only).
 
 ## Tokens
 

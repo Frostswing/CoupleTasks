@@ -7,11 +7,13 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, SHADOWS, TYPOGRAPHY } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 export default function HomeScreen({ navigation }) {
+  const { colors } = useAppTheme();
   const quickActions = [
     {
       id: "dailyTasks",
@@ -86,7 +88,7 @@ export default function HomeScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

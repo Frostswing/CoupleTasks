@@ -9,7 +9,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Event } from "../entities/Event";
 import { User } from "../entities/User";
 import EventCard from "../components/Events/EventCard";

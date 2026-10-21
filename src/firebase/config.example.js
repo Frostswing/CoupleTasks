@@ -1,9 +1,9 @@
 // Copy to config.js and fill with your Firebase project values (config.js is gitignored).
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { createAuth } from "./authBootstrap";
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -16,7 +16,7 @@ const firebaseConfig = {
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
+const auth = createAuth(app);
 const database = getDatabase(app);
 const firestore = getFirestore(app);
 const storage = getStorage(app);

@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { TaskTableConfig } from '../entities/TaskTableConfig';
 import excelImportService from '../services/excelImportService';

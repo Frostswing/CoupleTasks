@@ -7,7 +7,7 @@ import {
   FlatList,
   StyleSheet,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { CATEGORIES, getCategoryById } from '../../constants/categories';
 
 const CategorySelector = ({ value, onValueChange, placeholder = 'בחר קטגוריה' }) => {

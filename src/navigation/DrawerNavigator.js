@@ -15,6 +15,7 @@ import { getCurrentUser, signOut } from "../services/userService";
 import SyncIndicator from "../components/common/SyncIndicator";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 // Import all screens
 import HomeScreen from "../screens/HomeScreen";
@@ -100,6 +101,7 @@ const AuthenticatedStack = ({ navigation: drawerNavigation }) => {
 };
 
 const CustomDrawerContent = (props) => {
+  const { colors } = useAppTheme();
   const user = getCurrentUser();
 
   const routeName = useNavigationState((state) => {
@@ -198,7 +200,7 @@ const CustomDrawerContent = (props) => {
   };
 
   return (
-    <View style={styles.drawerContainer}>
+    <View style={[styles.drawerContainer, { backgroundColor: colors.surface }]}>
       <View style={styles.drawerHeader}>
         <View style={styles.logoContainer}>
           <MaterialIcons name="favorite" size={24} color={COLORS.primary} />

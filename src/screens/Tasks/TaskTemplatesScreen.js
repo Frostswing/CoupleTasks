@@ -11,7 +11,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { TaskTemplate } from "../../entities/TaskTemplate";
 import { User } from "../../entities/User";
 import TaskTemplateCard from "../../components/Tasks/TaskTemplateCard";
