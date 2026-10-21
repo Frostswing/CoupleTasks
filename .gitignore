@@ -59,3 +59,4 @@ web-interface/src/firebase/config.js
 database.rules.json
 firebase.rules
 firebase-rules.json
+google-services.json

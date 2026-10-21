@@ -10,11 +10,13 @@ import "react-native-gesture-handler";
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { I18nManager, LogBox } from "react-native";
+import { I18nManager, LogBox, Platform } from "react-native";
+import { initializeGoogleSignIn } from "./src/services/googleAuthService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DrawerNavigator from "./src/navigation/DrawerNavigator";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AuthScreen from "./src/screens/AuthScreen";
+import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import LanguageSelectionScreen from "./src/screens/LanguageSelectionScreen";
 import { subscribeToAuthChanges } from "./src/services/userService";
 import { loadLanguagePreference } from "./src/localization/i18n";
@@ -90,6 +92,9 @@ function AppContent() {
 
   useEffect(() => {
     if (!firebaseReady) return;
+    if (Platform.OS !== "web") {
+      initializeGoogleSignIn();
+    }
 
     const unsubscribe = subscribeToAuthChanges((user) => {
       setUser(user);
@@ -135,6 +140,7 @@ function AppContent() {
           }}
         >
           <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         </Stack.Navigator>
       );
     }

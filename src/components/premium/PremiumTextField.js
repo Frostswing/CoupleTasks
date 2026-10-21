@@ -11,8 +11,11 @@ export default function PremiumTextField({
   secureTextEntry,
   keyboardType,
   autoCapitalize,
+  autoComplete,
+  error,
 }) {
   const { colors } = useAppTheme();
+  const borderColor = error ? colors.error : colors.border;
   return (
     <View style={styles.group}>
       {label ? <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text> : null}
@@ -21,7 +24,7 @@ export default function PremiumTextField({
           styles.input,
           {
             backgroundColor: colors.surface,
-            borderColor: colors.border,
+            borderColor,
             color: colors.text,
           },
         ]}
@@ -32,7 +35,9 @@ export default function PremiumTextField({
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        autoComplete={autoComplete}
       />
+      {error ? <Text style={[styles.error, { color: colors.error }]}>{error}</Text> : null}
     </View>
   );
 }
@@ -52,5 +57,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.l,
     paddingVertical: SPACING.m + 2,
     fontSize: 16,
+  },
+  error: {
+    ...TYPOGRAPHY.caption,
+    marginTop: SPACING.xs,
   },
 });
