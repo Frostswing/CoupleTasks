@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useMemo} from "react";
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { TaskTemplate } from "../../entities/TaskTemplate";
+import { COLORS, SPACING, screenBackgroundStyle } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { ThemedScreenShell } from "../../components/common/ThemedScreenShell";
 import { User } from "../../entities/User";
 import TaskTemplateCard from "../../components/Tasks/TaskTemplateCard";
 import TaskTemplateForm from "../../components/Tasks/TaskTemplateForm";
@@ -20,6 +23,9 @@ import { handleError, showSuccess } from "../../services/errorHandlingService";
 import taskGenerationService from "../../services/taskGenerationService";
 
 export default function TaskTemplatesScreen({ navigation, route }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [templates, setTemplates] = useState([]);
   const [filteredTemplates, setFilteredTemplates] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -211,22 +217,14 @@ export default function TaskTemplatesScreen({ navigation, route }) {
   };
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={styles.loadingText}>Loading templates...</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel="Loading templates..." />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Task Templates</Text>
           <Text style={styles.subtitle}>
             {filteredTemplates.length} {filteredTemplates.length === 1 ? 'template' : 'templates'}
           </Text>
@@ -281,7 +279,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
         {filteredTemplates.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="description" size={48} color="#2563EB" />
+              <Icon name="description" size={48} color={colors.primary} />
             </View>
             <Text style={styles.emptyTitle}>
               {filter === 'all' ? 'No templates yet' : `No ${filter} templates`}
@@ -344,14 +342,15 @@ export default function TaskTemplatesScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -361,7 +360,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -370,23 +369,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   addButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -402,16 +401,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
     gap: 8,
   },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   filterButtonActive: {
     backgroundColor: '#DBEAFE',
@@ -419,7 +418,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   filterTextActive: {
     color: '#2563EB',
@@ -447,19 +446,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 16,
@@ -475,10 +474,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     marginTop: 60,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
 });
-
+}

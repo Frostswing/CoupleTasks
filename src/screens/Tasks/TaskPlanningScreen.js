@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback , useMemo} from "react";
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../../entities/Task";
+import { COLORS, SPACING, screenBackgroundStyle } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { ThemedScreenShell } from "../../components/common/ThemedScreenShell";
 import { TaskTemplate } from "../../entities/TaskTemplate";
 import { User } from "../../entities/User";
 import CalendarView from "../../components/Tasks/CalendarView";
@@ -22,6 +25,9 @@ import { handleError, showSuccess } from "../../services/errorHandlingService";
 import { format, parseISO } from "date-fns";
 
 export default function TaskPlanningScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [tasks, setTasks] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -213,21 +219,13 @@ export default function TaskPlanningScreen({ navigation }) {
   };
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={styles.loadingText}>Loading calendar...</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel="Loading calendar..." />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Task Planning</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.toggleButton}
@@ -236,7 +234,7 @@ export default function TaskPlanningScreen({ navigation }) {
             <Icon 
               name={viewMode === 'week' ? 'view-week' : 'calendar-month'} 
               size={24} 
-              color="#2563EB" 
+              color={colors.primary} 
             />
             <Text style={styles.toggleText}>
               {viewMode === 'week' ? 'Month' : 'Week'}
@@ -278,7 +276,7 @@ export default function TaskPlanningScreen({ navigation }) {
                 onPress={() => setCreatingTask(false)}
                 style={styles.closeButton}
               >
-                <Icon name="close" size={24} color="#6B7280" />
+                <Icon name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <TaskForm
@@ -305,7 +303,7 @@ export default function TaskPlanningScreen({ navigation }) {
                 onPress={() => setShowTemplateModal(false)}
                 style={styles.closeButton}
               >
-                <Icon name="close" size={24} color="#6B7280" />
+                <Icon name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.templatesList}>
@@ -342,7 +340,7 @@ export default function TaskPlanningScreen({ navigation }) {
                         </Text>
                       </View>
                     </View>
-                    <Icon name="chevron-right" size={24} color="#9CA3AF" />
+                    <Icon name="chevron-right" size={24} color={colors.textTertiary} />
                   </TouchableOpacity>
                 ))
               )}
@@ -373,13 +371,13 @@ export default function TaskPlanningScreen({ navigation }) {
                 onPress={() => setShowDayTasksModal(false)}
                 style={styles.closeButton}
               >
-                <Icon name="close" size={24} color="#6B7280" />
+                <Icon name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.dayTasksList}>
               {selectedDayTasks.length === 0 ? (
                 <View style={styles.emptyDayTasks}>
-                  <Icon name="event-busy" size={48} color="#9CA3AF" />
+                  <Icon name="event-busy" size={48} color={colors.textTertiary} />
                   <Text style={styles.emptyText}>No tasks for this day</Text>
                   <TouchableOpacity
                     style={styles.addTaskButton}
@@ -432,19 +430,19 @@ export default function TaskPlanningScreen({ navigation }) {
                         </View>
                         {task.estimated_duration && (
                           <View style={styles.durationText}>
-                            <Icon name="schedule" size={14} color="#6B7280" />
+                            <Icon name="schedule" size={14} color={colors.textSecondary} />
                             <Text style={styles.metaText}> {task.estimated_duration} min</Text>
                           </View>
                         )}
                         {task.assigned_to && (
                           <View style={styles.assignedText}>
-                            <Icon name="person" size={14} color="#6B7280" />
+                            <Icon name="person" size={14} color={colors.textSecondary} />
                             <Text style={styles.metaText}> {task.assigned_to}</Text>
                           </View>
                         )}
                       </View>
                     </View>
-                    <Icon name="chevron-right" size={24} color="#9CA3AF" />
+                    <Icon name="chevron-right" size={24} color={colors.textTertiary} />
                   </TouchableOpacity>
                 ))
               )}
@@ -482,14 +480,15 @@ export default function TaskPlanningScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -499,7 +498,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -507,14 +506,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
@@ -539,7 +538,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -549,7 +548,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -562,12 +561,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
   },
   closeButton: {
     padding: 4,
@@ -582,11 +581,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   createTemplateButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -600,7 +599,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   templateContent: {
     flex: 1,
@@ -608,12 +607,12 @@ const styles = StyleSheet.create({
   templateName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   templateDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   templateMeta: {
@@ -622,11 +621,11 @@ const styles = StyleSheet.create({
   },
   templateFrequency: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   dayTasksList: {
@@ -642,7 +641,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   completedTaskItem: {
     opacity: 0.6,
@@ -659,16 +658,16 @@ const styles = StyleSheet.create({
   dayTaskTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     flex: 1,
   },
   completedTaskText: {
     textDecorationLine: 'line-through',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   dayTaskDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   dayTaskMeta: {
@@ -681,7 +680,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   priorityHigh: {
     backgroundColor: '#FEE2E2',
@@ -692,7 +691,7 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text,
     textTransform: 'capitalize',
   },
   durationText: {
@@ -705,7 +704,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   modalFooter: {
     paddingHorizontal: 20,
@@ -717,7 +716,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -729,4 +728,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
+}

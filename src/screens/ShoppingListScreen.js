@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import { pickImage, uploadImage } from "../services/imageService";
 import { subscribeShoppingDepartmentOrder } from "../services/shoppingDepartmentOrderService";
 import StoreDepartmentPicker from "../components/shopping/StoreDepartmentPicker";
 import ShoppingDepartmentOrderModal from "../components/shopping/ShoppingDepartmentOrderModal";
+import ShoppingDepartmentSection from "../components/shopping/ShoppingDepartmentSection";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
@@ -71,6 +72,10 @@ export default function ShoppingListScreen({ navigation, route }) {
   const [newItemStoreDepartment, setNewItemStoreDepartment] = useState("other");
   const [departmentOrder, setDepartmentOrder] = useState(null);
   const [showStoreLayoutModal, setShowStoreLayoutModal] = useState(false);
+  const [quickAddName, setQuickAddName] = useState("");
+  const [quickAddBusy, setQuickAddBusy] = useState(false);
+  const [purchasedCollapsed, setPurchasedCollapsed] = useState(true);
+  const [collapsedDepartments, setCollapsedDepartments] = useState({});
 
   const loadData = useCallback(async (showLoading = false) => {
     if (showLoading) {
@@ -151,9 +156,7 @@ export default function ShoppingListScreen({ navigation, route }) {
     checkAutoAddItems();
 
     if (route?.params?.openAddDialog) {
-      setTimeout(() => {
-        setShowAddDialog(true);
-      }, 300);
+      setTimeout(() => setShowAddDialog(true), 300);
     }
   }, [route?.params?.openAddDialog, loadData, checkAutoAddItems]);
 
@@ -295,6 +298,30 @@ export default function ShoppingListScreen({ navigation, route }) {
     }
   };
 
+  const handleQuickAdd = async () => {
+    const name = quickAddName.trim();
+    if (!name || !currentUser?.email) return;
+    setQuickAddBusy(true);
+    try {
+      const category = autoDetectCategory(name);
+      await ShoppingListItem.create({
+        name,
+        quantity: 1,
+        category,
+        store_department: autoDetectStoreDepartment(name),
+        unit: getDefaultUnitForCategory(category),
+        added_by: currentUser.email,
+      });
+      setQuickAddName("");
+      loadData(false);
+    } catch (error) {
+      console.error("Quick add failed:", error);
+      Alert.alert(i18n.t("common.error"), i18n.t("shopping.errorAddingItem"));
+    } finally {
+      setQuickAddBusy(false);
+    }
+  };
+
   const handleAddItem = async () => {
     if (!newItemName.trim()) {
       Alert.alert("Error", "Please enter an item name");
@@ -412,270 +439,190 @@ export default function ShoppingListScreen({ navigation, route }) {
   };
 
   const handleDeleteItem = async (itemId) => {
-    Alert.alert(
-      "Delete Item", 
-      "Are you sure you want to delete this item?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await ShoppingListItem.delete(itemId);
-              loadData();
-            } catch (error) {
-              console.error("Error deleting item:", error);
-            }
-          }
-        }
-      ]
-    );
+    try {
+      await ShoppingListItem.delete(itemId);
+      loadData(false);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+  const toggleDepartmentCollapsed = (departmentId) => {
+    setCollapsedDepartments((prev) => ({
+      ...prev,
+      [departmentId]: !prev[departmentId],
+    }));
   };
 
   const filteredItems = items.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const pendingItems = filteredItems.filter(item => !item.is_purchased);
-  const purchasedItems = filteredItems.filter(item => item.is_purchased);
+  const pendingItems = filteredItems.filter((item) => !item.is_purchased);
+  const purchasedItems = filteredItems.filter((item) => item.is_purchased);
   const pendingGroups = groupItemsByStoreDepartment(pendingItems, departmentOrder);
   const purchasedGroups = groupItemsByStoreDepartment(purchasedItems, departmentOrder);
+  const totalCount = pendingItems.length + purchasedItems.length;
+  const progress = totalCount > 0 ? purchasedItems.length / totalCount : 0;
 
-  const renderDepartmentSections = (groups) =>
-    groups.map((group) => (
-      <View key={group.departmentId} style={styles.departmentSection}>
-        <View style={styles.departmentHeader}>
-          <Text style={styles.departmentTitle}>
-            {i18n.t(`shopping.storeDepartments.${group.departmentId}`)}
-          </Text>
-          <Text style={styles.departmentCount}>{group.items.length}</Text>
-        </View>
-        {group.items.map((item) => (
-          <ShoppingItemCard key={item.id} item={item} />
-        ))}
-      </View>
-    ));
-
-  const handleStartShopping = () => {
-    const itemIds = pendingItems.map(item => item.id);
-    console.log('ShoppingList: Starting shopping with items:', itemIds);
-    console.log('ShoppingList: Pending items:', pendingItems.map(i => ({ id: i.id, name: i.name })));
-    
+  const handleStartShopping = useCallback(() => {
+    const itemIds = pendingItems.map((item) => item.id);
     if (itemIds.length > 0) {
-      navigation.navigate('ShoppingMode', { itemIds });
-    } else {
-      Alert.alert('No Items', 'Add items to your shopping list before starting shopping mode.');
+      navigation.navigate("ShoppingMode", { itemIds });
     }
-  };
+  }, [navigation, pendingItems]);
 
-  const ShoppingItemCard = ({ item }) => {
-    // Debug logging
-    if (item.image_url) {
-      console.log('Rendering item with image:', item.name, 'URL:', item.image_url);
-    }
-    
-    return (
-    <View style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}>
-      <TouchableOpacity
-        style={styles.itemContent}
-        onPress={() => handleTogglePurchased(item)}
-      >
-        <View style={styles.itemLeft}>
-          <Icon
-            name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
-            size={24}
-            color={item.is_purchased ? '#16A34A' : '#9CA3AF'}
-          />
-          <View style={styles.itemDetails}>
-            <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
-              {item.name}
-            </Text>
-            <Text style={styles.itemQuantity}>
-              {item.quantity} {item.unit || 'pcs'}
-            </Text>
-            <Text style={styles.itemDepartment}>
-              {i18n.t(`shopping.storeDepartments.${resolveStoreDepartment(item)}`)}
-            </Text>
-            {item.auto_added && (
-              <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
-            )}
-            {/* Display notes */}
-            {item.notes && (
-              <Text style={styles.itemNotes} numberOfLines={2}>
-                {item.notes}
-              </Text>
-            )}
-            {/* Display image thumbnail */}
-            {item.image_url && (
-              <TouchableOpacity
-                onPress={() => handleViewImage(item.image_url)}
-                style={styles.imageThumbnailContainer}
-              >
-                <Image
-                  source={{ uri: item.image_url }}
-                  style={styles.imageThumbnail}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  transition={200}
-                  onError={(error) => {
-                    console.error('Image load error:', error);
-                    console.error('Image URL:', item.image_url);
-                  }}
-                  onLoad={() => {
-                    console.log('Image loaded successfully:', item.image_url);
-                  }}
-                />
-                <View style={styles.imageOverlay}>
-                  <Icon name="zoom-in" size={16} color="#FFFFFF" />
-                </View>
-              </TouchableOpacity>
-            )}
-            {/* Display link */}
-            {item.link && (
-              <TouchableOpacity
-                onPress={() => handleOpenLink(item.link)}
-                style={styles.linkContainer}
-              >
-                <Icon name="link" size={14} color="#2563EB" />
-                <Text style={styles.linkText} numberOfLines={1}>
-                  {item.link}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => setShowStoreLayoutModal(true)}
+            style={styles.headerIconBtn}
+            accessibilityLabel={i18n.t("shopping.storeLayoutTitle")}
+          >
+            <Icon name="storefront" size={22} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleStartShopping}
+            disabled={pendingItems.length === 0}
+            style={[styles.headerIconBtn, pendingItems.length === 0 && styles.headerIconDisabled]}
+            accessibilityLabel={i18n.t("shopping.shopMode")}
+          >
+            <Icon name="shopping-bag" size={22} color={colors.primary} />
+          </TouchableOpacity>
         </View>
-        
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => handleEditItem(item)}
-        >
-          <Icon name="edit" size={20} color="#6B7280" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteItem(item.id)}
-        >
-          <Icon name="delete" size={20} color="#EF4444" />
-        </TouchableOpacity>
-      </TouchableOpacity>
-    </View>
-    );
-  };
+      ),
+    });
+  }, [navigation, colors, pendingItems.length, handleStartShopping]);
+
+  const renderGroups = (groups) =>
+    groups.map((group) => (
+      <ShoppingDepartmentSection
+        key={group.departmentId}
+        departmentId={group.departmentId}
+        items={group.items}
+        colors={colors}
+        collapsed={!!collapsedDepartments[group.departmentId]}
+        onToggleCollapsed={() => toggleDepartmentCollapsed(group.departmentId)}
+        onTogglePurchased={handleTogglePurchased}
+        onEdit={handleEditItem}
+        onDelete={handleDeleteItem}
+      />
+    ));
 
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.loadingContainer, screenBackgroundStyle(colors)]}>
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.loadingText}>Loading your shopping list...</Text>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          {i18n.t("common.loading")}
+        </Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Shopping List</Text>
-            <Text style={styles.subtitle}>{i18n.t("shopping.groupedByAisle")}</Text>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={[styles.aisleHint, { color: colors.textTertiary }]}>
+          {i18n.t("shopping.groupedByAisle")}
+        </Text>
+
+        {totalCount > 0 && (
+          <View style={styles.progressRow}>
+            <View style={[styles.progressTrack, { backgroundColor: colors.borderLight }]}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: `${Math.round(progress * 100)}%`, backgroundColor: colors.primary },
+                ]}
+              />
+            </View>
+            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
+              {purchasedItems.length}/{totalCount}
+            </Text>
           </View>
-          
-          <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={styles.layoutButton}
-              onPress={() => setShowStoreLayoutModal(true)}
-            >
-              <Icon name="store" size={22} color={COLORS.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.shopButton, pendingItems.length === 0 && styles.disabledButton]}
-              onPress={handleStartShopping}
-              disabled={pendingItems.length === 0}
-            >
-              <Icon name="play-arrow" size={20} color="#FFFFFF" />
-              <Text style={styles.shopButtonText}>Shop</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowAddDialog(true)}
-            >
-              <Icon name="add" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+        )}
+
+        <View style={[styles.quickAddBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TextInput
+            style={[styles.quickAddInput, { color: colors.text }]}
+            placeholder={i18n.t("shopping.quickAddPlaceholder")}
+            placeholderTextColor={colors.textTertiary}
+            value={quickAddName}
+            onChangeText={setQuickAddName}
+            onSubmitEditing={handleQuickAdd}
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            onPress={handleQuickAdd}
+            disabled={!quickAddName.trim() || quickAddBusy}
+            style={[
+              styles.quickAddBtn,
+              { backgroundColor: colors.primary },
+              (!quickAddName.trim() || quickAddBusy) && styles.quickAddBtnDisabled,
+            ]}
+          >
+            {quickAddBusy ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Icon name="add" size={22} color="#FFFFFF" />
+            )}
+          </TouchableOpacity>
         </View>
 
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+        <TouchableOpacity onPress={() => setShowAddDialog(true)} style={styles.moreDetailsLink}>
+          <Text style={{ color: colors.primary, fontWeight: "600" }}>
+            {i18n.t("shopping.moreDetails")}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Icon name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="Search items..."
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder={i18n.t("shopping.searchPlaceholder")}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
           />
         </View>
 
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#FED7AA' }]}>
-              <Icon name="shopping-cart" size={20} color="#EA580C" />
-            </View>
-            <View style={styles.statContent}>
-              <Text style={styles.statLabel}>To Buy</Text>
-              <Text style={styles.statValue}>{pendingItems.length}</Text>
-            </View>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#DCFCE7' }]}>
-              <Icon name="check" size={20} color="#16A34A" />
-            </View>
-            <View style={styles.statContent}>
-              <Text style={styles.statLabel}>Purchased</Text>
-              <Text style={styles.statValue}>{purchasedItems.length}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Shopping Items */}
         <View style={styles.itemsContainer}>
-          {/* Pending Items */}
-          {pendingItems.length > 0 && (
-            <View style={styles.itemsSection}>
-              <Text style={styles.sectionTitle}>To Buy</Text>
-              {renderDepartmentSections(pendingGroups)}
-            </View>
-          )}
+          {pendingItems.length > 0 && renderGroups(pendingGroups)}
 
-          {/* Purchased Items */}
           {purchasedItems.length > 0 && (
-            <View style={styles.itemsSection}>
-              <Text style={[styles.sectionTitle, styles.purchasedSectionTitle]}>Purchased</Text>
-              {renderDepartmentSections(purchasedGroups)}
+            <View style={styles.purchasedBlock}>
+              <TouchableOpacity
+                style={styles.purchasedHeader}
+                onPress={() => setPurchasedCollapsed((v) => !v)}
+              >
+                <Text style={[styles.purchasedTitle, { color: colors.textSecondary }]}>
+                  {i18n.t("shopping.purchasedSection")} ({purchasedItems.length})
+                </Text>
+                <Icon
+                  name={purchasedCollapsed ? "expand-more" : "expand-less"}
+                  size={22}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+              {!purchasedCollapsed && renderGroups(purchasedGroups)}
             </View>
           )}
 
-          {/* Empty State */}
           {filteredItems.length === 0 && (
             <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Icon name="shopping-cart" size={40} color="#2563EB" />
-              </View>
-              <Text style={styles.emptyTitle}>No items yet</Text>
-              <Text style={styles.emptySubtitle}>Add items to your shopping list to get started</Text>
-              <TouchableOpacity
-                style={styles.emptyButton}
-                onPress={() => setShowAddDialog(true)}
-              >
-                <Icon name="add" size={20} color="#FFFFFF" />
-                <Text style={styles.emptyButtonText}>Add First Item</Text>
-              </TouchableOpacity>
+              <Icon name="shopping-cart" size={48} color={colors.primary} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>{i18n.t("shopping.emptyTitle")}</Text>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                {i18n.t("shopping.emptySubtitle")}
+              </Text>
             </View>
           )}
         </View>
@@ -1003,124 +950,105 @@ export default function ShoppingListScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: SPACING.l,
     fontSize: 16,
-    color: '#6B7280',
   },
   scrollView: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+  scrollContent: {
+    paddingBottom: SPACING.xxxl,
   },
-  headerText: {
-    flex: 1,
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: SPACING.m,
+    gap: SPACING.xs,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
+  headerIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+  headerIconDisabled: {
+    opacity: 0.35,
   },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  layoutButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.primaryMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  departmentSection: {
-    marginBottom: SPACING.l,
-  },
-  departmentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: SPACING.s,
-    marginBottom: SPACING.s,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  departmentTitle: {
-    ...TYPOGRAPHY.overline,
-    color: COLORS.textSecondary,
-  },
-  departmentCount: {
+  aisleHint: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.textTertiary,
+    paddingHorizontal: SPACING.l,
+    paddingTop: SPACING.s,
+    paddingBottom: SPACING.s,
   },
-  shopButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#16A34A',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: SPACING.l,
+    marginBottom: SPACING.m,
+    gap: SPACING.m,
   },
-  disabledButton: {
-    opacity: 0.5,
+  progressTrack: {
+    flex: 1,
+    height: 4,
+    borderRadius: RADIUS.full,
+    overflow: "hidden",
   },
-  shopButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginLeft: 6,
+  progressFill: {
+    height: "100%",
+    borderRadius: RADIUS.full,
   },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+  progressLabel: {
+    ...TYPOGRAPHY.caption,
+    minWidth: 36,
+    textAlign: "right",
+  },
+  quickAddBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: SPACING.l,
+    marginBottom: SPACING.s,
+    borderRadius: RADIUS.l,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingLeft: SPACING.l,
+    paddingRight: SPACING.s,
+    minHeight: 48,
+  },
+  quickAddInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: SPACING.m,
+  },
+  quickAddBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickAddBtnDisabled: {
+    opacity: 0.45,
+  },
+  moreDetailsLink: {
+    alignSelf: "flex-start",
+    paddingHorizontal: SPACING.l,
+    marginBottom: SPACING.m,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: RADIUS.m,
+    marginHorizontal: SPACING.l,
+    marginBottom: SPACING.l,
+    paddingHorizontal: SPACING.l,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   searchIcon: {
     marginRight: 12,
@@ -1128,55 +1056,23 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    paddingVertical: 16,
-    color: '#1F2937',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    gap: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  statContent: {
-    flex: 1,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    paddingVertical: SPACING.m,
   },
   itemsContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: SPACING.xxl,
+  },
+  purchasedBlock: {
+    marginTop: SPACING.l,
+  },
+  purchasedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.l,
+    paddingVertical: SPACING.s,
+  },
+  purchasedTitle: {
+    ...TYPOGRAPHY.overline,
   },
   itemsSection: {
     marginBottom: 24,

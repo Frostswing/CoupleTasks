@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
-  ScrollView,
 } from "react-native";
 import {
   getCurrentUser,
@@ -15,10 +13,14 @@ import {
   createSharedSpace,
   removeSharing,
   checkIfSharing,
-  getUserProfile,
 } from "../services/userService";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 const SharingScreen = () => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [loading, setLoading] = useState(true);
   const [sharingEmail, setSharingEmail] = useState("");
   const [sharingStatus, setSharingStatus] = useState({
@@ -43,7 +45,6 @@ const SharingScreen = () => {
     setCurrentUser(user);
 
     try {
-      // קבל מידע על שיתוף רשימות
       const status = await checkIfSharing(user.uid);
 
       if (status.success) {
@@ -71,7 +72,6 @@ const SharingScreen = () => {
       return;
     }
 
-    // לא לאפשר שיתוף עם המשתמש עצמו
     if (user.email === sharingEmail) {
       Alert.alert("שגיאה", "לא ניתן לשתף רשימות עם עצמך");
       return;
@@ -80,7 +80,6 @@ const SharingScreen = () => {
     setLoading(true);
 
     try {
-      // חיפוש המשתמש לפי אימייל
       const result = await findUserByEmail(sharingEmail);
 
       if (!result.success) {
@@ -89,7 +88,6 @@ const SharingScreen = () => {
         return;
       }
 
-      // שאל את המשתמש אם הוא בטוח שרוצה לשתף
       Alert.alert(
         "שיתוף רשימות",
         `האם אתה בטוח שברצונך לשתף את הרשימות שלך עם ${
@@ -101,7 +99,6 @@ const SharingScreen = () => {
           {
             text: "שתף",
             onPress: async () => {
-              // יצירת מרחב משותף
               const sharedResult = await createSharedSpace(
                 user.uid,
                 result.userId
@@ -110,7 +107,6 @@ const SharingScreen = () => {
               if (sharedResult.success) {
                 Alert.alert("הצלחה", "הרשימות משותפות כעת עם המשתמש שבחרת");
                 setSharingEmail("");
-                // רענן את מצב השיתוף
                 loadSharingStatus();
               } else {
                 Alert.alert("שגיאה", "אירעה שגיאה בתהליך השיתוף");
@@ -160,7 +156,6 @@ const SharingScreen = () => {
 
               if (result.success) {
                 Alert.alert("הצלחה", "הופסק שיתוף הרשימות");
-                // רענן את מצב השיתוף
                 loadSharingStatus();
               } else {
                 Alert.alert("שגיאה", "אירעה שגיאה בתהליך הפסקת השיתוף");
@@ -177,184 +172,173 @@ const SharingScreen = () => {
   };
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#f4511e" />
-      </View>
-    );
+    return <ThemedScreenShell loading />;
   }
 
   if (!currentUser) {
     return (
-      <View style={styles.container}>
+      <ThemedScreenShell scroll={false}>
         <Text style={styles.notLoggedInText}>
           יש להתחבר תחילה כדי לשתף רשימות
         </Text>
-      </View>
+      </ThemedScreenShell>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>שיתוף רשימות</Text>
-
-        {sharingStatus.isSharing ? (
-          <View style={styles.sharingInfoContainer}>
-            <Text style={styles.sharingInfoText}>
-              אתה משתף כרגע את הרשימות שלך עם:
-            </Text>
-            <Text style={styles.userName}>
-              {sharingStatus.sharingWith.profile.name || "משתמש"}
-            </Text>
-            <Text style={styles.userEmail}>
-              {sharingStatus.sharingWith.profile.email}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.stopSharingButton}
-              onPress={handleStopSharing}
-            >
-              <Text style={styles.buttonText}>הפסק שיתוף</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.formContainer}>
-            <Text style={styles.formLabel}>
-              שתף רשימות עם משתמש אחר על ידי הזנת האימייל שלו:
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="הזן אימייל משתמש"
-              value={sharingEmail}
-              onChangeText={setSharingEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TouchableOpacity
-              style={styles.shareButton}
-              onPress={handleShareLists}
-            >
-              <Text style={styles.buttonText}>שתף רשימות</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoTitle}>איך זה עובד?</Text>
-          <Text style={styles.infoText}>
-            כאשר אתה משתף רשימות עם משתמש אחר, הרשימות שלך והרשימות של המשתמש
-            האחר מתמזגות לרשימה משותפת.
+    <ThemedScreenShell contentStyle={styles.content}>
+      {sharingStatus.isSharing ? (
+        <View style={styles.sharingInfoContainer}>
+          <Text style={styles.sharingInfoText}>
+            אתה משתף כרגע את הרשימות שלך עם:
           </Text>
-          <Text style={styles.infoText}>
-            שני המשתמשים יוכלו לצפות ולערוך את הרשימות המשותפות.
+          <Text style={styles.userName}>
+            {sharingStatus.sharingWith.profile.name || "משתמש"}
           </Text>
-          <Text style={styles.infoText}>
-            אם תפסיק את השיתוף, תקבל מחדש את הרשימות המשותפות לחשבון הפרטי שלך.
+          <Text style={styles.userEmail}>
+            {sharingStatus.sharingWith.profile.email}
           </Text>
+
+          <TouchableOpacity
+            style={styles.stopSharingButton}
+            onPress={handleStopSharing}
+          >
+            <Text style={styles.buttonText}>הפסק שיתוף</Text>
+          </TouchableOpacity>
         </View>
+      ) : (
+        <View style={styles.formContainer}>
+          <Text style={styles.formLabel}>
+            שתף רשימות עם משתמש אחר על ידי הזנת האימייל שלו:
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="הזן אימייל משתמש"
+            placeholderTextColor={colors.textTertiary}
+            value={sharingEmail}
+            onChangeText={setSharingEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={handleShareLists}
+          >
+            <Text style={styles.buttonText}>שתף רשימות</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={styles.infoContainer}>
+        <Text style={styles.infoTitle}>איך זה עובד?</Text>
+        <Text style={styles.infoText}>
+          כאשר אתה משתף רשימות עם משתמש אחר, הרשימות שלך והרשימות של המשתמש
+          האחר מתמזגות לרשימה משותפת.
+        </Text>
+        <Text style={styles.infoText}>
+          שני המשתמשים יוכלו לצפות ולערוך את הרשימות המשותפות.
+        </Text>
+        <Text style={styles.infoText}>
+          אם תפסיק את השיתוף, תקבל מחדש את הרשימות המשותפות לחשבון הפרטי שלך.
+        </Text>
       </View>
-    </ScrollView>
+    </ThemedScreenShell>
   );
 };
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#f4511e",
-  },
-  formContainer: {
-    marginBottom: 30,
-  },
-  formLabel: {
-    fontSize: 16,
-    marginBottom: 10,
-    textAlign: "right",
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    backgroundColor: "#f9f9f9",
-    textAlign: "right",
-  },
-  shareButton: {
-    backgroundColor: "#f4511e",
-    height: 50,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  sharingInfoContainer: {
-    marginBottom: 30,
-    alignItems: "center",
-  },
-  sharingInfoText: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-  },
-  stopSharingButton: {
-    backgroundColor: "#e74c3c",
-    height: 50,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  infoContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "right",
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-    lineHeight: 20,
-    textAlign: "right",
-  },
-  notLoggedInText: {
-    fontSize: 18,
-    textAlign: "center",
-    color: "#888",
-  },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    content: {
+      paddingTop: SPACING.l,
+    },
+    formContainer: {
+      marginBottom: SPACING.xl,
+    },
+    formLabel: {
+      ...TYPOGRAPHY.body,
+      color: colors.text,
+      marginBottom: SPACING.m,
+      textAlign: "right",
+    },
+    input: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: RADIUS.s,
+      marginBottom: SPACING.m,
+      paddingHorizontal: SPACING.l,
+      fontSize: 16,
+      backgroundColor: colors.surface,
+      color: colors.text,
+      textAlign: "right",
+    },
+    shareButton: {
+      backgroundColor: colors.primary,
+      height: 50,
+      borderRadius: RADIUS.s,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    buttonText: {
+      color: COLORS.textInverse,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    sharingInfoContainer: {
+      marginBottom: SPACING.xl,
+      alignItems: "center",
+    },
+    sharingInfoText: {
+      ...TYPOGRAPHY.body,
+      color: colors.textSecondary,
+      marginBottom: SPACING.m,
+    },
+    userName: {
+      ...TYPOGRAPHY.h3,
+      color: colors.text,
+      marginBottom: SPACING.xs,
+    },
+    userEmail: {
+      ...TYPOGRAPHY.body,
+      color: colors.textSecondary,
+      marginBottom: SPACING.xl,
+    },
+    stopSharingButton: {
+      backgroundColor: COLORS.error,
+      height: 50,
+      borderRadius: RADIUS.s,
+      justifyContent: "center",
+      alignItems: "center",
+      width: "100%",
+    },
+    infoContainer: {
+      marginTop: SPACING.l,
+      padding: SPACING.l,
+      backgroundColor: colors.surface,
+      borderRadius: RADIUS.m,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    infoTitle: {
+      ...TYPOGRAPHY.h3,
+      color: colors.text,
+      marginBottom: SPACING.m,
+      textAlign: "right",
+    },
+    infoText: {
+      ...TYPOGRAPHY.bodySmall,
+      color: colors.textSecondary,
+      marginBottom: SPACING.s,
+      lineHeight: 20,
+      textAlign: "right",
+    },
+    notLoggedInText: {
+      ...TYPOGRAPHY.body,
+      textAlign: "center",
+      color: colors.textSecondary,
+      padding: SPACING.xl,
+    },
+  });
+}
 
 export default SharingScreen;

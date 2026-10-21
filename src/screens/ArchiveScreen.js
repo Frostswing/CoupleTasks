@@ -13,6 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../entities/Task";
+import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
 import { format, differenceInDays } from "date-fns";
@@ -20,6 +23,9 @@ import { format, differenceInDays } from "date-fns";
 const { width } = Dimensions.get('window');
 
 export default function ArchiveScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [archivedTasks, setArchivedTasks] = useState([]);
   const [archivedProducts, setArchivedProducts] = useState([]);
   const [archivedShoppingLists, setArchivedShoppingLists] = useState([]);
@@ -411,26 +417,20 @@ export default function ArchiveScreen({ navigation }) {
   );
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.loadingText}>Loading archived items...</Text>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel="Loading archived items..." />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Archive</Text>
           <Text style={styles.subtitle}>Tasks and shopping lists are stored for 60 days. Archived products are kept forever.</Text>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <Icon name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder={
@@ -442,7 +442,7 @@ export default function ArchiveScreen({ navigation }) {
             }
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
             clearButtonMode="while-editing"
           />
           {searchQuery.length > 0 && (
@@ -450,7 +450,7 @@ export default function ArchiveScreen({ navigation }) {
               onPress={() => setSearchQuery('')}
               style={styles.clearButton}
             >
-              <Icon name="close" size={18} color="#9CA3AF" />
+              <Icon name="close" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -493,7 +493,7 @@ export default function ArchiveScreen({ navigation }) {
               {filteredTasks.length === 0 ? (
                 <View style={styles.emptyState}>
                   <View style={styles.emptyIcon}>
-                    <Icon name={searchQuery ? "search-off" : "check-circle"} size={40} color="#9CA3AF" />
+                    <Icon name={searchQuery ? "search-off" : "check-circle"} size={40} color={colors.textTertiary} />
                   </View>
                   <Text style={styles.emptyTitle}>
                     {searchQuery ? "No tasks found" : "No completed tasks"}
@@ -517,7 +517,7 @@ export default function ArchiveScreen({ navigation }) {
               {filteredShoppingLists.length === 0 ? (
                 <View style={styles.emptyState}>
                   <View style={styles.emptyIcon}>
-                    <Icon name={searchQuery ? "search-off" : "shopping-bag"} size={40} color="#9CA3AF" />
+                    <Icon name={searchQuery ? "search-off" : "shopping-bag"} size={40} color={colors.textTertiary} />
                   </View>
                   <Text style={styles.emptyTitle}>
                     {searchQuery ? "No shopping lists found" : "No archived shopping lists"}
@@ -541,7 +541,7 @@ export default function ArchiveScreen({ navigation }) {
               {filteredProducts.length === 0 ? (
                 <View style={styles.emptyState}>
                   <View style={styles.emptyIcon}>
-                    <Icon name={searchQuery ? "search-off" : "shopping-cart"} size={40} color="#9CA3AF" />
+                    <Icon name={searchQuery ? "search-off" : "shopping-cart"} size={40} color={colors.textTertiary} />
                   </View>
                   <Text style={styles.emptyTitle}>
                     {searchQuery ? "No products found" : "No archived products"}
@@ -567,21 +567,22 @@ export default function ArchiveScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -594,17 +595,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 16,
@@ -625,7 +626,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 12,
-    color: '#1F2937',
+    color: colors.text,
   },
   clearButton: {
     padding: 4,
@@ -633,7 +634,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     marginHorizontal: 20,
     borderRadius: 12,
     padding: 4,
@@ -655,12 +656,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTabButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   activeTabText: {
     color: '#FFFFFF',
@@ -676,7 +677,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   archiveCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -700,19 +701,19 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     textDecorationLine: 'line-through',
     marginBottom: 4,
   },
   productName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   taskDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   taskMeta: {
@@ -721,19 +722,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   categoryBadge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
   categoryText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   completionDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   cardActions: {
     flexDirection: 'row',
@@ -753,7 +754,7 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -767,7 +768,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -776,12 +777,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   itemsPreview: {
@@ -792,13 +793,14 @@ const styles = StyleSheet.create({
   },
   itemPreviewText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   moreItemsText: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     fontStyle: 'italic',
     marginTop: 4,
   },
-}); 
+});
+}

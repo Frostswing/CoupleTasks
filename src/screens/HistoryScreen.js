@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
   Alert,
   Share,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { 
@@ -18,8 +19,12 @@ import {
   cleanupOldHistory 
 } from '../services/historyService';
 import { getCategoryById, getUnitById } from '../constants/categories';
-
+import { COLORS, screenBackgroundStyle } from '../constants/theme';
+import { useAppTheme } from '../context/ThemeContext';
+import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
 const HistoryScreen = () => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState('shopping');
   const [shoppingHistory, setShoppingHistory] = useState([]);
   const [taskHistory, setTaskHistory] = useState([]);
@@ -207,7 +212,7 @@ const HistoryScreen = () => {
           </Text>
         </View>
         <View style={styles.popularItemBadge}>
-          <Icon name="trending-up" size={12} color="#2563EB" />
+          <Icon name="trending-up" size={12} color={colors.primary} />
         </View>
       </View>
     );
@@ -223,18 +228,13 @@ const HistoryScreen = () => {
   }, [currentHistory]);
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>טוען היסטוריה...</Text>
-      </View>
-    );
+    return <ThemedScreenShell loading loadingLabel="טוען היסטוריה..." />;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, screenBackgroundStyle(colors)]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>היסטוריה חכמה</Text>
         <Text style={styles.headerSubtitle}>עקוב אחר הפעילות והשפר את ההצעות</Text>
       </View>
 
@@ -244,7 +244,7 @@ const HistoryScreen = () => {
           style={[styles.tab, activeTab === 'shopping' && styles.activeTab]}
           onPress={() => setActiveTab('shopping')}
         >
-          <Icon name="shopping-cart" size={20} color={activeTab === 'shopping' ? '#2563EB' : '#6B7280'} />
+          <Icon name="shopping-cart" size={20} color={activeTab === 'shopping' ? colors.primary : colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'shopping' && styles.activeTabText]}>
             קניות
           </Text>
@@ -254,7 +254,7 @@ const HistoryScreen = () => {
           style={[styles.tab, activeTab === 'tasks' && styles.activeTab]}
           onPress={() => setActiveTab('tasks')}
         >
-          <Icon name="task-alt" size={20} color={activeTab === 'tasks' ? '#2563EB' : '#6B7280'} />
+          <Icon name="task-alt" size={20} color={activeTab === 'tasks' ? colors.primary : colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'tasks' && styles.activeTabText]}>
             מטלות
           </Text>
@@ -307,7 +307,7 @@ const HistoryScreen = () => {
             style={styles.actionButton}
             onPress={() => setShowExportModal(true)}
           >
-            <Icon name="download" size={20} color="#2563EB" />
+            <Icon name="download" size={20} color={colors.primary} />
             <Text style={styles.actionButtonText}>ייצא היסטוריה</Text>
           </TouchableOpacity>
           
@@ -333,7 +333,7 @@ const HistoryScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>ייצא היסטוריה</Text>
               <TouchableOpacity onPress={() => setShowExportModal(false)}>
-                <Icon name="close" size={24} color="#6B7280" />
+                <Icon name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             
@@ -357,10 +357,11 @@ const HistoryScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -369,26 +370,26 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     padding: 20,
     paddingTop: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginHorizontal: 4,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   activeTab: {
     backgroundColor: '#CCFBF1',
@@ -408,11 +409,11 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 8,
   },
   activeTabText: {
-    color: '#2563EB',
+    color: colors.primary,
   },
   content: {
     flex: 1,
@@ -427,18 +428,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   popularList: {
     paddingVertical: 8,
   },
   popularItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 12,
     marginRight: 12,
@@ -455,19 +456,19 @@ const styles = StyleSheet.create({
   popularItemName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   popularItemFrequency: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   popularItemBadge: {
     alignSelf: 'flex-end',
     marginTop: 8,
   },
   historyList: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 4,
   },
@@ -478,7 +479,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   itemHeader: {
     flexDirection: 'row',
@@ -507,16 +508,16 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 2,
   },
   itemDetails: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   itemDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   actionsSection: {
     marginBottom: 40,
@@ -525,7 +526,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 12,
@@ -542,7 +543,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2563EB',
+    color: colors.primary,
     marginLeft: 8,
   },
   dangerButtonText: {
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 8,
@@ -566,19 +567,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   modalBody: {
     padding: 20,
   },
   modalDescription: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     lineHeight: 24,
     marginBottom: 24,
   },
@@ -586,16 +587,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
   },
   exportButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     marginLeft: 8,
   },
 });
 
-export default HistoryScreen; 
+export default HistoryScreen;

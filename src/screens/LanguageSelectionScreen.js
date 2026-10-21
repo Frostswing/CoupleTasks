@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,18 @@ import {
   Alert,
   I18nManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../constants/theme';
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from '../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n, { changeLanguage, loadLanguagePreference } from '../localization/i18n';
 import { handleError } from '../services/errorHandlingService';
+import { useAppTheme } from '../context/ThemeContext';
+import { screenBackgroundStyle } from '../constants/theme';
 
 const LanguageSelectionScreen = ({ onComplete }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedLanguage, setSelectedLanguage] = useState('he');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,19 +40,15 @@ const LanguageSelectionScreen = ({ onComplete }) => {
     try {
       await changeLanguage(languageCode);
       
-      // Check if we need to reload the app for RTL changes
       const wasRTL = I18nManager.isRTL;
       const shouldBeRTL = languageCode === 'he';
       
       if (wasRTL !== shouldBeRTL) {
-        // Force RTL settings
         I18nManager.allowRTL(shouldBeRTL);
         I18nManager.forceRTL(shouldBeRTL);
         
-        // Complete language selection first
         await completeLanguageSelection();
         
-        // Show alert asking user to restart app for RTL changes
         Alert.alert(
           i18n.t('language.languageChanged'),
           languageCode === 'he' 
@@ -61,7 +62,6 @@ const LanguageSelectionScreen = ({ onComplete }) => {
           ]
         );
       } else {
-        // No RTL change needed, just complete
         await completeLanguageSelection();
         Alert.alert(
           i18n.t('language.languageChanged'),
@@ -83,10 +83,8 @@ const LanguageSelectionScreen = ({ onComplete }) => {
 
   const completeLanguageSelection = async () => {
     try {
-      // Mark that user has completed language selection
       await AsyncStorage.setItem('hasSelectedLanguage', 'true');
       
-      // Call the completion callback if provided
       if (onComplete) {
         onComplete();
       }
@@ -116,17 +114,16 @@ const LanguageSelectionScreen = ({ onComplete }) => {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]} edges={['bottom']}>
       <View style={styles.header}>
         <View style={styles.logoBox}>
-          <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
+          <MaterialIcons name="favorite" size={32} color={colors.primary} />
         </View>
         <Text style={styles.appName}>CoupleTasks</Text>
         <Text style={styles.subtitle}>Together we organize</Text>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>בחר שפה / Select Language</Text>
         <Text style={styles.description}>
           בחר את השפה המועדפת עליך{'\n'}
           Choose your preferred language
@@ -185,153 +182,130 @@ const LanguageSelectionScreen = ({ onComplete }) => {
           Made for couples who organize together
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingBottom: 40,
-  },
-  logoBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: COLORS.primaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    fontStyle: 'italic',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 40,
-  },
-  languageList: {
-    gap: 16,
-    marginBottom: 40,
-  },
-  languageOption: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  selectedLanguage: {
-    borderColor: '#2563EB',
-    backgroundColor: '#F3F4F6',
-  },
-  languageContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  flag: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  languageText: {
-    flex: 1,
-  },
-  languageName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  selectedLanguageText: {
-    color: '#2563EB',
-  },
-  languageSubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  selectedLanguageSubtext: {
-    color: '#2563EB',
-  },
-  checkmark: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkmarkText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  continueButton: {
-    backgroundColor: '#2563EB',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    header: {
+      alignItems: 'center',
+      paddingTop: 80,
+      paddingBottom: 40,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  disabledButton: {
-    backgroundColor: '#9CA3AF',
-  },
-  continueButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  footer: {
-    alignItems: 'center',
-    paddingBottom: 40,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-  },
-});
+    logoBox: {
+      width: 64,
+      height: 64,
+      borderRadius: 16,
+      backgroundColor: colors.primaryMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 16,
+    },
+    appName: {
+      ...TYPOGRAPHY.h1,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    subtitle: {
+      ...TYPOGRAPHY.body,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 24,
+    },
+    description: {
+      ...TYPOGRAPHY.body,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: 40,
+    },
+    languageList: {
+      gap: 16,
+      marginBottom: 40,
+    },
+    languageOption: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 20,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    selectedLanguage: {
+      borderColor: colors.primary,
+      backgroundColor: colors.borderLight,
+    },
+    languageContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    flag: {
+      fontSize: 32,
+      marginRight: 16,
+    },
+    languageText: {
+      flex: 1,
+    },
+    languageName: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    selectedLanguageText: {
+      color: colors.primary,
+    },
+    languageSubtext: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    selectedLanguageSubtext: {
+      color: colors.primary,
+    },
+    checkmark: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkmarkText: {
+      color: COLORS.textInverse,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    continueButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 32,
+      alignItems: 'center',
+    },
+    disabledButton: {
+      opacity: 0.5,
+    },
+    continueButtonText: {
+      color: COLORS.textInverse,
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    footer: {
+      alignItems: 'center',
+      paddingBottom: 40,
+    },
+    footerText: {
+      fontSize: 14,
+      color: colors.textTertiary,
+      fontStyle: 'italic',
+    },
+  });
+}
 
-export default LanguageSelectionScreen; 
+export default LanguageSelectionScreen;

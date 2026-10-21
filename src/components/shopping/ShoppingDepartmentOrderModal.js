@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,12 @@ import {
   getShoppingDepartmentOrder,
   saveShoppingDepartmentOrder,
 } from "../../services/shoppingDepartmentOrderService";
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../../constants/theme";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, screenBackgroundStyle } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 export default function ShoppingDepartmentOrderModal({ visible, onClose }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [order, setOrder] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,24 +56,24 @@ export default function ShoppingDepartmentOrderModal({ visible, onClose }) {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
         <View style={styles.header}>
           <Text style={styles.title}>{i18n.t("shopping.storeLayoutTitle")}</Text>
           <TouchableOpacity onPress={() => onClose(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <MaterialIcons name="close" size={24} color={COLORS.textSecondary} />
+            <MaterialIcons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>{i18n.t("shopping.storeLayoutSubtitle")}</Text>
 
         {loading ? (
-          <ActivityIndicator style={{ marginTop: SPACING.xl }} color={COLORS.primary} />
+          <ActivityIndicator style={{ marginTop: SPACING.xl }} color={colors.primary} />
         ) : (
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
             {order.map((deptId, index) => {
               const dept = getStoreDepartmentById(deptId);
               return (
                 <View key={deptId} style={styles.row}>
-                  <MaterialIcons name={dept.icon} size={22} color={COLORS.primary} />
+                  <MaterialIcons name={dept.icon} size={22} color={colors.primary} />
                   <Text style={styles.rowLabel}>{i18n.t(`shopping.storeDepartments.${deptId}`)}</Text>
                   <View style={styles.rowActions}>
                     <TouchableOpacity
@@ -78,14 +81,14 @@ export default function ShoppingDepartmentOrderModal({ visible, onClose }) {
                       disabled={index === 0}
                       style={[styles.iconBtn, index === 0 && styles.iconBtnDisabled]}
                     >
-                      <MaterialIcons name="arrow-upward" size={20} color={COLORS.textSecondary} />
+                      <MaterialIcons name="arrow-upward" size={20} color={colors.textSecondary} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => move(index, 1)}
                       disabled={index === order.length - 1}
                       style={[styles.iconBtn, index === order.length - 1 && styles.iconBtnDisabled]}
                     >
-                      <MaterialIcons name="arrow-downward" size={20} color={COLORS.textSecondary} />
+                      <MaterialIcons name="arrow-downward" size={20} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -110,72 +113,78 @@ export default function ShoppingDepartmentOrderModal({ visible, onClose }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.l,
-  },
-  title: {
-    ...TYPOGRAPHY.h2,
-  },
-  subtitle: {
-    ...TYPOGRAPHY.bodySmall,
-    paddingHorizontal: SPACING.xl,
-    marginTop: SPACING.s,
-    marginBottom: SPACING.l,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    paddingHorizontal: SPACING.xl,
-    gap: SPACING.s,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.m,
-    padding: SPACING.l,
-    ...SHADOWS.xs,
-    gap: SPACING.m,
-  },
-  rowLabel: {
-    ...TYPOGRAPHY.body,
-    flex: 1,
-  },
-  rowActions: {
-    flexDirection: "row",
-    gap: SPACING.xs,
-  },
-  iconBtn: {
-    padding: SPACING.s,
-    borderRadius: RADIUS.s,
-    backgroundColor: COLORS.borderLight,
-  },
-  iconBtnDisabled: {
-    opacity: 0.35,
-  },
-  saveBtn: {
-    margin: SPACING.xl,
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.m,
-    paddingVertical: SPACING.m,
-    alignItems: "center",
-  },
-  saveBtnDisabled: {
-    opacity: 0.7,
-  },
-  saveBtnText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textInverse,
-    fontWeight: "600",
-  },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.l,
+    },
+    title: {
+      ...TYPOGRAPHY.h2,
+      color: colors.text,
+    },
+    subtitle: {
+      ...TYPOGRAPHY.bodySmall,
+      color: colors.textSecondary,
+      paddingHorizontal: SPACING.xl,
+      marginTop: SPACING.s,
+      marginBottom: SPACING.l,
+    },
+    list: {
+      flex: 1,
+    },
+    listContent: {
+      paddingHorizontal: SPACING.xl,
+      gap: SPACING.s,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderRadius: RADIUS.m,
+      padding: SPACING.l,
+      ...SHADOWS.xs,
+      gap: SPACING.m,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    rowLabel: {
+      ...TYPOGRAPHY.body,
+      flex: 1,
+      color: colors.text,
+    },
+    rowActions: {
+      flexDirection: "row",
+      gap: SPACING.xs,
+    },
+    iconBtn: {
+      padding: SPACING.s,
+      borderRadius: RADIUS.s,
+      backgroundColor: colors.borderLight,
+    },
+    iconBtnDisabled: {
+      opacity: 0.35,
+    },
+    saveBtn: {
+      margin: SPACING.xl,
+      backgroundColor: colors.primary,
+      borderRadius: RADIUS.m,
+      paddingVertical: SPACING.m,
+      alignItems: "center",
+    },
+    saveBtnDisabled: {
+      opacity: 0.7,
+    },
+    saveBtnText: {
+      ...TYPOGRAPHY.body,
+      color: COLORS.textInverse,
+      fontWeight: "600",
+    },
+  });
+}

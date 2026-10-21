@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback , useMemo} from "react";
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../entities/Task";
+import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { User } from "../entities/User";
 import TaskCard from "../components/Tasks/TaskCard";
 import TaskFilters from "../components/Tasks/TaskFilters";
@@ -24,6 +27,9 @@ import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -415,26 +421,19 @@ export default function DashboardScreen({ navigation }) {
   const stats = getStats();
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={styles.loadingText}>Loading your tasks...</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel="Loading your tasks..." />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       <ScrollView 
         style={styles.scrollView}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={["#2563EB"]}
-            tintColor="#2563EB"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -464,7 +463,7 @@ export default function DashboardScreen({ navigation }) {
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
               <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
-                <Icon name="favorite" size={20} color="#2563EB" />
+                <Icon name="favorite" size={20} color={colors.primary} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Total Tasks</Text>
@@ -521,7 +520,7 @@ export default function DashboardScreen({ navigation }) {
           {filteredTasks.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="favorite" size={40} color="#2563EB" />
+                <Icon name="favorite" size={40} color={colors.primary} />
               </View>
               <Text style={styles.emptyTitle}>No tasks found</Text>
               <Text style={styles.emptySubtitle}>
@@ -566,14 +565,15 @@ export default function DashboardScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -603,17 +603,17 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 4,
@@ -670,13 +670,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   filtersContainer: {
     paddingHorizontal: 20,
@@ -702,12 +702,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: 32,
@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
@@ -731,4 +731,5 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-}); 
+});
+}

@@ -14,6 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Task } from "../entities/Task";
+import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { User } from "../entities/User";
 import { 
   differenceInDays, 
@@ -42,6 +45,9 @@ const DATE_RANGES = {
 };
 
 export default function ManagementScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [currentUser, setCurrentUser] = useState(null);
   const [partner, setPartner] = useState(null);
   const [selectedUser, setSelectedUser] = useState('myself'); // 'myself', 'partner', or 'all'
@@ -411,7 +417,7 @@ export default function ManagementScreen({ navigation }) {
     }
   };
 
-  const StatCard = ({ icon, title, value, subtitle, color = "#2563EB" }) => (
+  const StatCard = ({ icon, title, value, subtitle, color = colors.primary }) => (
     <View style={[styles.statCard, { borderLeftColor: color }]}>
       <View style={styles.statCardHeader}>
         <Icon name={icon} size={24} color={color} />
@@ -463,16 +469,11 @@ export default function ManagementScreen({ navigation }) {
   };
 
   if (isLoading && !stats) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.loadingText}>{i18n.t('management.loading')}</Text>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel={i18n.t('management.loading')} />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -482,10 +483,6 @@ export default function ManagementScreen({ navigation }) {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <Icon name="analytics" size={32} color="#2563EB" />
-            <Text style={styles.title}>{i18n.t('management.title')}</Text>
-          </View>
           <Text style={styles.subtitle}>{i18n.t('management.subtitle', { days: ARCHIVE_DAYS })}</Text>
         </View>
 
@@ -505,7 +502,7 @@ export default function ManagementScreen({ navigation }) {
                 <Icon 
                   name="person" 
                   size={18} 
-                  color={selectedUser === 'myself' ? '#FFFFFF' : '#6B7280'} 
+                  color={selectedUser === 'myself' ? COLORS.textInverse : colors.textSecondary} 
                 />
                 <Text style={[
                   styles.filterButtonText,
@@ -525,7 +522,7 @@ export default function ManagementScreen({ navigation }) {
                   <Icon 
                     name="people" 
                     size={18} 
-                    color={selectedUser === 'partner' ? '#FFFFFF' : '#6B7280'} 
+                    color={selectedUser === 'partner' ? COLORS.textInverse : colors.textSecondary} 
                   />
                   <Text style={[
                     styles.filterButtonText,
@@ -545,7 +542,7 @@ export default function ManagementScreen({ navigation }) {
                 <Icon 
                   name="group" 
                   size={18} 
-                  color={selectedUser === 'all' ? '#FFFFFF' : '#6B7280'} 
+                  color={selectedUser === 'all' ? COLORS.textInverse : colors.textSecondary} 
                 />
                 <Text style={[
                   styles.filterButtonText,
@@ -645,7 +642,7 @@ export default function ManagementScreen({ navigation }) {
                   style={styles.customDateButton}
                   onPress={() => setShowStartDatePicker(true)}
                 >
-                  <Icon name="calendar-today" size={18} color="#6B7280" />
+                  <Icon name="calendar-today" size={18} color={colors.textSecondary} />
                   <Text style={styles.customDateText}>
                     {i18n.t('management.from')}: {format(customStartDate, 'MMM d, yyyy')}
                   </Text>
@@ -654,7 +651,7 @@ export default function ManagementScreen({ navigation }) {
                   style={styles.customDateButton}
                   onPress={() => setShowEndDatePicker(true)}
                 >
-                  <Icon name="event" size={18} color="#6B7280" />
+                  <Icon name="event" size={18} color={colors.textSecondary} />
                   <Text style={styles.customDateText}>
                     {i18n.t('management.to')}: {format(customEndDate, 'MMM d, yyyy')}
                   </Text>
@@ -697,7 +694,7 @@ export default function ManagementScreen({ navigation }) {
 
         {!stats ? (
           <View style={styles.emptyState}>
-            <Icon name="info" size={48} color="#9CA3AF" />
+            <Icon name="info" size={48} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>{i18n.t('management.noData')}</Text>
             <Text style={styles.emptySubtitle}>{i18n.t('management.noDataSubtitle')}</Text>
           </View>
@@ -733,7 +730,7 @@ export default function ManagementScreen({ navigation }) {
                   title={i18n.t('management.completionRate')}
                   value={`${stats.completionRate}%`}
                   subtitle={i18n.t('management.ofTotalTasks')}
-                  color="#2563EB"
+                  color={colors.primary}
                 />
               </View>
             </View>
@@ -743,17 +740,17 @@ export default function ManagementScreen({ navigation }) {
               <Text style={styles.sectionTitle}>{i18n.t('management.detailedStats')}</Text>
               <View style={styles.detailedStats}>
                 <View style={styles.detailedStatRow}>
-                  <Icon name="list" size={20} color="#6B7280" />
+                  <Icon name="list" size={20} color={colors.textSecondary} />
                   <Text style={styles.detailedStatLabel}>{i18n.t('management.totalTasks')}</Text>
                   <Text style={styles.detailedStatValue}>{stats.totalTasks}</Text>
                 </View>
                 <View style={styles.detailedStatRow}>
-                  <Icon name="play-circle" size={20} color="#6B7280" />
+                  <Icon name="play-circle" size={20} color={colors.textSecondary} />
                   <Text style={styles.detailedStatLabel}>{i18n.t('management.inProgress')}</Text>
                   <Text style={styles.detailedStatValue}>{stats.inProgressTasks}</Text>
                 </View>
                 <View style={styles.detailedStatRow}>
-                  <Icon name="schedule" size={20} color="#6B7280" />
+                  <Icon name="schedule" size={20} color={colors.textSecondary} />
                   <Text style={styles.detailedStatLabel}>{i18n.t('management.avgCompletionTime')}</Text>
                   <Text style={styles.detailedStatValue}>
                     {stats.averageCompletionTime > 0 
@@ -823,7 +820,7 @@ export default function ManagementScreen({ navigation }) {
                                 </View>
                               )}
                               <View style={styles.taskMetaBadge}>
-                                <Icon name="label" size={14} color="#6B7280" />
+                                <Icon name="label" size={14} color={colors.textSecondary} />
                                 <Text style={styles.taskMetaText}>{item.task.category || 'other'}</Text>
                               </View>
                               {item.task.priority && (
@@ -885,14 +882,14 @@ export default function ManagementScreen({ navigation }) {
                             <View style={styles.taskItemMeta}>
                               {item.dueDate && (
                                 <View style={styles.taskMetaBadge}>
-                                  <Icon name="event" size={14} color="#6B7280" />
+                                  <Icon name="event" size={14} color={colors.textSecondary} />
                                   <Text style={styles.taskMetaText}>
                                     {format(item.dueDate, 'MMM d, yyyy')}
                                   </Text>
                                 </View>
                               )}
                               <View style={styles.taskMetaBadge}>
-                                <Icon name="label" size={14} color="#6B7280" />
+                                <Icon name="label" size={14} color={colors.textSecondary} />
                                 <Text style={styles.taskMetaText}>{item.category}</Text>
                               </View>
                               <View style={[
@@ -953,21 +950,22 @@ export default function ManagementScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -985,12 +983,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginLeft: 12,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   filtersContainer: {
@@ -1003,7 +1001,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 12,
   },
   filterButtons: {
@@ -1018,19 +1016,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     minWidth: 80,
   },
   filterButtonActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderColor: '#2563EB',
   },
   filterButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 6,
   },
   filterButtonTextActive: {
@@ -1048,18 +1046,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   dateRangeButtonActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderColor: '#2563EB',
   },
   dateRangeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   dateRangeButtonTextActive: {
     color: '#FFFFFF',
@@ -1076,13 +1074,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   customDateText: {
     fontSize: 13,
-    color: '#374151',
+    color: colors.text,
     marginLeft: 8,
   },
   section: {
@@ -1092,7 +1090,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 16,
   },
   statsGrid: {
@@ -1103,7 +1101,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: (width - 52) / 2,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
@@ -1121,7 +1119,7 @@ const styles = StyleSheet.create({
   statCardTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 8,
     textTransform: 'uppercase',
   },
@@ -1132,10 +1130,10 @@ const styles = StyleSheet.create({
   },
   statCardSubtitle: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   detailedStats: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -1149,21 +1147,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   detailedStatLabel: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: colors.text,
     marginLeft: 12,
   },
   detailedStatValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
   },
   categoryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -1182,12 +1180,12 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     textTransform: 'capitalize',
   },
   categoryTotal: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   categoryStats: {
     flexDirection: 'row',
@@ -1201,12 +1199,12 @@ const styles = StyleSheet.create({
   },
   categoryStatText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 4,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
@@ -1217,11 +1215,11 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'right',
   },
   completionsList: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -1235,7 +1233,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   completionItemContent: {
     flex: 1,
@@ -1244,12 +1242,12 @@ const styles = StyleSheet.create({
   completionItemTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   completionItemDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   emptyState: {
     alignItems: 'center',
@@ -1259,17 +1257,17 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   tasksList: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -1281,7 +1279,7 @@ const styles = StyleSheet.create({
   taskItem: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   taskItemHeader: {
     flexDirection: 'row',
@@ -1294,12 +1292,12 @@ const styles = StyleSheet.create({
   taskItemTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   taskItemDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 8,
     lineHeight: 20,
   },
@@ -1315,12 +1313,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     gap: 4,
   },
   taskMetaText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   overdueBadge: {
@@ -1339,4 +1337,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#DCFCE7',
   },
 });
-
+}

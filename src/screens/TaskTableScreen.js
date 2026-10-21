@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useMemo} from "react";
 import {
   View,
   Text,
@@ -18,8 +18,14 @@ import { TaskTableConfig } from '../entities/TaskTableConfig';
 import excelImportService from '../services/excelImportService';
 import taskTableSyncService from '../services/taskTableSyncService';
 import i18n from '../localization/i18n';
+import { COLORS, screenBackgroundStyle } from '../constants/theme';
+import { useAppTheme } from '../context/ThemeContext';
+import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
 
 export default function TaskTableScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [tableRows, setTableRows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -256,7 +262,7 @@ export default function TaskTableScreen({ navigation }) {
         </View>
         <View style={styles.rowActions}>
           <TouchableOpacity onPress={() => handleEditRow(row)} style={styles.actionButton}>
-            <Icon name="edit" size={20} color="#6B7280" />
+            <Icon name="edit" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDeleteRow(row)} style={styles.actionButton}>
             <Icon name="delete" size={20} color="#EF4444" />
@@ -319,11 +325,11 @@ export default function TaskTableScreen({ navigation }) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.modalContainer}>
+      <SafeAreaView style={[styles.modalContainer, screenBackgroundStyle(colors)]}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{title}</Text>
           <TouchableOpacity onPress={onClose}>
-            <Icon name="close" size={24} color="#6B7280" />
+            <Icon name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -444,24 +450,16 @@ export default function TaskTableScreen({ navigation }) {
   );
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.loadingText}>Loading task table...</Text>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel="Loading task table..." />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Task Table</Text>
-          <Text style={styles.subtitle}>
-            {tableRows.length} task{tableRows.length !== 1 ? 's' : ''} configured
-          </Text>
-        </View>
+        <Text style={styles.subtitle}>
+          {tableRows.length} task{tableRows.length !== 1 ? 's' : ''} configured
+        </Text>
       </View>
 
       {/* Action Buttons */}
@@ -509,7 +507,7 @@ export default function TaskTableScreen({ navigation }) {
         {tableRows.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="table-chart" size={48} color="#2563EB" />
+              <Icon name="table-chart" size={48} color={colors.primary} />
             </View>
             <Text style={styles.emptyTitle}>No Tasks Yet</Text>
             <Text style={styles.emptySubtitle}>
@@ -563,21 +561,22 @@ const getCategoryColor = (category) => {
   return colors[category] || '#6B7280';
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     paddingHorizontal: 20,
@@ -587,12 +586,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   actionBar: {
     flexDirection: 'row',
@@ -623,7 +622,7 @@ const styles = StyleSheet.create({
   addButton: {
     flex: 0,
     width: 48,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   scrollView: {
     flex: 1,
@@ -633,7 +632,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   rowCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -667,7 +666,7 @@ const styles = StyleSheet.create({
   },
   subcategoryText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   rowActions: {
     flexDirection: 'row',
@@ -679,7 +678,7 @@ const styles = StyleSheet.create({
   taskNameText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
   },
   rowDetails: {
@@ -703,7 +702,7 @@ const styles = StyleSheet.create({
   },
   detailDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
   },
   syncedBadge: {
     flexDirection: 'row',
@@ -724,7 +723,7 @@ const styles = StyleSheet.create({
   notesContainer: {
     marginTop: 12,
     padding: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.borderLight,
     borderRadius: 8,
     borderLeftWidth: 3,
     borderLeftColor: '#2563EB',
@@ -732,7 +731,7 @@ const styles = StyleSheet.create({
   notesLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   notesText: {
@@ -773,19 +772,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
@@ -797,7 +796,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -806,12 +805,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   modalContent: {
     padding: 20,
@@ -822,17 +821,17 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#1F2937',
+    backgroundColor: colors.surface,
+    color: colors.text,
   },
   sectionTitle: {
     fontSize: 16,
@@ -842,7 +841,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   saveButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -854,4 +853,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
+}

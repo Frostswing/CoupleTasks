@@ -14,6 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { ShoppingListItem } from "../entities/ShoppingListItem";
+import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { InventoryItem } from "../entities/InventoryItem";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { groupItemsByStoreDepartment } from "../constants/storeDepartments";
@@ -23,6 +26,9 @@ import i18n from "../localization/i18n";
 const { width } = Dimensions.get('window');
 
 export default function ShoppingModeScreen({ navigation, route }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const { itemIds } = route.params || {};
   const [items, setItems] = useState([]);
   const [departmentOrder, setDepartmentOrder] = useState([]);
@@ -287,19 +293,14 @@ export default function ShoppingModeScreen({ navigation, route }) {
   );
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#16A34A" />
-        <Text style={styles.loadingText}>Loading Shopping Mode...</Text>
-      </SafeAreaView>
-    );
+    return <ThemedScreenShell loading loadingLabel="Loading Shopping Mode..." />;
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
         <View style={styles.errorContainer}>
-          <Icon name="shopping-cart" size={60} color="#9CA3AF" />
+          <Icon name="shopping-cart" size={60} color={colors.textTertiary} />
           <Text style={styles.errorTitle}>No Items to Shop For</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity
@@ -315,11 +316,10 @@ export default function ShoppingModeScreen({ navigation, route }) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, screenBackgroundStyle(colors)]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Icon name="shopping-bag" size={24} color="#16A34A" />
-          <Text style={styles.title}>Shopping Mode</Text>
+          <Icon name="shopping-bag" size={24} color={colors.primary} />
         </View>
         <TouchableOpacity
           style={styles.cancelButton}
@@ -467,21 +467,22 @@ export default function ShoppingModeScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -492,14 +493,14 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
@@ -532,7 +533,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -549,7 +550,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginLeft: 8,
   },
   cancelButton: {
@@ -572,7 +573,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   progressContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -588,12 +589,12 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -611,7 +612,7 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
     paddingHorizontal: 4,
   },
@@ -619,7 +620,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   itemCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -646,16 +647,16 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   purchasedText: {
     textDecorationLine: 'line-through',
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   itemQuantity: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   autoAddedText: {
     fontSize: 12,
@@ -665,7 +666,7 @@ const styles = StyleSheet.create({
   },
   itemNotes: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -675,7 +676,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   imageThumbnail: {
     width: '100%',
@@ -683,7 +684,7 @@ const styles = StyleSheet.create({
   },
   allDoneContainer: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 40,
     shadowColor: '#000',
@@ -704,12 +705,12 @@ const styles = StyleSheet.create({
   },
   allDoneSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   cartSection: {
     marginTop: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -724,7 +725,7 @@ const styles = StyleSheet.create({
   cartTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   cartItems: {
@@ -761,7 +762,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dialogContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,
     marginHorizontal: 40,
@@ -778,13 +779,13 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
     textAlign: 'center',
   },
   dialogMessage: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 20,
@@ -795,14 +796,14 @@ const styles = StyleSheet.create({
   },
   dialogButtonCancel: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   dialogButtonCancelText: {
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   dialogButtonConfirm: {
@@ -820,4 +821,5 @@ const styles = StyleSheet.create({
   dialogButtonDisabled: {
     opacity: 0.6,
   },
-}); 
+});
+}
