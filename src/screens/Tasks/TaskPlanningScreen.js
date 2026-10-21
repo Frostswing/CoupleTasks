@@ -244,7 +244,7 @@ export default function TaskPlanningScreen({ navigation }) {
             style={styles.addButton}
             onPress={() => setShowTemplateModal(true)}
           >
-            <Icon name="add" size={24} color="#FFFFFF" />
+            <Icon name="add" size={24} color={COLORS.textInverse} />
           </TouchableOpacity>
         </View>
       </View>
@@ -386,7 +386,7 @@ export default function TaskPlanningScreen({ navigation }) {
                       setCreatingTask(true);
                     }}
                   >
-                    <Icon name="add" size={20} color="#FFFFFF" />
+                    <Icon name="add" size={20} color={COLORS.textInverse} />
                     <Text style={styles.addTaskButtonText}>Add Task</Text>
                   </TouchableOpacity>
                 </View>
@@ -412,7 +412,7 @@ export default function TaskPlanningScreen({ navigation }) {
                           {task.title}
                         </Text>
                         {task.status === 'completed' && (
-                          <Icon name="check-circle" size={20} color="#10B981" />
+                          <Icon name="check-circle" size={20} color={colors.success} />
                         )}
                       </View>
                       {task.description && (
@@ -456,7 +456,7 @@ export default function TaskPlanningScreen({ navigation }) {
                     setCreatingTask(true);
                   }}
                 >
-                  <Icon name="add" size={20} color="#FFFFFF" />
+                  <Icon name="add" size={20} color={COLORS.textInverse} />
                   <Text style={styles.addTaskButtonText}>Add Task</Text>
                 </TouchableOpacity>
               </View>
@@ -526,13 +526,13 @@ function createStyles(colors) {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
     gap: 6,
   },
   toggleText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2563EB',
+    color: colors.primary,
   },
   addButton: {
     width: 40,
@@ -544,7 +544,7 @@ function createStyles(colors) {
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -591,7 +591,7 @@ function createStyles(colors) {
     borderRadius: 12,
   },
   createTemplateText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
   },
   templateItem: {
@@ -683,10 +683,10 @@ function createStyles(colors) {
     backgroundColor: colors.borderLight,
   },
   priorityHigh: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.errorMuted,
   },
   priorityLow: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.successMuted,
   },
   priorityText: {
     fontSize: 12,
@@ -710,7 +710,7 @@ function createStyles(colors) {
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
   },
   addTaskButton: {
     flexDirection: 'row',
@@ -723,7 +723,7 @@ function createStyles(colors) {
     gap: 8,
   },
   addTaskButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },

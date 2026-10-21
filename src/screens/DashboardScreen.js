@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../entities/Task";
-import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import { COLORS, SPACING, SHADOWS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { User } from "../entities/User";
@@ -453,7 +453,7 @@ export default function DashboardScreen({ navigation }) {
             onPress={() => navigation.navigate('AddTask')}
             disabled={isUpdating}
           >
-            <Icon name="add" size={24} color="#FFFFFF" />
+            <Icon name="add" size={24} color={COLORS.textInverse} />
             <Text style={styles.addButtonText}>Add Task</Text>
           </TouchableOpacity>
         </View>
@@ -462,7 +462,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
+              <View style={[styles.statIcon, { backgroundColor: colors.primaryMuted }]}>
                 <Icon name="favorite" size={20} color={colors.primary} />
               </View>
               <View style={styles.statContent}>
@@ -472,8 +472,8 @@ export default function DashboardScreen({ navigation }) {
             </View>
             
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#DCFCE7' }]}>
-                <Icon name="check-circle" size={20} color="#16A34A" />
+              <View style={[styles.statIcon, { backgroundColor: colors.successMuted }]}>
+                <Icon name="check-circle" size={20} color={colors.success} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Completed</Text>
@@ -484,8 +484,8 @@ export default function DashboardScreen({ navigation }) {
           
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
-                <Icon name="person" size={20} color="#1D4ED8" />
+              <View style={[styles.statIcon, { backgroundColor: colors.primaryMuted }]}>
+                <Icon name="person" size={20} color={colors.primaryDark} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Your Tasks</Text>
@@ -494,8 +494,8 @@ export default function DashboardScreen({ navigation }) {
             </View>
             
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
-                <Icon name="warning" size={20} color="#DC2626" />
+              <View style={[styles.statIcon, { backgroundColor: colors.errorMuted }]}>
+                <Icon name="warning" size={20} color={colors.error} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Overdue</Text>
@@ -533,7 +533,7 @@ export default function DashboardScreen({ navigation }) {
                 style={styles.emptyButton}
                 onPress={() => navigation.navigate('AddTask')}
               >
-                <Icon name="add" size={20} color="#FFFFFF" />
+                <Icon name="add" size={20} color={COLORS.textInverse} />
                 <Text style={styles.emptyButtonText}>Add Your First Task</Text>
               </TouchableOpacity>
             </View>
@@ -617,17 +617,10 @@ function createStyles(colors) {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    ...SHADOWS.md,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -648,14 +641,7 @@ function createStyles(colors) {
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   statIcon: {
     width: 40,
@@ -693,7 +679,7 @@ function createStyles(colors) {
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -721,7 +707,7 @@ function createStyles(colors) {
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },

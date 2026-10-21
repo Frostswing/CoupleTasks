@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {  useState, useEffect, useRef , useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { format, startOfWeek, addDays, addWeeks, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, parseISO } from "date-fns";
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
@@ -20,6 +22,8 @@ export default function CalendarView({
   onTaskPress,
   onTaskMove,
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDate, setSelectedDate] = useState(() => {
     // For week view, always start from current week
     if (viewMode === 'week') {
@@ -167,7 +171,7 @@ export default function CalendarView({
       <View style={styles.weekContainer}>
         <View style={styles.weekHeader}>
           <TouchableOpacity onPress={() => navigateWeek('prev')} style={styles.navButton}>
-            <Icon name="chevron-left" size={24} color="#2563EB" />
+            <Icon name="chevron-left" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={styles.monthYearText}>
             {weekStart.getMonth() === weekEnd.getMonth() 
@@ -175,7 +179,7 @@ export default function CalendarView({
               : `${format(weekStart, 'MMM')} - ${format(weekEnd, 'MMM yyyy')}`}
           </Text>
           <TouchableOpacity onPress={() => navigateWeek('next')} style={styles.navButton}>
-            <Icon name="chevron-right" size={24} color="#2563EB" />
+            <Icon name="chevron-right" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -237,13 +241,13 @@ export default function CalendarView({
       <View style={styles.monthContainer}>
         <View style={styles.monthHeader}>
           <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.navButton}>
-            <Icon name="chevron-left" size={24} color="#2563EB" />
+            <Icon name="chevron-left" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={styles.monthYearText}>
             {format(selectedDate, 'MMMM yyyy')}
           </Text>
           <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.navButton}>
-            <Icon name="chevron-right" size={24} color="#2563EB" />
+            <Icon name="chevron-right" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -302,10 +306,11 @@ export default function CalendarView({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   weekContainer: {
     flex: 1,
@@ -317,7 +322,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   monthHeader: {
     flexDirection: 'row',
@@ -326,7 +331,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   navButton: {
     padding: 8,
@@ -334,12 +339,12 @@ const styles = StyleSheet.create({
   monthYearText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
   },
   weekDaysHeader: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   dayHeader: {
     flex: 1,
@@ -348,13 +353,13 @@ const styles = StyleSheet.create({
   },
   dayName: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   dayNumber: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
   },
   weekContent: {
     flex: 1,
@@ -362,34 +367,34 @@ const styles = StyleSheet.create({
   dayColumn: {
     minHeight: 200,
     borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
+    borderRightColor: colors.border,
     padding: 8,
   },
   todayColumn: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
   },
   selectedColumn: {
-    backgroundColor: '#CCFBF1',
+    backgroundColor: colors.primaryMuted,
     borderWidth: 2,
-    borderColor: '#2563EB',
+    borderColor: colors.primary,
   },
   dayTasks: {
     gap: 4,
   },
   taskItem: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     padding: 6,
     borderRadius: 6,
     marginBottom: 4,
   },
   taskText: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '500',
   },
   emptyDayText: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 8,
@@ -406,12 +411,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   monthDayName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   monthDay: {
     width: width / 7,
@@ -421,29 +426,29 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   otherMonthDay: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   monthToday: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
   },
   monthSelected: {
-    backgroundColor: '#CCFBF1',
+    backgroundColor: colors.primaryMuted,
     borderWidth: 2,
-    borderColor: '#2563EB',
+    borderColor: colors.primary,
   },
   monthDayNumber: {
     fontSize: 14,
-    color: '#1F2937',
+    color: colors.text,
     fontWeight: '500',
   },
   otherMonthText: {
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   monthTodayText: {
-    color: '#2563EB',
+    color: colors.primary,
     fontWeight: '700',
   },
   monthTaskIndicator: {
@@ -455,13 +460,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   monthTaskCount: {
     fontSize: 10,
-    color: '#2563EB',
+    color: colors.primary,
     marginLeft: 2,
     fontWeight: '600',
   },
 });
-
+}

@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { InventoryItem } from "../entities/InventoryItem";
-import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import {COLORS, SPACING, screenBackgroundStyle, SHADOWS} from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
@@ -209,7 +209,7 @@ export default function InventoryScreen({ navigation }) {
               style={styles.addToListButton}
               onPress={() => handleAddToShoppingList(item)}
             >
-              <Icon name="add-shopping-cart" size={20} color="#FFFFFF" />
+              <Icon name="add-shopping-cart" size={20} color={COLORS.textInverse} />
             </TouchableOpacity>
           )}
           
@@ -217,7 +217,7 @@ export default function InventoryScreen({ navigation }) {
             style={styles.deleteButton}
             onPress={() => handleDeleteItem(item.id)}
           >
-            <Icon name="delete" size={20} color="#EF4444" />
+            <Icon name="delete" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -238,7 +238,7 @@ export default function InventoryScreen({ navigation }) {
             style={styles.addButton}
             onPress={() => setShowAddDialog(true)}
           >
-            <Icon name="add" size={24} color="#FFFFFF" />
+            <Icon name="add" size={24} color={COLORS.textInverse} />
             <Text style={styles.addButtonText}>Add Item</Text>
           </TouchableOpacity>
         </View>
@@ -258,7 +258,7 @@ export default function InventoryScreen({ navigation }) {
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
+            <View style={[styles.statIcon, { backgroundColor: colors.primaryMuted }]}>
               <Icon name="inventory" size={20} color={colors.primary} />
             </View>
             <View style={styles.statContent}>
@@ -268,8 +268,8 @@ export default function InventoryScreen({ navigation }) {
           </View>
           
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
-              <Icon name="warning" size={20} color="#DC2626" />
+            <View style={[styles.statIcon, { backgroundColor: colors.errorMuted }]}>
+              <Icon name="warning" size={20} color={colors.error} />
             </View>
             <View style={styles.statContent}>
               <Text style={styles.statLabel}>Low Stock</Text>
@@ -284,7 +284,7 @@ export default function InventoryScreen({ navigation }) {
           {lowStockItems.length > 0 && (
             <View style={styles.itemsSection}>
               <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, { color: '#DC2626' }]}>Low Stock</Text>
+                <Text style={[styles.sectionTitle, { color: colors.error }]}>Low Stock</Text>
                 <View style={styles.sectionBadge}>
                   <Text style={styles.sectionBadgeText}>{lowStockItems.length} items</Text>
                 </View>
@@ -309,7 +309,7 @@ export default function InventoryScreen({ navigation }) {
           {filteredItems.length === 0 && (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="inventory" size={40} color="#10B981" />
+                <Icon name="inventory" size={40} color={colors.success} />
               </View>
               <Text style={styles.emptyTitle}>No items in inventory</Text>
               <Text style={styles.emptySubtitle}>Add items to track what you have at home</Text>
@@ -317,7 +317,7 @@ export default function InventoryScreen({ navigation }) {
                 style={styles.emptyButton}
                 onPress={() => setShowAddDialog(true)}
               >
-                <Icon name="add" size={20} color="#FFFFFF" />
+                <Icon name="add" size={20} color={COLORS.textInverse} />
                 <Text style={styles.emptyButtonText}>Add First Item</Text>
               </TouchableOpacity>
             </View>
@@ -447,7 +447,7 @@ function createStyles(colors) {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -457,7 +457,7 @@ function createStyles(colors) {
     elevation: 8,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -469,14 +469,7 @@ function createStyles(colors) {
     marginHorizontal: 20,
     marginBottom: 16,
     paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   searchIcon: {
     marginRight: 12,
@@ -500,14 +493,7 @@ function createStyles(colors) {
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   statIcon: {
     width: 40,
@@ -549,32 +535,25 @@ function createStyles(colors) {
     marginRight: 8,
   },
   sectionBadge: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.errorMuted,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   sectionBadgeText: {
     fontSize: 12,
-    color: '#DC2626',
+    color: colors.error,
     fontWeight: '500',
   },
   itemCard: {
     backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   lowStockCard: {
     borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
+    borderLeftColor: colors.error,
   },
   itemContent: {
     flexDirection: 'row',
@@ -639,7 +618,7 @@ function createStyles(colors) {
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.successMuted,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -667,7 +646,7 @@ function createStyles(colors) {
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -727,7 +706,7 @@ function createStyles(colors) {
     marginTop: 16,
   },
   addItemButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },

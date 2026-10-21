@@ -13,6 +13,8 @@ import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getShoppingSuggestions, getTaskSuggestions, getSmartSuggestions } from '../../services/historyService';
 import { getCurrentUser, getUserProfile } from '../../services/userService';
 import { ShoppingListItem } from '../../entities/ShoppingListItem';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const AutoCompleteInput = ({ 
   value, 
@@ -26,6 +28,8 @@ const AutoCompleteInput = ({
   showSmartSuggestions = true,
   ...props 
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [suggestions, setSuggestions] = useState([]);
   const [smartSuggestions, setSmartSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -242,13 +246,13 @@ const AutoCompleteInput = ({
         <View style={styles.suggestionContent}>
           <View style={styles.suggestionIcon}>
             {isSmartSuggestion ? (
-              <Icon name="auto-awesome" size={16} color="#2563EB" />
+              <Icon name="auto-awesome" size={16} color={colors.primary} />
             ) : isFromArchive ? (
-              <Icon name="archive" size={16} color="#2563EB" />
+              <Icon name="archive" size={16} color={colors.primary} />
             ) : frequency > 0 ? (
-              <Icon name="history" size={16} color="#6B7280" />
+              <Icon name="history" size={16} color={colors.textSecondary} />
             ) : (
-              <Icon name="search" size={16} color="#9CA3AF" />
+              <Icon name="search" size={16} color={colors.textTertiary} />
             )}
           </View>
           
@@ -277,7 +281,7 @@ const AutoCompleteInput = ({
           </View>
         </View>
         
-        <Icon name="arrow-upward" size={16} color="#9CA3AF" style={styles.insertIcon} />
+        <Icon name="arrow-upward" size={16} color={colors.textTertiary} style={styles.insertIcon} />
       </TouchableOpacity>
     );
   };
@@ -309,7 +313,7 @@ const AutoCompleteInput = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.textTertiary}
         {...props}
       />
       
@@ -334,17 +338,17 @@ const AutoCompleteInput = ({
             activeOpacity={0.7}
           >
             <View style={styles.suggestionContent}>
-              <View style={[styles.suggestionIcon, { backgroundColor: '#EFF6FF' }]}>
-                <Icon name="add-circle" size={16} color="#3B82F6" />
+              <View style={[styles.suggestionIcon, { backgroundColor: colors.primaryMuted }]}>
+                <Icon name="add-circle" size={16} color=colors.primaryLight />
               </View>
               <View style={styles.suggestionTextContainer}>
-                <Text style={[styles.suggestionText, { color: '#3B82F6', fontWeight: '600' }]}>
+                <Text style={[styles.suggestionText, { color: colors.primaryLight, fontWeight: '600' }]}>
                   Add '{value.trim()}'
                 </Text>
                 <Text style={styles.frequencyText}>Add new item</Text>
               </View>
             </View>
-            <Icon name="arrow-upward" size={16} color="#3B82F6" style={styles.insertIcon} />
+            <Icon name="arrow-upward" size={16} color=colors.primaryLight style={styles.insertIcon} />
           </TouchableOpacity>
           
           {/* Search results from archive and history */}
@@ -373,20 +377,21 @@ const AutoCompleteInput = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     position: 'relative',
     zIndex: 1000,
   },
   textInput: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
     minHeight: 56,
   },
   loadingContainer: {
@@ -394,10 +399,10 @@ const styles = StyleSheet.create({
     top: '100%',
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -406,7 +411,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   suggestionsContainer: {
@@ -415,9 +420,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     marginTop: 4,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -436,14 +441,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   firstSuggestion: {
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
   smartSuggestionItem: {
-    backgroundColor: '#F8FAFF',
+    backgroundColor: colors.primaryMuted,
   },
   suggestionContent: {
     flexDirection: 'row',
@@ -454,7 +459,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -464,37 +469,37 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
     fontWeight: '500',
   },
   smartSuggestionText: {
-    color: '#2563EB',
+    color: colors.primary,
   },
   archiveSuggestionItem: {
-    backgroundColor: '#F8FAFF',
+    backgroundColor: colors.primaryMuted,
   },
   archiveSuggestionText: {
-    color: '#2563EB',
+    color: colors.primary,
   },
   addTypedOption: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.primaryMuted,
     borderBottomWidth: 1,
-    borderBottomColor: '#DBEAFE',
+    borderBottomColor: colors.primaryMuted,
   },
   frequencyText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   archiveLabel: {
     fontSize: 11,
-    color: '#2563EB',
+    color: colors.primary,
     marginTop: 2,
     fontWeight: '600',
   },
   smartLabel: {
     fontSize: 11,
-    color: '#2563EB',
+    color: colors.primary,
     marginTop: 2,
     fontWeight: '600',
   },
@@ -508,9 +513,10 @@ const styles = StyleSheet.create({
   },
   noResultsText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     fontStyle: 'italic',
   },
 });
+}
 
 export default AutoCompleteInput; 

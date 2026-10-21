@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {  useState , useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,12 @@ import {
 } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { UNITS, getUnitById } from '../../constants/categories';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const UnitSelector = ({ value, onValueChange, placeholder = 'בחר יחידה' }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [isVisible, setIsVisible] = useState(false);
   
   const selectedUnit = getUnitById(value);
@@ -38,7 +42,7 @@ const UnitSelector = ({ value, onValueChange, placeholder = 'בחר יחידה' 
         <Text style={styles.shortName}>({item.shortName})</Text>
       </View>
       {item.id === value && (
-        <Icon name="check" size={20} color="#2563EB" />
+        <Icon name="check" size={20} color={colors.primary} />
       )}
     </TouchableOpacity>
   );
@@ -58,7 +62,7 @@ const UnitSelector = ({ value, onValueChange, placeholder = 'בחר יחידה' 
           ) : (
             <Text style={styles.placeholder}>{placeholder}</Text>
           )}
-          <Icon name="keyboard-arrow-down" size={24} color="#9CA3AF" />
+          <Icon name="keyboard-arrow-down" size={24} color={colors.textTertiary} />
         </View>
       </TouchableOpacity>
 
@@ -76,7 +80,7 @@ const UnitSelector = ({ value, onValueChange, placeholder = 'בחר יחידה' 
                 onPress={() => setIsVisible(false)}
                 style={styles.closeButton}
               >
-                <Icon name="close" size={24} color="#6B7280" />
+                <Icon name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             
@@ -94,12 +98,13 @@ const UnitSelector = ({ value, onValueChange, placeholder = 'בחר יחידה' 
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   selector: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     minHeight: 56,
     justifyContent: 'center',
   },
@@ -117,26 +122,26 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
     fontWeight: '500',
   },
   selectedShort: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 8,
   },
   placeholder: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     flex: 1,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '60%',
@@ -149,12 +154,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   closeButton: {
     padding: 4,
@@ -172,7 +177,7 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   selectedUnit: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   unitContent: {
     flexDirection: 'row',
@@ -181,17 +186,18 @@ const styles = StyleSheet.create({
   },
   unitText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
   },
   selectedUnitText: {
     fontWeight: '600',
-    color: '#2563EB',
+    color: colors.primary,
   },
   shortName: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 12,
   },
 });
+}
 
 export default UnitSelector; 

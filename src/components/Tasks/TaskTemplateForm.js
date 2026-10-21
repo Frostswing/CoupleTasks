@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {  useState, useEffect , useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { Picker } from "@react-native-picker/picker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { User as UserEntity } from "../../entities/User";
 import taskGenerationService from "../../services/taskGenerationService";
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const categories = [
   { label: 'Household', value: 'household' },
@@ -40,6 +42,9 @@ const frequencyTypes = [
 ];
 
 export default function TaskTemplateForm({ template, onSubmit, onCancel, title = "Create Template" }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [formData, setFormData] = useState({
     template_name: "",
     description: "",
@@ -184,7 +189,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           <View style={styles.pickerModalHeader}>
             <Text style={styles.pickerModalTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Icon name="check" size={24} color="#2563EB" />
+              <Icon name="check" size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
           {children}
@@ -203,7 +208,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           value={formData.template_name}
           onChangeText={(value) => handleInputChange('template_name', value)}
           placeholder="e.g., Vacuum robot maintenance"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
@@ -215,7 +220,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           value={formData.description}
           onChangeText={(value) => handleInputChange('description', value)}
           placeholder="Optional description"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           multiline
           numberOfLines={3}
         />
@@ -231,7 +236,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           <Text style={styles.pickerButtonText}>
             {categories.find(c => c.value === formData.category)?.label || 'Select Category'}
           </Text>
-          <Icon name="arrow-drop-down" size={24} color="#6B7280" />
+          <Icon name="arrow-drop-down" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         {renderPickerModal(
           'Select Category',
@@ -259,7 +264,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           value={formData.room_location}
           onChangeText={(value) => handleInputChange('room_location', value)}
           placeholder="e.g., Kitchen, Living Room"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
@@ -275,7 +280,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
               ? formData.frequency_custom
               : frequencyTypes.find(f => f.value === formData.frequency_type)?.label || 'Select Frequency'}
           </Text>
-          <Icon name="arrow-drop-down" size={24} color="#6B7280" />
+          <Icon name="arrow-drop-down" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         
         {formData.frequency_type !== 'custom' && (
@@ -328,7 +333,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
             value={formData.frequency_custom}
             onChangeText={(value) => handleInputChange('frequency_custom', value)}
             placeholder="e.g., Every 2-3 days, Once a month"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
           />
         )}
 
@@ -440,7 +445,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           <Text style={styles.pickerButtonText}>
             {users.find(u => u.email === formData.assigned_to)?.full_name || 'Select Person'}
           </Text>
-          <Icon name="arrow-drop-down" size={24} color="#6B7280" />
+          <Icon name="arrow-drop-down" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         {renderPickerModal(
           'Assign To',
@@ -468,7 +473,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           value={formData.estimated_duration}
           onChangeText={(value) => handleInputChange('estimated_duration', value)}
           placeholder="e.g., 15 minutes, 1 hour"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
@@ -482,7 +487,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           <Text style={styles.pickerButtonText}>
             {priorities.find(p => p.value === formData.priority)?.label || 'Select Priority'}
           </Text>
-          <Icon name="arrow-drop-down" size={24} color="#6B7280" />
+          <Icon name="arrow-drop-down" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         {renderPickerModal(
           'Select Priority',
@@ -595,7 +600,8 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
@@ -606,18 +612,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
   },
   textArea: {
     minHeight: 80,
@@ -630,16 +636,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   pickerButtonText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
   },
   frequencyInterval: {
     flexDirection: 'row',
@@ -657,12 +663,12 @@ const styles = StyleSheet.create({
   },
   switchSubtext: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   subLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   daysContainer: {
@@ -675,15 +681,15 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 8,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dayButtonSelected: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   dayButtonDisabled: {
     opacity: 0.5,
@@ -691,32 +697,32 @@ const styles = StyleSheet.create({
   dayButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   dayButtonTextSelected: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   warningText: {
     fontSize: 12,
-    color: '#EF4444',
+    color: colors.error,
     marginTop: 8,
   },
   switch: {
     width: 48,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: colors.border,
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
   switchActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   switchThumb: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignSelf: 'flex-start',
   },
   switchThumbActive: {
@@ -724,11 +730,11 @@ const styles = StyleSheet.create({
   },
   pickerModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   pickerModalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '50%',
@@ -740,12 +746,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   pickerModalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -760,20 +766,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
 });
 

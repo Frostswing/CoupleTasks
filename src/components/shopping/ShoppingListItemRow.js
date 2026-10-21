@@ -13,7 +13,7 @@ import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { Swipeable } from "react-native-gesture-handler";
 import { formatQuantity } from "../../utils/formatQuantity";
 import i18n from "../../localization/i18n";
-import { SPACING, RADIUS, TYPOGRAPHY } from "../../constants/theme";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../../constants/theme";
 
 export default function ShoppingListItemRow({
   item,
@@ -52,12 +52,12 @@ export default function ShoppingListItemRow({
 
   const renderDeleteAction = () => (
     <TouchableOpacity
-      style={[styles.deleteAction, { backgroundColor: colors.error || "#EF4444" }]}
+      style={[styles.deleteAction, { backgroundColor: colors.error }]}
       onPress={confirmDelete}
       accessibilityRole="button"
       accessibilityLabel={i18n.t("common.delete")}
     >
-      <Icon name="delete-outline" size={22} color="#FFFFFF" />
+      <Icon name="delete-outline" size={22} color={COLORS.textInverse} />
     </TouchableOpacity>
   );
 
@@ -89,7 +89,7 @@ export default function ShoppingListItemRow({
             ]}
           >
             {item.is_purchased ? (
-              <Icon name="check" size={18} color="#FFFFFF" />
+              <Icon name="check" size={18} color={COLORS.textInverse} />
             ) : null}
           </View>
         </TouchableOpacity>

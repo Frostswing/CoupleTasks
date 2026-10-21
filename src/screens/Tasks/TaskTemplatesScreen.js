@@ -233,7 +233,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
           style={styles.addButton}
           onPress={handleCreateTemplate}
         >
-          <Icon name="add" size={24} color="#FFFFFF" />
+          <Icon name="add" size={24} color={COLORS.textInverse} />
         </TouchableOpacity>
       </View>
 
@@ -270,8 +270,8 @@ export default function TaskTemplatesScreen({ navigation, route }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={["#2563EB"]}
-            tintColor="#2563EB"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -294,7 +294,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
                 style={styles.emptyButton}
                 onPress={handleCreateTemplate}
               >
-                <Icon name="add" size={20} color="#FFFFFF" />
+                <Icon name="add" size={20} color={COLORS.textInverse} />
                 <Text style={styles.emptyButtonText}>Create Template</Text>
               </TouchableOpacity>
             )}
@@ -388,7 +388,7 @@ function createStyles(colors) {
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -413,7 +413,7 @@ function createStyles(colors) {
     backgroundColor: colors.borderLight,
   },
   filterButtonActive: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
   },
   filterText: {
     fontSize: 14,
@@ -421,7 +421,7 @@ function createStyles(colors) {
     color: colors.textSecondary,
   },
   filterTextActive: {
-    color: '#2563EB',
+    color: colors.primary,
   },
   scrollView: {
     flex: 1,
@@ -437,7 +437,7 @@ function createStyles(colors) {
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -464,13 +464,13 @@ function createStyles(colors) {
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
   },
   modalContent: {
     flex: 1,

@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { ShoppingListItem } from "../entities/ShoppingListItem";
-import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import {COLORS, SPACING, screenBackgroundStyle, SHADOWS} from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { InventoryItem } from "../entities/InventoryItem";
@@ -257,7 +257,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
         <Icon
           name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
           size={24}
-          color={item.is_purchased ? '#16A34A' : '#9CA3AF'}
+          color={item.is_purchased ? colors.success : colors.textTertiary}
         />
         <View style={styles.itemInfo}>
           <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
@@ -307,7 +307,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
             style={styles.addItemsButton}
             onPress={() => navigation.navigate('ShoppingList')}
           >
-            <Icon name="add-shopping-cart" size={20} color="#FFFFFF" />
+            <Icon name="add-shopping-cart" size={20} color={COLORS.textInverse} />
             <Text style={styles.addItemsButtonText}>Add Items to Shopping List</Text>
           </TouchableOpacity>
         </View>
@@ -325,7 +325,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
           style={styles.cancelButton}
           onPress={() => setShowCancelDialog(true)}
         >
-          <Icon name="close" size={20} color="#EF4444" />
+          <Icon name="close" size={20} color={colors.error} />
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -365,7 +365,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
             </View>
           ) : (
             <View style={styles.allDoneContainer}>
-              <Icon name="check-circle" size={80} color="#16A34A" />
+              <Icon name="check-circle" size={80} color={colors.success} />
               <Text style={styles.allDoneTitle}>All items purchased!</Text>
               <Text style={styles.allDoneSubtitle}>Great job completing your shopping list.</Text>
             </View>
@@ -389,7 +389,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
               style={styles.finishButton}
               onPress={() => setShowFinishDialog(true)}
             >
-              <Icon name="flag" size={24} color="#FFFFFF" />
+              <Icon name="flag" size={24} color={COLORS.textInverse} />
               <Text style={styles.finishButtonText}>Finish Shopping</Text>
             </TouchableOpacity>
           )}
@@ -454,7 +454,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
                 disabled={isFinishing}
               >
                 {isFinishing ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={COLORS.textInverse} />
                 ) : (
                   <Text style={styles.dialogButtonConfirmText}>Yes, Finish</Text>
                 )}
@@ -508,11 +508,11 @@ function createStyles(colors) {
   addItemsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -522,7 +522,7 @@ function createStyles(colors) {
     elevation: 8,
   },
   addItemsButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
     fontSize: 16,
@@ -534,14 +534,7 @@ function createStyles(colors) {
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: colors.surface,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -556,13 +549,13 @@ function createStyles(colors) {
   cancelButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.errorMuted,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
   },
   cancelButtonText: {
-    color: '#EF4444',
+    color: colors.error,
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -577,14 +570,7 @@ function createStyles(colors) {
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   progressText: {
     fontSize: 16,
@@ -600,7 +586,7 @@ function createStyles(colors) {
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     borderRadius: 4,
   },
   categoriesContainer: {
@@ -622,18 +608,11 @@ function createStyles(colors) {
   itemCard: {
     backgroundColor: colors.surface,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   purchasedCard: {
     opacity: 0.7,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.successMuted,
   },
   itemContent: {
     flexDirection: 'row',
@@ -660,7 +639,7 @@ function createStyles(colors) {
   },
   autoAddedText: {
     fontSize: 12,
-    color: '#16A34A',
+    color: colors.success,
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -687,19 +666,12 @@ function createStyles(colors) {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 40,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   allDoneTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#16A34A',
+    color: colors.success,
     marginTop: 16,
     marginBottom: 8,
   },
@@ -713,14 +685,7 @@ function createStyles(colors) {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   cartTitle: {
     fontSize: 18,
@@ -735,12 +700,12 @@ function createStyles(colors) {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 16,
     marginTop: 20,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -750,14 +715,14 @@ function createStyles(colors) {
     elevation: 8,
   },
   finishButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -767,7 +732,7 @@ function createStyles(colors) {
     padding: 24,
     marginHorizontal: 40,
     maxWidth: 350,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 10,
@@ -808,14 +773,14 @@ function createStyles(colors) {
   },
   dialogButtonConfirm: {
     flex: 1,
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   dialogButtonConfirmText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
   },
   dialogButtonDisabled: {

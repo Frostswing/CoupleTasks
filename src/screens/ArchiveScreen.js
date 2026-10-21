@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../entities/Task";
-import { COLORS, SPACING, screenBackgroundStyle } from "../constants/theme";
+import { COLORS, SPACING, SHADOWS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
@@ -331,14 +331,14 @@ export default function ArchiveScreen({ navigation }) {
             style={styles.restoreButton}
             onPress={() => handleRestoreTask(task.id)}
           >
-            <Icon name="restore" size={20} color="#16A34A" />
+            <Icon name="restore" size={20} color={colors.success} />
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() => handleDeletePermanently(task.id)}
           >
-            <Icon name="delete-forever" size={20} color="#EF4444" />
+            <Icon name="delete-forever" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -370,14 +370,14 @@ export default function ArchiveScreen({ navigation }) {
             style={styles.restoreButton}
             onPress={() => handleRestoreProduct(product)}
           >
-            <Icon name="restore" size={20} color="#16A34A" />
+            <Icon name="restore" size={20} color={colors.success} />
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() => handleDeleteProduct(product.id)}
           >
-            <Icon name="delete-forever" size={20} color="#EF4444" />
+            <Icon name="delete-forever" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -610,14 +610,7 @@ function createStyles(colors) {
     marginHorizontal: 20,
     marginBottom: 16,
     paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   searchIcon: {
     marginRight: 12,
@@ -639,14 +632,7 @@ function createStyles(colors) {
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   tabButton: {
     flex: 1,
@@ -664,7 +650,7 @@ function createStyles(colors) {
     color: colors.textSecondary,
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   content: {
     paddingHorizontal: 20,
@@ -679,14 +665,7 @@ function createStyles(colors) {
   archiveCard: {
     backgroundColor: colors.surface,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   cardContent: {
     flexDirection: 'row',
@@ -744,26 +723,19 @@ function createStyles(colors) {
   restoreButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.successMuted,
   },
   deleteButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.errorMuted,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
     backgroundColor: colors.surface,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   emptyIcon: {
     width: 80,
@@ -789,7 +761,7 @@ function createStyles(colors) {
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
   },
   itemPreviewText: {
     fontSize: 14,

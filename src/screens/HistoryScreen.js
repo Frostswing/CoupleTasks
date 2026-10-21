@@ -19,7 +19,7 @@ import {
   cleanupOldHistory 
 } from '../services/historyService';
 import { getCategoryById, getUnitById } from '../constants/categories';
-import { COLORS, screenBackgroundStyle } from '../constants/theme';
+import { COLORS, PRIORITY_COLORS, SHADOWS, screenBackgroundStyle } from '../constants/theme';
 import { useAppTheme } from '../context/ThemeContext';
 import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
 const HistoryScreen = () => {
@@ -172,20 +172,16 @@ const HistoryScreen = () => {
   }, []);
 
   const renderTaskItem = useCallback(({ item }) => {
-    const priorityColors = {
-      low: '#10B981',
-      medium: '#F59E0B',
-      high: '#EF4444'
-    };
+    const priorityStyle = PRIORITY_COLORS[item.priority] || PRIORITY_COLORS.medium;
 
     return (
       <View style={styles.historyItem}>
         <View style={styles.itemHeader}>
-          <View style={[styles.priorityIcon, { backgroundColor: priorityColors[item.priority] + '20' }]}>
+          <View style={[styles.priorityIcon, { backgroundColor: priorityStyle.bg }]}>
             <Icon 
               name={item.priority === 'high' ? 'priority-high' : 'check-circle'} 
               size={16} 
-              color={priorityColors[item.priority]} 
+              color={priorityStyle.text} 
             />
           </View>
           <View style={styles.itemInfo}>
@@ -315,7 +311,7 @@ const HistoryScreen = () => {
             style={[styles.actionButton, styles.dangerButton]}
             onPress={handleCleanupHistory}
           >
-            <Icon name="delete-sweep" size={20} color="#EF4444" />
+            <Icon name="delete-sweep" size={20} color={colors.error} />
             <Text style={[styles.actionButtonText, styles.dangerButtonText]}>נקה היסטוריה ישנה</Text>
           </TouchableOpacity>
         </View>
@@ -346,7 +342,7 @@ const HistoryScreen = () => {
                 style={styles.exportButton}
                 onPress={handleExportHistory}
               >
-                <Icon name="share" size={20} color="#FFFFFF" />
+                <Icon name="share" size={20} color={COLORS.textInverse} />
                 <Text style={styles.exportButtonText}>שתף היסטוריה</Text>
               </TouchableOpacity>
             </View>
@@ -444,11 +440,7 @@ function createStyles(colors) {
     padding: 12,
     marginRight: 12,
     minWidth: 120,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...SHADOWS.xs,
   },
   popularItemContent: {
     flex: 1,
@@ -530,15 +522,11 @@ function createStyles(colors) {
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...SHADOWS.xs,
   },
   dangerButton: {
     borderWidth: 1,
-    borderColor: '#FEE2E2',
+    borderColor: colors.errorMuted,
   },
   actionButtonText: {
     fontSize: 16,
@@ -547,11 +535,11 @@ function createStyles(colors) {
     marginLeft: 8,
   },
   dangerButtonText: {
-    color: '#EF4444',
+    color: colors.error,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {

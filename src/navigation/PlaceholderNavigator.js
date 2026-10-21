@@ -17,6 +17,7 @@ import AuthScreen from "../screens/AuthScreen";
 import LanguageSelectionScreen from "../screens/LanguageSelectionScreen";
 import { getCurrentUser } from "../services/userService";
 import i18n from "../localization/i18n";
+import { COLORS } from "../constants/theme";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,9 +30,9 @@ const PlaceholderNavigator = () => {
       initialRouteName={initialRouteName}
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#2563EB",
+          backgroundColor: COLORS.primary,
         },
-        headerTintColor: "#fff",
+        headerTintColor: COLORS.textInverse,
         headerTitleStyle: {
           fontWeight: "bold",
         },
@@ -119,4 +120,3 @@ const PlaceholderNavigator = () => {
 };
 
 export default PlaceholderNavigator;
-

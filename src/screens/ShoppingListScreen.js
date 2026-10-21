@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useLayoutEffect } from "react";
+import React, { useState, useEffect, useCallback, useLayoutEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ import StoreDepartmentPicker from "../components/shopping/StoreDepartmentPicker"
 import ShoppingDepartmentOrderModal from "../components/shopping/ShoppingDepartmentOrderModal";
 import ShoppingDepartmentSection from "../components/shopping/ShoppingDepartmentSection";
 import i18n from "../localization/i18n";
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY, screenBackgroundStyle } from "../constants/theme";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, screenBackgroundStyle } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
@@ -51,6 +51,8 @@ async function loadCurrentUserProfile() {
 
 export default function ShoppingListScreen({ navigation, route }) {
   const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const modalStyles = useMemo(() => createModalStyles(colors), [colors]);
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -570,9 +572,9 @@ export default function ShoppingListScreen({ navigation, route }) {
             ]}
           >
             {quickAddBusy ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color={COLORS.textInverse} />
             ) : (
-              <Icon name="add" size={22} color="#FFFFFF" />
+              <Icon name="add" size={22} color={COLORS.textInverse} />
             )}
           </TouchableOpacity>
         </View>
@@ -635,9 +637,9 @@ export default function ShoppingListScreen({ navigation, route }) {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowAddDialog(false)}
       >
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Add Item</Text>
+        <SafeAreaView style={[modalStyles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={[modalStyles.modalHeader, { borderBottomColor: colors.border }]}>
+            <Text style={[modalStyles.modalTitle, { color: colors.text }]}>Add Item</Text>
             <TouchableOpacity onPress={() => {
               setShowAddDialog(false);
               setNewItemName("");
@@ -654,10 +656,10 @@ export default function ShoppingListScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Item Name</Text>
-              <View style={styles.inputWrapper}>
+          <ScrollView style={modalStyles.modalContent}>
+            <View style={modalStyles.inputGroup}>
+              <Text style={[modalStyles.inputLabel, { color: colors.textSecondary }]}>Item Name</Text>
+              <View style={modalStyles.inputWrapper}>
                 <AutoCompleteInput
                   placeholder="What do you need to buy?"
                   value={newItemName}
@@ -670,57 +672,57 @@ export default function ShoppingListScreen({ navigation, route }) {
               </View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{i18n.t("shopping.storeDepartment")}</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>{i18n.t("shopping.storeDepartment")}</Text>
               <StoreDepartmentPicker
                 value={newItemStoreDepartment}
                 onChange={setNewItemStoreDepartment}
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Quantity</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Quantity</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 placeholder="1"
                 value={newItemQuantity}
                 onChangeText={setNewItemQuantity}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 keyboardType="numeric"
               />
             </View>
 
             {/* Image Attachment */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Image</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Image</Text>
               {newItemImageUrl || newItemImage ? (
-                <View style={styles.imagePreviewContainer}>
+                <View style={modalStyles.imagePreviewContainer}>
                   <Image
                     source={{ uri: newItemImage || newItemImageUrl }}
-                    style={styles.imagePreview}
+                    style={modalStyles.imagePreview}
                     contentFit="cover"
                     cachePolicy="memory-disk"
                     transition={200}
                   />
                   <TouchableOpacity
-                    style={styles.removeImageButton}
+                    style={modalStyles.removeImageButton}
                     onPress={handleRemoveImage}
                   >
-                    <Icon name="close" size={20} color="#FFFFFF" />
+                    <Icon name="close" size={20} color={COLORS.textInverse} />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity
-                  style={styles.attachButton}
+                  style={modalStyles.attachButton}
                   onPress={showImagePickerOptions}
                   disabled={uploadingImage}
                 >
                   {uploadingImage ? (
-                    <ActivityIndicator size="small" color="#2563EB" />
+                    <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
                     <>
-                      <Icon name="add-photo-alternate" size={20} color="#2563EB" />
-                      <Text style={styles.attachButtonText}>Attach Image</Text>
+                      <Icon name="add-photo-alternate" size={20} color={colors.primary} />
+                      <Text style={modalStyles.attachButtonText}>Attach Image</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -728,14 +730,14 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             {/* Link Attachment */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Link (optional)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Link (optional)</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 placeholder="https://..."
                 value={newItemLink}
                 onChangeText={setNewItemLink}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 keyboardType="url"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -743,14 +745,14 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             {/* Notes */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Notes (optional)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Notes (optional)</Text>
               <TextInput
-                style={[styles.input, styles.notesInput]}
+                style={[modalStyles.input, modalStyles.notesInput]}
                 placeholder="Add any additional notes..."
                 value={newItemNotes}
                 onChangeText={setNewItemNotes}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -758,10 +760,10 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             <TouchableOpacity
-              style={styles.addItemButton}
+              style={modalStyles.addItemButton}
               onPress={handleAddItem}
             >
-              <Text style={styles.addItemButtonText}>Add Item</Text>
+              <Text style={modalStyles.addItemButtonText}>Add Item</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
@@ -786,9 +788,9 @@ export default function ShoppingListScreen({ navigation, route }) {
           setNewItemNotes("");
         }}
       >
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Edit Item</Text>
+        <SafeAreaView style={[modalStyles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={modalStyles.modalHeader}>
+            <Text style={modalStyles.modalTitle}>Edit Item</Text>
             <TouchableOpacity onPress={() => {
               setShowEditDialog(false);
               setEditingItem(null);
@@ -806,69 +808,69 @@ export default function ShoppingListScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Item Name</Text>
+          <ScrollView style={modalStyles.modalContent}>
+            <View style={modalStyles.inputGroup}>
+              <Text style={[modalStyles.inputLabel, { color: colors.textSecondary }]}>Item Name</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 placeholder="What do you need to buy?"
                 value={newItemName}
                 onChangeText={setNewItemName}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{i18n.t("shopping.storeDepartment")}</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>{i18n.t("shopping.storeDepartment")}</Text>
               <StoreDepartmentPicker
                 value={newItemStoreDepartment}
                 onChange={setNewItemStoreDepartment}
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Quantity</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Quantity</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 placeholder="1"
                 value={newItemQuantity}
                 onChangeText={setNewItemQuantity}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 keyboardType="numeric"
               />
             </View>
 
             {/* Image Attachment */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Image</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Image</Text>
               {newItemImageUrl || newItemImage ? (
-                <View style={styles.imagePreviewContainer}>
+                <View style={modalStyles.imagePreviewContainer}>
                   <Image
                     source={{ uri: newItemImage || newItemImageUrl }}
-                    style={styles.imagePreview}
+                    style={modalStyles.imagePreview}
                     contentFit="cover"
                     cachePolicy="memory-disk"
                     transition={200}
                   />
                   <TouchableOpacity
-                    style={styles.removeImageButton}
+                    style={modalStyles.removeImageButton}
                     onPress={handleRemoveImage}
                   >
-                    <Icon name="close" size={20} color="#FFFFFF" />
+                    <Icon name="close" size={20} color={COLORS.textInverse} />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity
-                  style={styles.attachButton}
+                  style={modalStyles.attachButton}
                   onPress={showImagePickerOptions}
                   disabled={uploadingImage}
                 >
                   {uploadingImage ? (
-                    <ActivityIndicator size="small" color="#2563EB" />
+                    <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
                     <>
-                      <Icon name="add-photo-alternate" size={20} color="#2563EB" />
-                      <Text style={styles.attachButtonText}>Attach Image</Text>
+                      <Icon name="add-photo-alternate" size={20} color={colors.primary} />
+                      <Text style={modalStyles.attachButtonText}>Attach Image</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -876,14 +878,14 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             {/* Link Attachment */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Link (optional)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Link (optional)</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 placeholder="https://..."
                 value={newItemLink}
                 onChangeText={setNewItemLink}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 keyboardType="url"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -891,14 +893,14 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             {/* Notes */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Notes (optional)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Notes (optional)</Text>
               <TextInput
-                style={[styles.input, styles.notesInput]}
+                style={[modalStyles.input, modalStyles.notesInput]}
                 placeholder="Add any additional notes..."
                 value={newItemNotes}
                 onChangeText={setNewItemNotes}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -906,10 +908,10 @@ export default function ShoppingListScreen({ navigation, route }) {
             </View>
 
             <TouchableOpacity
-              style={styles.addItemButton}
+              style={modalStyles.addItemButton}
               onPress={handleUpdateItem}
             >
-              <Text style={styles.addItemButtonText}>Update Item</Text>
+              <Text style={modalStyles.addItemButtonText}>Update Item</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
@@ -922,16 +924,16 @@ export default function ShoppingListScreen({ navigation, route }) {
         animationType="fade"
         onRequestClose={() => setShowImageModal(false)}
       >
-        <View style={styles.imageModalContainer}>
+        <View style={modalStyles.imageModalContainer}>
           <TouchableOpacity
-            style={styles.imageModalCloseButton}
+            style={modalStyles.imageModalCloseButton}
             onPress={() => setShowImageModal(false)}
           >
-            <Icon name="close" size={28} color="#FFFFFF" />
+            <Icon name="close" size={28} color={COLORS.textInverse} />
           </TouchableOpacity>
           <Image
             source={{ uri: viewingImageUrl }}
-            style={styles.imageModalImage}
+            style={modalStyles.imageModalImage}
             contentFit="contain"
             cachePolicy="memory-disk"
             transition={200}
@@ -947,7 +949,132 @@ export default function ShoppingListScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createModalStyles(colors) {
+  return StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  modalContent: {
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    position: 'relative',
+    zIndex: 1000,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: colors.surface,
+    color: colors.text,
+  },
+  notesInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  addItemButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  addItemButtonText: {
+    color: COLORS.textInverse,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  attachButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: colors.background,
+  },
+  attachButtonText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  imagePreviewContainer: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    backgroundColor: colors.borderLight,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: colors.overlayMedium,
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalContainer: {
+    flex: 1,
+    backgroundColor: colors.overlayHeavy,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1,
+    backgroundColor: colors.overlay,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalImage: {
+    width: width - 40,
+    height: '80%',
+  },
+});
+}
+
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -1080,24 +1207,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
   },
   purchasedSectionTitle: {
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   itemCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   purchasedCard: {
     opacity: 0.7,
@@ -1120,16 +1240,16 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   purchasedText: {
     textDecorationLine: 'line-through',
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   itemQuantity: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   itemDepartment: {
     fontSize: 12,
@@ -1138,12 +1258,12 @@ const styles = StyleSheet.create({
   },
   autoAddedText: {
     fontSize: 12,
-    color: '#2563EB',
+    color: colors.primary,
     fontStyle: 'italic',
   },
   itemNotes: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -1161,7 +1281,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1170,12 +1290,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: 32,
@@ -1183,112 +1303,15 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
-  },
-  modalContainer: {
-    flex: 1,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  modalContent: {
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    position: 'relative',
-    zIndex: 1000,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#1F2937',
-  },
-  notesInput: {
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  addItemButton: {
-    backgroundColor: '#2563EB',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  addItemButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  attachButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  attachButtonText: {
-    color: '#2563EB',
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  imagePreviewContainer: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  imagePreview: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#F3F4F6',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 20,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   imageThumbnailContainer: {
     position: 'relative',
@@ -1301,14 +1324,14 @@ const styles = StyleSheet.create({
   imageThumbnail: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   imageOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     padding: 4,
     alignItems: 'center',
   },
@@ -1317,35 +1340,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     padding: 8,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 8,
   },
   linkText: {
     flex: 1,
     fontSize: 12,
-    color: '#2563EB',
+    color: colors.primary,
     marginLeft: 6,
   },
-  imageModalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageModalCloseButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageModalImage: {
-    width: width - 40,
-    height: '80%',
-  },
 });
+}

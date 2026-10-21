@@ -255,7 +255,7 @@ export default function TaskTableScreen({ navigation }) {
     <View style={styles.rowCard}>
       <View style={styles.rowHeader}>
         <View style={styles.rowHeaderLeft}>
-          <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(row.category) }]}>
+          <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(row.category, colors) }]}>
             <Text style={styles.categoryBadgeText}>{row.category}</Text>
           </View>
           <Text style={styles.subcategoryText}>{row.subcategory}</Text>
@@ -265,7 +265,7 @@ export default function TaskTableScreen({ navigation }) {
             <Icon name="edit" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDeleteRow(row)} style={styles.actionButton}>
-            <Icon name="delete" size={20} color="#EF4444" />
+            <Icon name="delete" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -311,7 +311,7 @@ export default function TaskTableScreen({ navigation }) {
 
       {row.is_synced && (
         <View style={styles.syncedBadge}>
-          <Icon name="check-circle" size={14} color="#16A34A" />
+          <Icon name="check-circle" size={14} color={colors.success} />
           <Text style={styles.syncedBadgeText}>Synced</Text>
         </View>
       )}
@@ -470,10 +470,10 @@ export default function TaskTableScreen({ navigation }) {
           disabled={isImporting}
         >
           {isImporting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={COLORS.textInverse} />
           ) : (
             <>
-              <Icon name="upload-file" size={20} color="#FFFFFF" />
+              <Icon name="upload-file" size={20} color={COLORS.textInverse} />
               <Text style={styles.actionBarButtonText}>Import Excel</Text>
             </>
           )}
@@ -485,10 +485,10 @@ export default function TaskTableScreen({ navigation }) {
           disabled={isSyncing || tableRows.length === 0}
         >
           {isSyncing ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={COLORS.textInverse} />
           ) : (
             <>
-              <Icon name="sync" size={20} color="#FFFFFF" />
+              <Icon name="sync" size={20} color={COLORS.textInverse} />
               <Text style={styles.actionBarButtonText}>Sync</Text>
             </>
           )}
@@ -498,7 +498,7 @@ export default function TaskTableScreen({ navigation }) {
           style={[styles.actionBarButton, styles.addButton]}
           onPress={handleAddRow}
         >
-          <Icon name="add" size={20} color="#FFFFFF" />
+          <Icon name="add" size={20} color={COLORS.textInverse} />
         </TouchableOpacity>
       </View>
 
@@ -514,7 +514,7 @@ export default function TaskTableScreen({ navigation }) {
               Import an Excel file or add tasks manually to get started
             </Text>
             <TouchableOpacity style={styles.emptyButton} onPress={handleImportExcel}>
-              <Icon name="upload-file" size={20} color="#FFFFFF" />
+              <Icon name="upload-file" size={20} color={COLORS.textInverse} />
               <Text style={styles.emptyButtonText}>Import Excel File</Text>
             </TouchableOpacity>
           </View>
@@ -526,7 +526,7 @@ export default function TaskTableScreen({ navigation }) {
             
             {/* Clear Table Button */}
             <TouchableOpacity style={styles.clearButton} onPress={handleClearTable}>
-              <Icon name="delete-sweep" size={20} color="#EF4444" />
+              <Icon name="delete-sweep" size={20} color={colors.error} />
               <Text style={styles.clearButtonText}>Clear All Data</Text>
             </TouchableOpacity>
           </View>
@@ -548,18 +548,18 @@ export default function TaskTableScreen({ navigation }) {
   );
 }
 
-const getCategoryColor = (category) => {
-  const colors = {
-    'ניקיון': '#3B82F6',
-    'כביסה': '#2563EB',
-    'תחזוקה שוטפת': '#F59E0B',
-    'רכב': '#EF4444',
-    'חיות מחמד': '#10B981',
-    'תשלומים וכלכלה': '#6366F1',
-    'אוכל': '#2563EB',
+function getCategoryColor(category, themeColors) {
+  const map = {
+    'ניקיון': themeColors.primaryLight,
+    'כביסה': themeColors.primary,
+    'תחזוקה שוטפת': themeColors.warning,
+    'רכב': themeColors.error,
+    'חיות מחמד': themeColors.success,
+    'תשלומים וכלכלה': themeColors.primary,
+    'אוכל': themeColors.primary,
   };
-  return colors[category] || '#6B7280';
-};
+  return map[category] || themeColors.textSecondary;
+}
 
 function createStyles(colors) {
   return StyleSheet.create({
@@ -609,15 +609,15 @@ function createStyles(colors) {
     gap: 6,
   },
   actionBarButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     fontSize: 14,
   },
   importButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primaryLight,
   },
   syncButton: {
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
   },
   addButton: {
     flex: 0,
@@ -636,7 +636,7 @@ function createStyles(colors) {
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -660,7 +660,7 @@ function createStyles(colors) {
     borderRadius: 8,
   },
   categoryBadgeText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -691,13 +691,13 @@ function createStyles(colors) {
   detailSectionTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2563EB',
+    color: colors.primary,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
   detailText: {
     fontSize: 13,
-    color: '#4B5563',
+    color: colors.textSecondary,
     marginBottom: 3,
   },
   detailDivider: {
@@ -711,13 +711,13 @@ function createStyles(colors) {
     marginTop: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successMuted,
     borderRadius: 8,
     gap: 4,
   },
   syncedBadgeText: {
     fontSize: 11,
-    color: '#16A34A',
+    color: colors.success,
     fontWeight: '600',
   },
   notesContainer: {
@@ -726,7 +726,7 @@ function createStyles(colors) {
     backgroundColor: colors.borderLight,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#2563EB',
+    borderLeftColor: colors.primary,
   },
   notesLabel: {
     fontSize: 12,
@@ -736,7 +736,7 @@ function createStyles(colors) {
   },
   notesText: {
     fontSize: 13,
-    color: '#4B5563',
+    color: colors.textSecondary,
     lineHeight: 18,
   },
   notesInput: {
@@ -752,7 +752,7 @@ function createStyles(colors) {
     gap: 8,
   },
   clearButtonText: {
-    color: '#EF4444',
+    color: colors.error,
     fontWeight: '600',
   },
   emptyState: {
@@ -763,7 +763,7 @@ function createStyles(colors) {
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -791,7 +791,7 @@ function createStyles(colors) {
     gap: 8,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
   },
   modalContainer: {
@@ -836,7 +836,7 @@ function createStyles(colors) {
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2563EB',
+    color: colors.primary,
     marginTop: 16,
     marginBottom: 12,
   },
@@ -848,7 +848,7 @@ function createStyles(colors) {
     marginTop: 24,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },

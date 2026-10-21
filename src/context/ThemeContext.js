@@ -25,7 +25,7 @@ export function buildThemeColors(scheme) {
       border: COLORS.dark.border,
       borderLight: COLORS.dark.borderLight,
       divider: COLORS.dark.border,
-      primaryMuted: "#1E3A5F",
+      primaryMuted: COLORS.dark.primaryMuted,
     },
   };
 }

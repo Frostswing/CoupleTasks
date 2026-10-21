@@ -441,16 +441,16 @@ export default function ManagementScreen({ navigation }) {
         </View>
         <View style={styles.categoryStats}>
           <View style={styles.categoryStatItem}>
-            <Icon name="check-circle" size={16} color="#16A34A" />
+            <Icon name="check-circle" size={16} color={colors.success} />
             <Text style={styles.categoryStatText}>{data.completed} {i18n.t('management.completed')}</Text>
           </View>
           <View style={styles.categoryStatItem}>
-            <Icon name="schedule" size={16} color="#F59E0B" />
+            <Icon name="schedule" size={16} color=colors.warning />
             <Text style={styles.categoryStatText}>{data.pending} {i18n.t('management.pending')}</Text>
           </View>
           {data.overdue > 0 && (
             <View style={styles.categoryStatItem}>
-              <Icon name="warning" size={16} color="#DC2626" />
+              <Icon name="warning" size={16} color={colors.error} />
               <Text style={styles.categoryStatText}>{data.overdue} {i18n.t('management.overdue')}</Text>
             </View>
           )}
@@ -459,7 +459,7 @@ export default function ManagementScreen({ navigation }) {
           <View 
             style={[
               styles.progressFill, 
-              { width: `${completionRate}%`, backgroundColor: '#16A34A' }
+              { width: `${completionRate}%`, backgroundColor: colors.success }
             ]} 
           />
         </View>
@@ -709,21 +709,21 @@ export default function ManagementScreen({ navigation }) {
                   title={i18n.t('management.completed')}
                   value={stats.completedTasks}
                   subtitle={getDateRangeLabel()}
-                  color="#16A34A"
+                  color={colors.success}
                 />
                 <StatCard
                   icon="pending"
                   title={i18n.t('management.pending')}
                   value={stats.pendingTasks}
                   subtitle={i18n.t('management.activeTasks')}
-                  color="#F59E0B"
+                  color=colors.warning
                 />
                 <StatCard
                   icon="warning"
                   title={i18n.t('management.overdue')}
                   value={stats.overdueTasks}
                   subtitle={i18n.t('management.notPerformed')}
-                  color="#DC2626"
+                  color={colors.error}
                 />
                 <StatCard
                   icon="trending-up"
@@ -804,13 +804,13 @@ export default function ManagementScreen({ navigation }) {
                     .map((item, index) => (
                       <View key={index} style={styles.taskItem}>
                         <View style={styles.taskItemHeader}>
-                          <Icon name="warning" size={20} color="#DC2626" />
+                          <Icon name="warning" size={20} color={colors.error} />
                           <View style={styles.taskItemContent}>
                             <Text style={styles.taskItemTitle}>{item.task.title}</Text>
                             <View style={styles.taskItemMeta}>
                               {item.dueDate && (
                                 <View style={styles.taskMetaBadge}>
-                                  <Icon name="schedule" size={14} color="#DC2626" />
+                                  <Icon name="schedule" size={14} color={colors.error} />
                                   <Text style={styles.taskMetaText}>
                                     {format(item.dueDate, 'MMM d, yyyy')}
                                   </Text>
@@ -875,7 +875,7 @@ export default function ManagementScreen({ navigation }) {
                           <Icon 
                             name={item.status === 'in_progress' ? 'play-circle' : 'schedule'} 
                             size={20} 
-                            color={item.status === 'in_progress' ? '#F59E0B' : '#6B7280'} 
+                            color={item.status === 'in_progress' ? colors.warning : colors.textSecondary} 
                           />
                           <View style={styles.taskItemContent}>
                             <Text style={styles.taskItemTitle}>{item.task.title}</Text>
@@ -931,7 +931,7 @@ export default function ManagementScreen({ navigation }) {
                     .slice(0, 10)
                     .map((item, index) => (
                       <View key={index} style={styles.completionItem}>
-                        <Icon name="check-circle" size={16} color="#16A34A" />
+                        <Icon name="check-circle" size={16} color={colors.success} />
                         <View style={styles.completionItemContent}>
                           <Text style={styles.completionItemTitle}>{item.task.title}</Text>
                           <Text style={styles.completionItemDate}>
@@ -1023,7 +1023,7 @@ function createStyles(colors) {
   },
   filterButtonActive: {
     backgroundColor: colors.primary,
-    borderColor: '#2563EB',
+    borderColor: colors.primary,
   },
   filterButtonText: {
     fontSize: 13,
@@ -1032,7 +1032,7 @@ function createStyles(colors) {
     marginLeft: 6,
   },
   filterButtonTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   dateRangeScroll: {
     marginHorizontal: -20,
@@ -1052,7 +1052,7 @@ function createStyles(colors) {
   },
   dateRangeButtonActive: {
     backgroundColor: colors.primary,
-    borderColor: '#2563EB',
+    borderColor: colors.primary,
   },
   dateRangeButtonText: {
     fontSize: 13,
@@ -1060,7 +1060,7 @@ function createStyles(colors) {
     color: colors.textSecondary,
   },
   dateRangeButtonTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   customDateContainer: {
     flexDirection: 'row',
@@ -1105,7 +1105,7 @@ function createStyles(colors) {
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1136,7 +1136,7 @@ function createStyles(colors) {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1165,7 +1165,7 @@ function createStyles(colors) {
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1222,7 +1222,7 @@ function createStyles(colors) {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1270,7 +1270,7 @@ function createStyles(colors) {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1324,17 +1324,17 @@ function createStyles(colors) {
   overdueBadge: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#DC2626',
+    color: colors.error,
     marginLeft: 4,
   },
   priorityHigh: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.errorMuted,
   },
   priorityMedium: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.warningMuted,
   },
   priorityLow: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successMuted,
   },
 });
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,14 @@ import {
   StyleSheet,
 } from "react-native";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
-
-const categoryColors = {
-  household: { bg: '#DBEAFE', text: '#2563EB' },
-  errands: { bg: '#DCFCE7', text: '#16A34A' },
-  planning: { bg: '#DBEAFE', text: '#1D4ED8' },
-  finance: { bg: '#FEF3C7', text: '#D97706' },
-  health: { bg: '#FEE2E2', text: '#DC2626' },
-  social: { bg: '#FCE7F3', text: '#2563EB' },
-  personal: { bg: '#E0E7FF', text: '#6366F1' },
-  other: { bg: '#F3F4F6', text: '#6B7280' }
-};
+import { CATEGORY_COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleActive }) {
-  const categoryStyle = categoryColors[template.category] || categoryColors.other;
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const categoryStyle = CATEGORY_COLORS[template.category] || CATEGORY_COLORS.other;
 
   const getFrequencyText = () => {
     if (template.frequency_type === 'custom' && template.frequency_custom) {
@@ -61,7 +55,7 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
           
           {template.auto_generate && (
             <View style={styles.autoBadge}>
-              <Icon name="auto-awesome" size={12} color="#16A34A" />
+              <Icon name="auto-awesome" size={12} color={colors.success} />
               <Text style={styles.autoText}>Auto</Text>
             </View>
           )}
@@ -81,20 +75,20 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
           </View>
 
           <View style={styles.meta}>
-            <Icon name="repeat" size={14} color="#6B7280" />
+            <Icon name="repeat" size={14} color={colors.textSecondary} />
             <Text style={styles.metaText}>{getFrequencyText()}</Text>
           </View>
 
           {template.estimated_duration && (
             <View style={styles.meta}>
-              <Icon name="schedule" size={14} color="#6B7280" />
+              <Icon name="schedule" size={14} color={colors.textSecondary} />
               <Text style={styles.metaText}>{template.estimated_duration}</Text>
             </View>
           )}
 
           {template.assigned_to && (
             <View style={styles.meta}>
-              <Icon name="person" size={14} color="#6B7280" />
+              <Icon name="person" size={14} color={colors.textSecondary} />
               <Text style={styles.metaText}>{template.assigned_to}</Text>
             </View>
           )}
@@ -110,7 +104,7 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
             <Icon
               name={template.is_active ? "pause-circle-filled" : "play-circle-filled"}
               size={24}
-              color={template.is_active ? "#F59E0B" : "#16A34A"}
+              color={template.is_active ? colors.warning : colors.success}
             />
           </TouchableOpacity>
         )}
@@ -120,7 +114,7 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
             onPress={() => onEdit(template)}
             style={styles.actionButton}
           >
-            <Icon name="edit" size={24} color="#2563EB" />
+            <Icon name="edit" size={24} color={colors.primary} />
           </TouchableOpacity>
         )}
         
@@ -129,7 +123,7 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
             onPress={() => onDelete(template)}
             style={styles.actionButton}
           >
-            <Icon name="delete" size={24} color="#DC2626" />
+            <Icon name="delete" size={24} color={colors.error} />
           </TouchableOpacity>
         )}
       </View>
@@ -137,20 +131,14 @@ export default function TaskTemplateCard({ template, onEdit, onDelete, onToggleA
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   inactiveContainer: {
     opacity: 0.6,
@@ -174,10 +162,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
   },
   inactiveBadge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -185,12 +173,12 @@ const styles = StyleSheet.create({
   inactiveText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   autoBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successMuted,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -199,11 +187,11 @@ const styles = StyleSheet.create({
   autoText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#16A34A',
+    color: colors.success,
   },
   description: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 12,
     lineHeight: 20,
   },
@@ -229,7 +217,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   actions: {
     flexDirection: 'row',
@@ -237,11 +225,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     paddingTop: 12,
   },
   actionButton: {
     padding: 8,
   },
 });
+}
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,40 +6,34 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import {
+  CATEGORY_COLORS,
+  PRIORITY_COLORS,
+  STATUS_COLORS,
+  COLORS,
+  SHADOWS,
+} from '../constants/theme';
+import { useAppTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const TaskCard = ({ task, onStatusChange, onEdit, onSubtaskToggle, currentUser }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const getCategoryColor = (category) => {
-    const colors = {
-      household: '#2563EB',
-      errands: '#06B6D4',
-      planning: '#F59E0B',
-      finance: '#10B981',
-      health: '#EF4444',
-      social: '#2563EB',
-      personal: '#6366F1',
-      other: '#6B7280',
-    };
-    return colors[category] || colors.other;
+    const cat = CATEGORY_COLORS[category] || CATEGORY_COLORS.other;
+    return cat.text;
   };
 
   const getPriorityColor = (priority) => {
-    const colors = {
-      low: '#10B981',
-      medium: '#F59E0B',
-      high: '#EF4444',
-    };
-    return colors[priority] || colors.medium;
+    const p = PRIORITY_COLORS[priority] || PRIORITY_COLORS.medium;
+    return p.text;
   };
 
   const getStatusColor = (status) => {
-    const colors = {
-      pending: '#6B7280',
-      in_progress: '#F59E0B',
-      completed: '#10B981',
-    };
-    return colors[status] || colors.pending;
+    const s = STATUS_COLORS[status] || STATUS_COLORS.pending;
+    return s.text;
   };
 
   const getCategoryDisplayName = (category) => {
@@ -174,25 +168,19 @@ const TaskCard = ({ task, onStatusChange, onEdit, onSubtaskToggle, currentUser }
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   overdueCard: {
     borderWidth: 2,
-    borderColor: '#EF4444',
+    borderColor: colors.error,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -210,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   categoryText: {
-    color: 'white',
+    color: COLORS.textInverse,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -220,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   priorityText: {
-    color: 'white',
+    color: COLORS.textInverse,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -233,13 +221,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'right',
   },
   description: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 12,
     textAlign: 'right',
   },
@@ -248,11 +236,11 @@ const styles = StyleSheet.create({
   },
   dueDate: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'right',
   },
   overdueDueDate: {
-    color: '#EF4444',
+    color: colors.error,
     fontWeight: '600',
   },
   assignedContainer: {
@@ -260,11 +248,11 @@ const styles = StyleSheet.create({
   },
   assignedTo: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'right',
   },
   assignedToMe: {
-    color: '#2563EB',
+    color: colors.primary,
     fontWeight: '600',
   },
   subtasksContainer: {
@@ -274,7 +262,7 @@ const styles = StyleSheet.create({
   subtasksTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'right',
   },
@@ -290,22 +278,22 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     marginLeft: 8,
   },
   subtaskChecked: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   subtaskText: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: colors.text,
     textAlign: 'right',
   },
   subtaskCompletedText: {
     textDecorationLine: 'line-through',
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -323,7 +311,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   statusText: {
-    color: 'white',
+    color: COLORS.textInverse,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -338,17 +326,18 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   startButton: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: colors.warning,
   },
   completeButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
   },
   actionButtonText: {
-    color: 'white',
+    color: COLORS.textInverse,
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
 });
+}
 
-export default TaskCard; 
+export default TaskCard;

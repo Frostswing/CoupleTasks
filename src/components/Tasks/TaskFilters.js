@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {  useState , useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
@@ -19,6 +21,9 @@ export default function TaskFilters({
   taskCounts,
   currentUser 
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showPriorityPicker, setShowPriorityPicker] = useState(false);
@@ -68,7 +73,7 @@ export default function TaskFilters({
           <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Icon name="close" size={24} color="#6B7280" />
+              <Icon name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <Picker
@@ -96,7 +101,7 @@ export default function TaskFilters({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Icon name="filter-list" size={20} color="#6B7280" />
+        <Icon name="filter-list" size={20} color={colors.textSecondary} />
         <Text style={styles.headerTitle}>Filters</Text>
       </View>
 
@@ -117,7 +122,7 @@ export default function TaskFilters({
           <Icon 
             name="favorite" 
             size={16} 
-            color={filters.assigned_to === 'me' ? '#FFFFFF' : '#2563EB'} 
+            color={filters.assigned_to === 'me' ? COLORS.textInverse : colors.primary} 
           />
           <Text style={[
             styles.quickFilterText,
@@ -150,7 +155,7 @@ export default function TaskFilters({
           <Icon 
             name="check-circle" 
             size={16} 
-            color={filters.status === 'completed' ? '#FFFFFF' : '#16A34A'} 
+            color={filters.status === 'completed' ? COLORS.textInverse : colors.success} 
           />
           <Text style={[
             styles.quickFilterText,
@@ -186,7 +191,7 @@ export default function TaskFilters({
             <Text style={styles.filterSelectorText}>
               {statusOptions.find(opt => opt.value === filters.status)?.label}
             </Text>
-            <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
+            <Icon name="keyboard-arrow-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -200,7 +205,7 @@ export default function TaskFilters({
             <Text style={styles.filterSelectorText}>
               {categoryOptions.find(opt => opt.value === filters.category)?.label}
             </Text>
-            <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
+            <Icon name="keyboard-arrow-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -214,7 +219,7 @@ export default function TaskFilters({
             <Text style={styles.filterSelectorText}>
               {priorityOptions.find(opt => opt.value === filters.priority)?.label}
             </Text>
-            <Icon name="keyboard-arrow-down" size={20} color="#6B7280" />
+            <Icon name="keyboard-arrow-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -250,19 +255,13 @@ export default function TaskFilters({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   header: {
     flexDirection: 'row',
@@ -272,7 +271,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginLeft: 8,
   },
   quickFilters: {
@@ -292,20 +291,20 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   activeQuickFilter: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   inactiveQuickFilter: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FBCFE8',
+    backgroundColor: colors.surface,
+    borderColor: colors.errorMuted,
   },
   activeQuickFilterCompleted: {
-    backgroundColor: '#16A34A',
-    borderColor: '#16A34A',
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   inactiveQuickFilterCompleted: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.surface,
+    borderColor: colors.successMuted,
   },
   quickFilterText: {
     fontSize: 14,
@@ -313,13 +312,13 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   activeQuickFilterText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   inactiveQuickFilterText: {
-    color: '#2563EB',
+    color: colors.primary,
   },
   inactiveQuickFilterTextCompleted: {
-    color: '#16A34A',
+    color: colors.success,
   },
   badge: {
     borderRadius: 10,
@@ -328,26 +327,26 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   activeBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: colors.overlayOnPrimary,
   },
   inactiveBadge: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.errorMuted,
   },
   inactiveBadgeCompleted: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successMuted,
   },
   badgeText: {
     fontSize: 11,
     fontWeight: '600',
   },
   activeBadgeText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   inactiveBadgeText: {
-    color: '#2563EB',
+    color: colors.primary,
   },
   inactiveBadgeTextCompleted: {
-    color: '#16A34A',
+    color: colors.success,
   },
   detailedFilters: {
     gap: 16,
@@ -358,7 +357,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
   },
   filterSelector: {
@@ -366,23 +365,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   filterSelectorText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text,
     flex: 1,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   pickerModal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -395,14 +394,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   pickerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   picker: {
     height: 200,
   },
-}); 
+});
+}

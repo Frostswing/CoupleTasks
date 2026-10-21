@@ -31,6 +31,13 @@ export const COLORS = {
   warningMuted: "#FEF3C7",
   error: "#EF4444",
   errorMuted: "#FEE2E2",
+
+  /** Shared non-palette tokens (overlays, shadows) */
+  shadow: "#000000",
+  overlay: "rgba(0, 0, 0, 0.5)",
+  overlayMedium: "rgba(0, 0, 0, 0.6)",
+  overlayHeavy: "rgba(0, 0, 0, 0.9)",
+  overlayOnPrimary: "rgba(255, 255, 255, 0.2)",
   
   // Dark mode support
   dark: {
@@ -42,7 +49,19 @@ export const COLORS = {
     textTertiary: "#71717A",
     border: "#3F3F46",
     borderLight: "#27272A",
+    primaryMuted: "#1E3A5F",
   }
+};
+
+/** Linear gradient color stops (e.g. IridescentGradient) */
+export const GRADIENT_STOPS = {
+  iridescent: {
+    subtle: ["#DBEAFE", "#CCFBF1", "#B2F5EA"],
+    vibrant: ["#2563EB", "#06B6D4", "#3B82F6", "#8B5CF6"],
+    card: ["#2563EB", "#06B6D4", "#0EA5E9"],
+    header: ["#1D4ED8", "#2563EB", "#06B6D4"],
+    default: ["#2563EB", "#06B6D4", "#3B82F6"],
+  },
 };
 
 export const SPACING = {
@@ -74,28 +93,28 @@ export const SHADOWS = {
     elevation: 0,
   },
   xs: {
-    shadowColor: "#000",
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 2,
     elevation: 1,
   },
   sm: {
-    shadowColor: "#000",
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
   },
   md: {
-    shadowColor: "#000",
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 4,
   },
   lg: {
-    shadowColor: "#000",
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
@@ -307,5 +326,6 @@ export default {
   CATEGORY_COLORS,
   PRIORITY_COLORS,
   STATUS_COLORS,
+  GRADIENT_STOPS,
   screenBackgroundStyle,
 };

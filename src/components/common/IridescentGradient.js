@@ -1,40 +1,24 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { GRADIENT_STOPS } from "../../constants/theme";
 
 /**
  * Iridescent gradient component with turquoise → cyan → blue → purple colors
  * Creates a beautiful shimmering effect
  */
-export default function IridescentGradient({ 
-  children, 
+export default function IridescentGradient({
+  children,
   style,
-  variant = "default", // default, subtle, vibrant, card
-  ...props 
+  variant = "default", // default, subtle, vibrant, card, header
+  ...props
 }) {
-  const getGradientColors = () => {
-    switch (variant) {
-      case "subtle":
-        // Subtle: Light turquoise to light cyan
-        return ["#DBEAFE", "#CCFBF1", "#B2F5EA"];
-      case "vibrant":
-        // Vibrant: Turquoise to cyan to blue to purple
-        return ["#2563EB", "#06B6D4", "#3B82F6", "#8B5CF6"];
-      case "card":
-        // Card: Turquoise to cyan with soft transition
-        return ["#2563EB", "#06B6D4", "#0EA5E9"];
-      case "header":
-        // Header: Dark turquoise to cyan
-        return ["#1D4ED8", "#2563EB", "#06B6D4"];
-      default:
-        // Default: Turquoise to cyan to blue
-        return ["#2563EB", "#06B6D4", "#3B82F6"];
-    }
-  };
+  const stops = GRADIENT_STOPS.iridescent;
+  const gradientColors = stops[variant] || stops.default;
 
   return (
     <LinearGradient
-      colors={getGradientColors()}
+      colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.gradient, style]}
@@ -50,4 +34,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
