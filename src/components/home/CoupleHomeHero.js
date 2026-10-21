@@ -28,6 +28,8 @@ export default function CoupleHomeHero({
   userFirstName,
   partnerFirstName,
   userEmail,
+  userFullName,
+  partnerFullName,
   partnerEmail,
   completedCount,
   onOpenMenu,
@@ -38,7 +40,10 @@ export default function CoupleHomeHero({
   const { isDark, colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const gradient = getHeroGradient(isDark);
-  const displayUser = userFirstName || i18n.t("home.fallbackName");
+  const displayUser =
+    userFirstName?.trim() ||
+    (userEmail?.includes("@") ? userEmail.split("@")[0] : "") ||
+    i18n.t("home.fallbackName");
   const time = timeGreeting();
   const greetingLine =
     isPartnered && partnerFirstName
@@ -57,22 +62,33 @@ export default function CoupleHomeHero({
         end={{ x: 1, y: 1 }}
         style={[styles.hero, { paddingTop: insets.top + SPACING.m }]}
       >
+        <View style={[styles.decor, styles.decorBlob, { top: -20, right: -30 }]} />
+        <View style={[styles.decor, styles.decorBlobSm, { top: 90, left: -16 }]} />
+        <View style={[styles.decor, styles.decorDot, { top: 100, left: 28 }]} />
+        <View style={[styles.decor, styles.decorDot, { top: 64, right: 100 }]} />
+        <View style={[styles.decor, styles.decorDot, styles.decorDotSm, { top: 120, right: 40 }]} />
         {isPartnered ? (
           <>
             <View style={[styles.decor, styles.decorHeart, { top: 48, right: 28 }]}>
-              <Icon name="favorite" size={28} color={COLORS.heroTextSubtle} />
+              <Icon name="favorite" size={32} color={COLORS.heroTextSubtle} />
             </View>
-            <View style={[styles.decor, styles.decorDot, { top: 100, left: 24 }]} />
-            <View style={[styles.decor, styles.decorDot, { top: 72, right: 80 }]} />
+            <View style={[styles.decor, styles.decorHeart, { top: 88, right: 56, opacity: 0.25 }]}>
+              <Icon name="favorite" size={18} color={COLORS.heroTextSubtle} />
+            </View>
           </>
         ) : null}
 
         <View style={styles.topRow}>
           <View style={styles.avatarRow}>
-            <PartnerAvatar email={userEmail} size={44} variant="primary" />
+            <PartnerAvatar email={userEmail} fullName={userFullName} size={44} variant="primary" />
             {isPartnered && partnerEmail ? (
               <View style={styles.avatarOverlap}>
-                <PartnerAvatar email={partnerEmail} size={44} variant="partner" />
+                <PartnerAvatar
+                  email={partnerEmail}
+                  fullName={partnerFullName}
+                  size={44}
+                  variant="partner"
+                />
               </View>
             ) : null}
           </View>
@@ -151,6 +167,25 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: COLORS.heroText,
+  },
+  decorDotSm: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+  },
+  decorBlob: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.overlayOnPrimary,
+    opacity: 0.35,
+  },
+  decorBlobSm: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.overlayOnPrimary,
+    opacity: 0.28,
   },
   topRow: {
     flexDirection: "row",

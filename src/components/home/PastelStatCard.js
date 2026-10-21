@@ -6,6 +6,7 @@ import { useAppTheme } from "../../context/ThemeContext";
 import PressableScale from "../premium/PressableScale";
 
 export default function PastelStatCard({
+  width,
   pastel = "pink",
   icon,
   iconColor,
@@ -17,13 +18,13 @@ export default function PastelStatCard({
   const bg = getPastelSurface(pastel, isDark);
 
   return (
-    <PressableScale onPress={onPress} style={styles.wrap}>
-      <View style={[styles.card, SHADOWS.sm, { backgroundColor: bg }]}>
+    <PressableScale onPress={onPress} style={width ? { width } : styles.wrapFallback}>
+      <View style={[styles.card, SHADOWS.sm, { backgroundColor: bg, width: width ? "100%" : undefined }]}>
         <View style={[styles.iconCircle, { backgroundColor: isDark ? COLORS.overlayOnPrimary : COLORS.surface }]}>
           <Icon name={icon} size={22} color={iconColor || colors.primary} />
         </View>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={2}>{subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
         <TouchableOpacity onPress={onPress} style={[styles.arrow, { backgroundColor: colors.surface }]}>
           <Icon name="arrow-forward" size={16} color={iconColor || colors.primary} />
         </TouchableOpacity>
@@ -33,13 +34,12 @@ export default function PastelStatCard({
 }
 
 const styles = StyleSheet.create({
-  wrap: {
+  wrapFallback: {
     flex: 1,
-    minWidth: "46%",
   },
   card: {
     borderRadius: RADIUS.l,
-    padding: SPACING.l,
+    padding: SPACING.m,
     minHeight: 108,
   },
   iconCircle: {
@@ -49,15 +49,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.s,
+    alignSelf: "flex-start",
   },
   title: {
     ...TYPOGRAPHY.h3,
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 18,
+    paddingRight: SPACING.xl + 8,
   },
   subtitle: {
     ...TYPOGRAPHY.caption,
     marginTop: 2,
-    paddingRight: SPACING.xl,
+    lineHeight: 16,
+    paddingRight: SPACING.xl + 8,
   },
   arrow: {
     position: "absolute",

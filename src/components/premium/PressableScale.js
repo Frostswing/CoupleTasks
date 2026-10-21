@@ -31,8 +31,11 @@ export default function PressableScale({
       onPressOut={() => animate(1)}
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
+      style={style}
     >
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+      <Animated.View style={[{ width: "100%" }, { transform: [{ scale }] }]}>
+        {children}
+      </Animated.View>
     </Pressable>
   );
 }

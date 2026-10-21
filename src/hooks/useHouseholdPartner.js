@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { User } from "../entities/User";
 import { getCurrentUser, checkIfSharing } from "../services/userService";
-
-function firstName(profile) {
-  const raw = profile?.full_name || profile?.name || profile?.email || "";
-  if (!raw) return "";
-  if (raw.includes("@")) return raw.split("@")[0];
-  return raw.split(" ")[0];
-}
+import { displayFirstName } from "../utils/displayName";
 
 /**
  * Partnered when profile.partner_email is set OR Firebase list-sharing is active.
@@ -23,7 +17,8 @@ export function useHouseholdPartner() {
     try {
       const authUser = getCurrentUser();
       const me = await User.me();
-      setProfile(me);
+      const email = me?.email || authUser?.email || "";
+      setProfile(me ? { ...me, email: me.email || email } : { email });
 
       let shareResult = { success: true, isSharing: false };
       if (authUser?.uid) {
@@ -64,8 +59,12 @@ export function useHouseholdPartner() {
 
   const isPartnered = Boolean(partnerEmail || isSharingActive);
 
-  const userFirstName = firstName(profile);
-  const partnerFirstName = firstName(partnerProfile || sharing?.sharingWith?.profile);
+  const authEmail = getCurrentUser()?.email || profile?.email || "";
+  const userFirstName = displayFirstName(profile, authEmail);
+  const partnerFirstName = displayFirstName(
+    partnerProfile || sharing?.sharingWith?.profile,
+    partnerEmail
+  );
 
   return {
     loading,

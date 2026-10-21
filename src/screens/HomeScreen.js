@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import i18n from "../localization/i18n";
-import { SPACING, RADIUS, TYPOGRAPHY, COLORS, getPastelSurface } from "../constants/theme";
+import { SPACING, RADIUS, TYPOGRAPHY, COLORS } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import { usePartnerMode } from "../context/HouseholdPartnerContext";
 import CoupleHomeHero from "../components/home/CoupleHomeHero";
@@ -13,6 +13,9 @@ import { Task } from "../entities/Task";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
 import taskSchedulingService from "../services/taskSchedulingService";
+import { getCurrentUser } from "../services/userService";
+import { useTwoColumnGrid } from "../hooks/useTwoColumnGrid";
+import { displayFirstName } from "../utils/displayName";
 
 export default function HomeScreen({ navigation }) {
   const { colors, isDark } = useAppTheme();
@@ -24,13 +27,17 @@ export default function HomeScreen({ navigation }) {
     userFirstName,
     partnerFirstName,
     partnerEmail,
+    partnerProfile,
   } = usePartnerMode();
 
   const [loading, setLoading] = useState(true);
   const [taskFocus, setTaskFocus] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const [completedThisWeek, setCompletedThisWeek] = useState(0);
-  const [shoppingPending, setShoppingPending] = useState(0);
+  const grid = useTwoColumnGrid(SPACING.l, SPACING.s);
+  const authEmail = getCurrentUser()?.email || "";
+  const resolvedEmail = profile?.email || authEmail;
+  const greetingName = userFirstName || displayFirstName(profile, authEmail);
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -208,7 +215,6 @@ export default function HomeScreen({ navigation }) {
   };
 
   const tipText = isPartnered ? i18n.t("home.tipCouple") : i18n.t("home.tipSolo");
-  const tipBg = getPastelSurface("purple", isDark);
 
   if (loading || partnerLoading) {
     return (
@@ -222,9 +228,11 @@ export default function HomeScreen({ navigation }) {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <CoupleHomeHero
         isPartnered={isPartnered}
-        userFirstName={userFirstName}
+        userFirstName={greetingName}
         partnerFirstName={partnerFirstName}
-        userEmail={profile?.email}
+        userEmail={resolvedEmail}
+        userFullName={profile?.full_name}
+        partnerFullName={partnerProfile?.full_name}
         partnerEmail={partnerEmail}
         completedCount={completedCount}
         onOpenMenu={openDrawer}
@@ -240,10 +248,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actionGrid}>
+        <View style={[grid.containerStyle, styles.gridBlock]}>
           {quickActions.map((action) => (
             <GradientQuickActionCard
               key={action.id}
+              width={grid.cardWidth}
               featureKey={action.featureKey}
               icon={action.icon}
               title={action.title}
@@ -253,8 +262,9 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        <View style={styles.statRow}>
+        <View style={[grid.containerStyle, styles.gridBlock]}>
           <PastelStatCard
+            width={grid.cardWidth}
             pastel="pink"
             icon="event"
             iconColor={isDark ? COLORS.pastelPink : COLORS.accentPink}
@@ -263,6 +273,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => handleNavigate("DailyTasks")}
           />
           <PastelStatCard
+            width={grid.cardWidth}
             pastel="teal"
             icon="emoji-events"
             iconColor={colors.primary}
@@ -323,15 +334,7 @@ const createStyles = (colors) =>
       ...TYPOGRAPHY.label,
       fontWeight: "700",
     },
-    actionGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: SPACING.s,
-      marginBottom: SPACING.l,
-    },
-    statRow: {
-      flexDirection: "row",
-      gap: SPACING.s,
+    gridBlock: {
       marginBottom: SPACING.l,
     },
     tipCard: {
