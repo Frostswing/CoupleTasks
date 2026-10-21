@@ -15,6 +15,7 @@ import {
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { getCurrentUser, getDataSource } from '../services/userService';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../constants/categories';
+import { autoDetectStoreDepartment, resolveStoreDepartment } from '../constants/storeDepartments';
 import { saveShoppingItemToHistory } from '../services/historyService';
 
 export class ShoppingListItem {
@@ -22,6 +23,7 @@ export class ShoppingListItem {
     this.id = data.id || null;
     this.name = data.name || '';
     this.category = data.category || 'other';
+    this.store_department = data.store_department || resolveStoreDepartment(data);
     this.quantity = data.quantity || 1;
     this.unit = data.unit || 'pieces';
     this.is_purchased = data.is_purchased || false;
@@ -96,6 +98,8 @@ export class ShoppingListItem {
 
       // Auto-detect category if not provided
       const detectedCategory = itemData.category || autoDetectCategory(itemData.name);
+      const detectedDepartment =
+        itemData.store_department || autoDetectStoreDepartment(itemData.name);
       
       // Auto-set unit based on category if not provided
       const defaultUnit = itemData.unit || getDefaultUnitForCategory(detectedCategory);
@@ -106,6 +110,7 @@ export class ShoppingListItem {
         created_date: new Date().toISOString(),
         updated_date: new Date().toISOString(),
         category: detectedCategory,
+        store_department: detectedDepartment,
         quantity: itemData.quantity || 1,
         unit: defaultUnit,
         is_purchased: false,

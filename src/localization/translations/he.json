@@ -1,4 +1,7 @@
 {
+    "app": {
+        "displayName": "Couple of Tasks"
+    },
     "common": {
         "welcome": "ברוכים הבאים",
         "loading": "טוען...",
@@ -35,6 +38,7 @@
         "languageChanged": "השפה שונתה בהצלחה"
     },
     "auth": {
+        "subtitle": "המטלות, הקניות והיומן שלכם במקום אחד",
         "signIn": "התחברות",
         "signUp": "הרשמה",
         "signOut": "התנתקות",
@@ -65,7 +69,20 @@
         "enterEmailForReset": "אנא הזן כתובת דוא\"ל תחילה",
         "passwordResetEmailSent": "אימייל לאיפוס סיסמה נשלח! אנא בדוק את תיבת הדואר הנכנס שלך."
     },
+    "kudos": {
+        "title": "קרדיט",
+        "subtitle": "חגגו את {{name}} היום",
+        "heroLine": "שלחו הערכה קטנה",
+        "body": "תודה קצרה עושה הבדל. ציינו משהו שבן/בת הזוג עשו השבוע — או תכננו ערב זוגי באירועים."
+    },
     "navigation": {
+        "tabs": {
+            "home": "בית",
+            "tasks": "מטלות",
+            "events": "אירועים",
+            "kudos": "קרדיט",
+            "profile": "פרופיל"
+        },
         "tasks": "מטלות",
         "addTask": "הוספת מטלה",
         "taskTable": "טבלת מטלות",
@@ -100,8 +117,47 @@
     },
     "home": {
         "title": "בית",
-        "welcome": "ברוכים הבאים ל-CoupleTasks",
-        "subtitle": "נהלו את המטלות והקניות שלכם יחד",
+        "welcome": "ברוכים הבאים",
+        "subtitle": "נהלו את המטלות והקניות שלכם",
+        "subtitleCouple": "נהלו את המטלות והקניות שלכם יחד",
+        "greetingMorning": "בוקר טוב",
+        "greetingAfternoon": "צהריים טובים",
+        "greetingEvening": "ערב טוב",
+        "greetingSolo": "{{name}}!",
+        "greetingCouple": "{{name}} ו{{partner}}!",
+        "statCompletedSolo": "{{count}} מטלות הושלמו",
+        "statCompletedTogether": "{{count}} מטלות הושלמו יחד",
+        "invitePartnerTitle": "הזמינו את בן/בת הזוג",
+        "invitePartnerSubtitle": "קשרו חשבונות לשיתוף רשימות ומטלות",
+        "notifications": "התראות",
+        "fallbackName": "שם",
+        "tipSolo": "צעדים קטנים היום מקלים על מחר.",
+        "tipCouple": "מטלות קטנות יחד עושות הבדל גדול!",
+        "quickActions": "פעולות מהירות",
+        "seeAll": "הצג הכל",
+        "tipTitle": "טיפ היום",
+        "statTasksTitle": "{{count}} מטלות",
+        "statTasksSub": "לביצוע",
+        "statWeekTitle": "השבוע",
+        "statWeekSub": "{{count}} מטלות הושלמו",
+        "actions": {
+            "grocery": "הוסף לקניות",
+            "grocerySub": "מה חסר לנו?",
+            "dateNight": "תכנן ערב זוגי",
+            "dateNightSub": "בואו נעשה משהו כיף!",
+            "completeTasks": "סיים מטלות",
+            "completeTasksSub": "סמן מה בוצע",
+            "kudos": "תן קרדיט",
+            "kudosSub": "העריך אחד את השני",
+            "budget": "תקציב משותף",
+            "budgetSub": "עקוב אחר הוצאות",
+            "chat": "צ'אט ושיתוף",
+            "chatSub": "דברו על הכל",
+            "planningSub": "תכנון קדימה",
+            "inventorySub": "מה יש בבית",
+            "shoppingModeSub": "קניות לפי מחלקות",
+            "eventsSub": "הלו\"ז שלך"
+        },
         "tasksDescription": "צפו ונהלו את המטלות שלכם",
         "shoppingDescription": "נהלו את רשימת הקניות שלכם",
         "addShoppingItem": "הוסף מוצר לרשימה",
@@ -110,14 +166,38 @@
     "dashboard": {
         "welcomeBack": "ברוכים הבאים,",
         "subtitle": "בואו נראה מה אתם ושותפכם צריכים לטפל בו היום",
+        "subtitleSolo": "סקירת המטלות שלך",
         "totalTasks": "כל המטלות",
         "completed": "הושלמו",
         "myTasks": "המטלות שלי",
         "overdue": "באיחור",
         "noTasksFound": "לא נמצאו מטלות",
-        "createFirstTask": "התחילו ביצירת המטלה המשותפת הראשונה שלכם!",
+        "createFirstTaskCouple": "התחילו ביצירת המטלה המשותפת הראשונה שלכם!",
+        "createFirstTaskSolo": "התחילו ביצירת המטלה הראשונה שלכם!",
         "adjustFilters": "נסו לשנות את הפילטרים כדי לראות יותר מטלות.",
         "addFirstTask": "הוסף את המטלה הראשונה"
+    },
+    "addTask": {
+        "subtitleSolo": "צור מטלה אישית חדשה",
+        "subtitleCouple": "צור מטלה חדשה עבורכם ועבור בן/בת הזוג"
+    },
+    "events": {
+        "subtitleSolo": "היומן שלך",
+        "subtitleCouple": "יומן משותף והזמנות"
+    },
+    "settings": {
+        "subtitleSolo": "נהל את הפרופיל והבית שלך",
+        "subtitleCouple": "נהל את הפרופיל והחיבור לבן/בת הזוג",
+        "inviteTitle": "הזמינו את בן/בת הזוג",
+        "inviteDescription": "הזינו את האימייל של בן/בת הזוג לסנכרון מטלות. עליהם כבר להיות רשומים.",
+        "partnerEmailLabel": "אימייל בן/בת הזוג",
+        "inviteHintTitle": "קישור דו-כיווני",
+        "inviteHintBody": "בן/בת הזוג צריכים להוסיף את האימייל שלכם בהגדרות שלהם לסנכרון מלא.",
+        "savePartnerLink": "שמור חיבור לבן/בת הזוג",
+        "saving": "שומר...",
+        "listSharingLink": "או שתפו רשימות קניות במקום",
+        "partnerLinkedTitle": "בן/בת הזוג מחוברים",
+        "partnerLinkedDescription": "אתם מקושרים ויכולים לשתף מטלות ורשימות."
     },
     "tasks": {
         "title": "כותרת המטלה",
@@ -186,7 +266,34 @@
         "addToList": "הוסף לרשימה",
         "adding": "מוסיף...",
         "pleaseEnterItemName": "אנא הזן שם למוצר",
-        "errorAddingItem": "אירעה שגיאה בהוספת המוצר"
+        "errorAddingItem": "אירעה שגיאה בהוספת המוצר",
+        "storeDepartment": "מדור בחנות",
+        "groupedByAisle": "מקובץ לפי מדורים בחנות",
+        "storeLayoutTitle": "סדר המדורים",
+        "storeLayoutSubtitle": "סדרו את המדורים לפי איך אתם הולכים בסופר. משותף עם בן/בת הזוג.",
+        "quickAddPlaceholder": "הוסיפו פריט…",
+        "searchPlaceholder": "חיפוש פריטים…",
+        "shopMode": "קניות",
+        "autoAdded": "מהמלאי",
+        "deleteItemTitle": "למחוק פריט?",
+        "deleteItemMessage": "הפריט יוסר מהרשימה.",
+        "purchasedSection": "נקנו",
+        "toBuySection": "לקנות",
+        "emptyTitle": "הרשימה ריקה",
+        "emptySubtitle": "הוסיפו למעלה או פרטים נוספים לתמונה וקישור.",
+        "moreDetails": "פרטים נוספים",
+        "storeDepartments": {
+            "produce": "פירות וירקות",
+            "bakery": "מאפייה",
+            "dairy": "חלב וביצים",
+            "meat_fish": "בשר ודגים",
+            "frozen": "מוקפאים",
+            "dry_goods": "מזון יבש",
+            "drinks": "משקאות",
+            "cleaning": "ניקוי",
+            "personal_care": "טיפוח",
+            "other": "אחר"
+        }
     },
     "app": {
         "loadingApp": "טוען את האפליקציה...",

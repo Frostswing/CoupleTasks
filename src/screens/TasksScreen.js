@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {  useState, useEffect , useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,8 +17,12 @@ import {
 } from "../services/taskService";
 import { getCurrentUser } from "../services/userService";
 import { useNavigation } from "@react-navigation/native";
+import { COLORS, SHADOWS } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 
 const TasksScreen = () => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -275,7 +279,8 @@ const TasksScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
@@ -292,12 +297,12 @@ const styles = StyleSheet.create({
   },
   dataSourceText: {
     fontSize: 14,
-    color: "#666",
+    color: colors.textSecondary,
     fontStyle: "italic",
     textAlign: "center",
   },
   loginButton: {
-    backgroundColor: "#f4511e",
+    backgroundColor: colors.primary,
     padding: 10,
     borderRadius: 5,
     marginTop: 5,
@@ -314,7 +319,7 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: "center",
     marginTop: 50,
-    color: "#888",
+    color: colors.textTertiary,
   },
   list: {
     flex: 1,
@@ -324,7 +329,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: colors.borderLight,
   },
   taskContent: {
     flex: 1,
@@ -337,10 +342,10 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#f4511e",
+    borderColor: colors.primary,
   },
   checkboxChecked: {
-    backgroundColor: "#f4511e",
+    backgroundColor: colors.primary,
   },
   taskTitle: {
     fontSize: 16,
@@ -348,11 +353,11 @@ const styles = StyleSheet.create({
   },
   completedText: {
     textDecorationLine: "line-through",
-    color: "#888",
+    color: colors.textTertiary,
   },
   taskDescription: {
     marginTop: 5,
-    color: "#666",
+    color: colors.textSecondary,
     fontSize: 14,
   },
   deleteButton: {
@@ -363,7 +368,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   addButton: {
-    backgroundColor: "#f4511e",
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -383,7 +388,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
-    shadowColor: "#000",
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -400,7 +405,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 10,
     marginVertical: 8,
@@ -422,15 +427,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   saveButton: {
-    backgroundColor: "#f4511e",
+    backgroundColor: colors.primary,
   },
   cancelButton: {
-    backgroundColor: "#ddd",
+    backgroundColor: colors.border,
   },
   buttonText: {
     fontWeight: "bold",
-    color: "white",
+    color: COLORS.textInverse,
   },
 });
+}
 
 export default TasksScreen;

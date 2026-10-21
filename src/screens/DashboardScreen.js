@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback , useMemo} from "react";
 import {
   View,
   Text,
@@ -11,8 +11,13 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Task } from "../entities/Task";
+import { COLORS, SPACING, SHADOWS, screenBackgroundStyle } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import i18n from "../localization/i18n";
 import { User } from "../entities/User";
 import TaskCard from "../components/Tasks/TaskCard";
 import TaskFilters from "../components/Tasks/TaskFilters";
@@ -20,10 +25,15 @@ import EditTaskDialog from "../components/Tasks/EditTaskDialog";
 import { handleError, showSuccess } from "../services/errorHandlingService";
 import { add, addDays, addMonths, addWeeks } from 'date-fns';
 import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from "../services/taskCache";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isPartnered } = usePartnerMode();
+
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -416,55 +426,44 @@ export default function DashboardScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#14B8A6" />
-          <Text style={styles.loadingText}>Loading your tasks...</Text>
-        </View>
-      </SafeAreaView>
+      <PremiumScreenShell loading loadingLabel="Loading your tasks..." title={i18n.t("navigation.drawer.allTasks")} />
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={["#14B8A6"]}
-            tintColor="#14B8A6"
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.welcomeText}>
-              Welcome back, {currentUser?.full_name || 'Partner'}!
-            </Text>
-            <Text style={styles.subtitleText}>
-              Let's see what you and your partner need to tackle today
-            </Text>
-          </View>
-          <TouchableOpacity 
-            style={[styles.addButton, isUpdating && styles.disabledButton]}
-            onPress={() => navigation.navigate('AddTask')}
-            disabled={isUpdating}
-          >
-            <Icon name="add" size={24} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>Add Task</Text>
-          </TouchableOpacity>
-        </View>
-
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.allTasks")}
+      subtitle={
+        currentUser?.full_name
+          ? `${i18n.t("dashboard.welcomeBack")} ${currentUser.full_name.split(" ")[0]}!`
+          : i18n.t("dashboard.subtitleSolo")
+      }
+      heroStats={[
+        { label: "Total", value: String(stats.total) },
+        { label: "Done", value: String(stats.completed) },
+        { label: "Overdue", value: String(stats.overdue) },
+      ]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
+      }
+      fab={{
+        icon: "add",
+        onPress: () => navigation.navigate("AddTask"),
+        accessibilityLabel: i18n.t("navigation.addTask"),
+      }}
+    >
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
-                <Icon name="favorite" size={20} color="#2563EB" />
+              <View style={[styles.statIcon, { backgroundColor: colors.primaryMuted }]}>
+                <Icon name="favorite" size={20} color={colors.primary} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Total Tasks</Text>
@@ -473,8 +472,8 @@ export default function DashboardScreen({ navigation }) {
             </View>
             
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#DCFCE7' }]}>
-                <Icon name="check-circle" size={20} color="#16A34A" />
+              <View style={[styles.statIcon, { backgroundColor: colors.successMuted }]}>
+                <Icon name="check-circle" size={20} color={colors.success} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Completed</Text>
@@ -485,8 +484,8 @@ export default function DashboardScreen({ navigation }) {
           
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#E6FFFA' }]}>
-                <Icon name="person" size={20} color="#0D9488" />
+              <View style={[styles.statIcon, { backgroundColor: colors.primaryMuted }]}>
+                <Icon name="person" size={20} color={colors.primaryDark} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Your Tasks</Text>
@@ -495,8 +494,8 @@ export default function DashboardScreen({ navigation }) {
             </View>
             
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
-                <Icon name="warning" size={20} color="#DC2626" />
+              <View style={[styles.statIcon, { backgroundColor: colors.errorMuted }]}>
+                <Icon name="warning" size={20} color={colors.error} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statLabel}>Overdue</Text>
@@ -521,20 +520,21 @@ export default function DashboardScreen({ navigation }) {
           {filteredTasks.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="favorite" size={40} color="#14B8A6" />
+                <Icon name="favorite" size={40} color={colors.primary} />
               </View>
               <Text style={styles.emptyTitle}>No tasks found</Text>
               <Text style={styles.emptySubtitle}>
-                {tasks.length === 0 
-                  ? "Start by creating your first shared task together!" 
-                  : "Try adjusting your filters to see more tasks."
-                }
+                {tasks.length === 0
+                  ? isPartnered
+                    ? i18n.t("dashboard.createFirstTaskCouple")
+                    : i18n.t("dashboard.createFirstTaskSolo")
+                  : i18n.t("dashboard.adjustFilters")}
               </Text>
               <TouchableOpacity 
                 style={styles.emptyButton}
                 onPress={() => navigation.navigate('AddTask')}
               >
-                <Icon name="add" size={20} color="#FFFFFF" />
+                <Icon name="add" size={20} color={COLORS.textInverse} />
                 <Text style={styles.emptyButtonText}>Add Your First Task</Text>
               </TouchableOpacity>
             </View>
@@ -553,7 +553,7 @@ export default function DashboardScreen({ navigation }) {
             </View>
           )}
         </View>
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Edit Task Modal */}
       <EditTaskDialog
@@ -562,18 +562,19 @@ export default function DashboardScreen({ navigation }) {
         onClose={() => setEditingTask(null)}
         onUpdateTask={handleUpdateTask}
       />
-    </SafeAreaView>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -583,7 +584,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -603,31 +604,24 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    ...SHADOWS.md,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -642,20 +636,13 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   statIcon: {
     width: 40,
@@ -670,13 +657,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   filtersContainer: {
     paddingHorizontal: 20,
@@ -693,7 +680,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -702,12 +689,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: 32,
@@ -715,13 +702,13 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -731,4 +718,5 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-}); 
+});
+}

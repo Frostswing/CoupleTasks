@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useMemo} from "react";
 import {
   View,
   Text,
@@ -12,14 +12,21 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { TaskTableConfig } from '../entities/TaskTableConfig';
 import excelImportService from '../services/excelImportService';
 import taskTableSyncService from '../services/taskTableSyncService';
 import i18n from '../localization/i18n';
+import { COLORS, screenBackgroundStyle } from '../constants/theme';
+import { useAppTheme } from '../context/ThemeContext';
+import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
+import PremiumScreenShell from '../components/premium/PremiumScreenShell';
 
 export default function TaskTableScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [tableRows, setTableRows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -249,17 +256,17 @@ export default function TaskTableScreen({ navigation }) {
     <View style={styles.rowCard}>
       <View style={styles.rowHeader}>
         <View style={styles.rowHeaderLeft}>
-          <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(row.category) }]}>
+          <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(row.category, colors) }]}>
             <Text style={styles.categoryBadgeText}>{row.category}</Text>
           </View>
           <Text style={styles.subcategoryText}>{row.subcategory}</Text>
         </View>
         <View style={styles.rowActions}>
           <TouchableOpacity onPress={() => handleEditRow(row)} style={styles.actionButton}>
-            <Icon name="edit" size={20} color="#6B7280" />
+            <Icon name="edit" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDeleteRow(row)} style={styles.actionButton}>
-            <Icon name="delete" size={20} color="#EF4444" />
+            <Icon name="delete" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -305,7 +312,7 @@ export default function TaskTableScreen({ navigation }) {
 
       {row.is_synced && (
         <View style={styles.syncedBadge}>
-          <Icon name="check-circle" size={14} color="#16A34A" />
+          <Icon name="check-circle" size={14} color={colors.success} />
           <Text style={styles.syncedBadgeText}>Synced</Text>
         </View>
       )}
@@ -319,11 +326,11 @@ export default function TaskTableScreen({ navigation }) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.modalContainer}>
+      <SafeAreaView style={[styles.modalContainer, screenBackgroundStyle(colors)]}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{title}</Text>
           <TouchableOpacity onPress={onClose}>
-            <Icon name="close" size={24} color="#6B7280" />
+            <Icon name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -445,25 +452,16 @@ export default function TaskTableScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#14B8A6" />
-        <Text style={styles.loadingText}>Loading task table...</Text>
-      </SafeAreaView>
+      <PremiumScreenShell loading loadingLabel="Loading task table..." title={i18n.t("navigation.drawer.taskTable")} />
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Task Table</Text>
-          <Text style={styles.subtitle}>
-            {tableRows.length} task{tableRows.length !== 1 ? 's' : ''} configured
-          </Text>
-        </View>
-      </View>
-
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.taskTable")}
+      subtitle={`${tableRows.length} task${tableRows.length !== 1 ? "s" : ""} configured`}
+    >
       {/* Action Buttons */}
       <View style={styles.actionBar}>
         <TouchableOpacity
@@ -472,10 +470,10 @@ export default function TaskTableScreen({ navigation }) {
           disabled={isImporting}
         >
           {isImporting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={COLORS.textInverse} />
           ) : (
             <>
-              <Icon name="upload-file" size={20} color="#FFFFFF" />
+              <Icon name="upload-file" size={20} color={COLORS.textInverse} />
               <Text style={styles.actionBarButtonText}>Import Excel</Text>
             </>
           )}
@@ -487,10 +485,10 @@ export default function TaskTableScreen({ navigation }) {
           disabled={isSyncing || tableRows.length === 0}
         >
           {isSyncing ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={COLORS.textInverse} />
           ) : (
             <>
-              <Icon name="sync" size={20} color="#FFFFFF" />
+              <Icon name="sync" size={20} color={COLORS.textInverse} />
               <Text style={styles.actionBarButtonText}>Sync</Text>
             </>
           )}
@@ -500,23 +498,22 @@ export default function TaskTableScreen({ navigation }) {
           style={[styles.actionBarButton, styles.addButton]}
           onPress={handleAddRow}
         >
-          <Icon name="add" size={20} color="#FFFFFF" />
+          <Icon name="add" size={20} color={COLORS.textInverse} />
         </TouchableOpacity>
       </View>
 
       {/* Table Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {tableRows.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="table-chart" size={48} color="#14B8A6" />
+              <Icon name="table-chart" size={48} color={colors.primary} />
             </View>
             <Text style={styles.emptyTitle}>No Tasks Yet</Text>
             <Text style={styles.emptySubtitle}>
               Import an Excel file or add tasks manually to get started
             </Text>
             <TouchableOpacity style={styles.emptyButton} onPress={handleImportExcel}>
-              <Icon name="upload-file" size={20} color="#FFFFFF" />
+              <Icon name="upload-file" size={20} color={COLORS.textInverse} />
               <Text style={styles.emptyButtonText}>Import Excel File</Text>
             </TouchableOpacity>
           </View>
@@ -528,12 +525,12 @@ export default function TaskTableScreen({ navigation }) {
             
             {/* Clear Table Button */}
             <TouchableOpacity style={styles.clearButton} onPress={handleClearTable}>
-              <Icon name="delete-sweep" size={20} color="#EF4444" />
+              <Icon name="delete-sweep" size={20} color={colors.error} />
               <Text style={styles.clearButtonText}>Clear All Data</Text>
             </TouchableOpacity>
           </View>
         )}
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Add/Edit Modals */}
       <FormModal
@@ -546,38 +543,39 @@ export default function TaskTableScreen({ navigation }) {
         onClose={() => setShowEditDialog(false)}
         title="Edit Task"
       />
-    </SafeAreaView>
+    </>
   );
 }
 
-const getCategoryColor = (category) => {
-  const colors = {
-    'ניקיון': '#3B82F6',
-    'כביסה': '#14B8A6',
-    'תחזוקה שוטפת': '#F59E0B',
-    'רכב': '#EF4444',
-    'חיות מחמד': '#10B981',
-    'תשלומים וכלכלה': '#6366F1',
-    'אוכל': '#EC4899',
+function getCategoryColor(category, themeColors) {
+  const map = {
+    'ניקיון': themeColors.primaryLight,
+    'כביסה': themeColors.primary,
+    'תחזוקה שוטפת': themeColors.warning,
+    'רכב': themeColors.error,
+    'חיות מחמד': themeColors.success,
+    'תשלומים וכלכלה': themeColors.primary,
+    'אוכל': themeColors.primary,
   };
-  return colors[category] || '#6B7280';
-};
+  return map[category] || themeColors.textSecondary;
+}
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     paddingHorizontal: 20,
@@ -587,12 +585,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   actionBar: {
     flexDirection: 'row',
@@ -610,20 +608,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionBarButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     fontSize: 14,
   },
   importButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primaryLight,
   },
   syncButton: {
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
   },
   addButton: {
     flex: 0,
     width: 48,
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
   },
   scrollView: {
     flex: 1,
@@ -633,11 +631,11 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   rowCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -661,13 +659,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   categoryBadgeText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 12,
     fontWeight: '600',
   },
   subcategoryText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   rowActions: {
     flexDirection: 'row',
@@ -679,7 +677,7 @@ const styles = StyleSheet.create({
   taskNameText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
   },
   rowDetails: {
@@ -692,18 +690,18 @@ const styles = StyleSheet.create({
   detailSectionTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: colors.primary,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
   detailText: {
     fontSize: 13,
-    color: '#4B5563',
+    color: colors.textSecondary,
     marginBottom: 3,
   },
   detailDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
   },
   syncedBadge: {
     flexDirection: 'row',
@@ -712,32 +710,32 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successMuted,
     borderRadius: 8,
     gap: 4,
   },
   syncedBadgeText: {
     fontSize: 11,
-    color: '#16A34A',
+    color: colors.success,
     fontWeight: '600',
   },
   notesContainer: {
     marginTop: 12,
     padding: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.borderLight,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#14B8A6',
+    borderLeftColor: colors.primary,
   },
   notesLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   notesText: {
     fontSize: 13,
-    color: '#4B5563',
+    color: colors.textSecondary,
     lineHeight: 18,
   },
   notesInput: {
@@ -753,7 +751,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   clearButtonText: {
-    color: '#EF4444',
+    color: colors.error,
     fontWeight: '600',
   },
   emptyState: {
@@ -764,7 +762,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -773,31 +771,31 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
     gap: 8,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -806,12 +804,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   modalContent: {
     padding: 20,
@@ -822,36 +820,36 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#1F2937',
+    backgroundColor: colors.surface,
+    color: colors.text,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: colors.primary,
     marginTop: 16,
     marginBottom: 12,
   },
   saveButton: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 24,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },
 });
-
+}

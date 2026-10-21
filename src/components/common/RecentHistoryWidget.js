@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {  useState, useEffect , useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,16 @@ import {
   FlatList,
   StyleSheet,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getRecentHistory } from '../../services/historyService';
 import { getCategoryById } from '../../constants/categories';
 import i18n from '../../localization/i18n';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [recentItems, setRecentItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -86,7 +90,7 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
           <Icon 
             name={type === 'shopping' ? 'shopping-basket' : 'task-alt'} 
             size={32} 
-            color="#D1D5DB" 
+            color={colors.border} 
           />
           <Text style={styles.emptyText}>
             {type === 'shopping' ? i18n.t('history.noShoppingYet') : i18n.t('history.noTasksYet')}
@@ -104,7 +108,7 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
         </Text>
         <TouchableOpacity onPress={onSeeAll} style={styles.seeAllButton}>
           <Text style={styles.seeAllText}>{i18n.t('history.all')}</Text>
-          <Icon name="chevron-left" size={16} color="#14B8A6" />
+          <Icon name="chevron-left" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
       
@@ -119,12 +123,13 @@ const RecentHistoryWidget = ({ type = 'shopping', onSeeAll }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
@@ -140,7 +145,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   seeAllButton: {
     flexDirection: 'row',
@@ -148,7 +153,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: '#14B8A6',
+    color: colors.primary,
     fontWeight: '600',
     marginRight: 4,
   },
@@ -158,7 +163,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   emptyContainer: {
     paddingVertical: 20,
@@ -166,7 +171,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     marginTop: 8,
   },
   list: {
@@ -193,15 +198,16 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 14,
-    color: '#1F2937',
+    color: colors.text,
     fontWeight: '500',
     flex: 1,
   },
   itemDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     marginLeft: 8,
   },
 });
+}
 
 export default RecentHistoryWidget; 

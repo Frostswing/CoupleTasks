@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "CoupleTasks",
+    "name": "Couple of Tasks",
     "slug": "CoupleTasks",
     "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FAFAFA"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,12 +20,15 @@
       "package": "com.eden.coupletasks",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FAFAFA"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Couple of Tasks",
+      "shortName": "Couple of Tasks",
+      "description": "Tasks, shopping, and calendar for your household"
     },
     "scheme": "coupletasks",
     "extra": {
@@ -41,7 +44,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#8B5CF6",
+          "color": "#0D9488",
           "sounds": []
         }
       ]

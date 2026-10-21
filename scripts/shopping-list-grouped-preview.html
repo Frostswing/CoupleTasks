@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CoupleTasks — Shopping list (grouped)</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: #FAFAFA; color: #18181B; }
+    .phone { max-width: 390px; margin: 24px auto; background: #FAFAFA; min-height: 800px; border: 1px solid #E4E4E7; border-radius: 24px; overflow: hidden; }
+    .header { padding: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    h1 { font-size: 24px; margin: 0 0 4px; }
+    .sub { color: #52525B; font-size: 14px; }
+    .actions { display: flex; gap: 8px; }
+    .icon-btn { width: 44px; height: 44px; border-radius: 22px; background: #DBEAFE; border: none; color: #2563EB; font-size: 18px; }
+    .primary { background: #2563EB; color: #fff; border: none; border-radius: 12px; padding: 10px 14px; font-weight: 600; }
+    .search { margin: 0 20px 16px; padding: 12px 16px; background: #fff; border: 1px solid #E4E4E7; border-radius: 12px; color: #A1A1AA; }
+    .section { padding: 0 20px 24px; }
+    .section h2 { font-size: 18px; margin-bottom: 12px; }
+    .dept { margin-bottom: 20px; }
+    .dept-head { display: flex; justify-content: space-between; border-bottom: 1px solid #E4E4E7; padding-bottom: 8px; margin-bottom: 8px; }
+    .dept-head span { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #52525B; font-weight: 600; }
+    .dept-head em { font-size: 12px; color: #A1A1AA; font-style: normal; }
+    .card { background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .card strong { display: block; font-size: 16px; }
+    .card small { color: #52525B; font-size: 13px; }
+    .card .aisle { color: #A1A1AA; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="header">
+      <div>
+        <h1>Shopping List</h1>
+        <p class="sub">Grouped by store aisle</p>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" type="button">⌂</button>
+        <button class="primary" type="button">▶ Shop</button>
+        <button class="icon-btn" type="button" style="background:#2563EB;color:#fff">+</button>
+      </div>
+    </div>
+    <div class="search">Search items...</div>
+    <div class="section">
+      <h2>To Buy</h2>
+      <div class="dept">
+        <div class="dept-head"><span>Produce</span><em>3</em></div>
+        <div class="card"><strong>Cucumbers</strong><small>2 kg</small><div class="aisle">Produce</div></div>
+        <div class="card"><strong>Tomatoes</strong><small>1 kg</small><div class="aisle">Produce</div></div>
+        <div class="card"><strong>Lettuce</strong><small>1 pcs</small><div class="aisle">Produce</div></div>
+      </div>
+      <div class="dept">
+        <div class="dept-head"><span>Dairy & eggs</span><em>2</em></div>
+        <div class="card"><strong>Milk</strong><small>2 L</small><div class="aisle">Dairy & eggs</div></div>
+        <div class="card"><strong>Eggs</strong><small>12 pcs</small><div class="aisle">Dairy & eggs</div></div>
+      </div>
+      <div class="dept">
+        <div class="dept-head"><span>Bakery</span><em>1</em></div>
+        <div class="card"><strong>Challah</strong><small>1 pcs</small><div class="aisle">Bakery</div></div>
+      </div>
+      <div class="dept">
+        <div class="dept-head"><span>Drinks</span><em>1</em></div>
+        <div class="card"><strong>Orange juice</strong><small>1 L</small><div class="aisle">Drinks</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

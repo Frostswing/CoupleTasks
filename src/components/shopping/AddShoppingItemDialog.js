@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {  useState , useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,18 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import CategorySelector from '../common/CategorySelector';
 import UnitSelector from '../common/UnitSelector';
 import AutoCompleteInput from '../common/AutoCompleteInput';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../../constants/categories';
 import i18n from '../../localization/i18n';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [formData, setFormData] = useState({
     name: '',
     category: 'other',
@@ -122,7 +126,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
           <View style={styles.header}>
             <Text style={styles.title}>{i18n.t('shopping.addToShoppingList')}</Text>
             <TouchableOpacity onPress={handleCancel} style={styles.closeButton}>
-              <Icon name="close" size={24} color="#6B7280" />
+              <Icon name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -156,7 +160,7 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
                   value={formData.quantity}
                   onChangeText={(value) => handleInputChange('quantity', value)}
                   keyboardType="numeric"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textTertiary}
                 />
               </View>
               
@@ -207,14 +211,15 @@ const AddShoppingItemDialog = ({ open, onOpenChange, onAddItem }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '80%',
@@ -227,12 +232,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   closeButton: {
     padding: 4,
@@ -260,18 +265,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    color: '#1F2937',
+    color: colors.text,
     minHeight: 56,
   },
   footer: {
@@ -279,7 +284,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.borderLight,
   },
   button: {
     flex: 1,
@@ -290,26 +295,27 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   cancelButton: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   submitButton: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   disabledButton: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: colors.textTertiary,
   },
 });
+}
 
 export default AddShoppingItemDialog; 

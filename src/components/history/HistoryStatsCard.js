@@ -5,13 +5,17 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getRecentHistory, getPopularItems } from '../../services/historyService';
 import i18n from '../../localization/i18n';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
 const HistoryStatsCard = ({ type = 'shopping' }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [stats, setStats] = useState({
     totalItems: 0,
     thisWeek: 0,
@@ -68,7 +72,7 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
           <Icon 
             name={isTask ? 'analytics' : 'bar-chart'} 
             size={20} 
-            color="#14B8A6" 
+            color={colors.primary} 
           />
         </View>
         <Text style={styles.headerTitle}>
@@ -98,7 +102,7 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
       {stats.mostPopular && (
         <View style={styles.popularSection}>
           <View style={styles.popularBadge}>
-            <Icon name="star" size={14} color="#F59E0B" />
+            <Icon name="star" size={14} color={colors.warning} />
             <Text style={styles.popularBadgeText}>{i18n.t('history.mostPopular')}</Text>
           </View>
           <Text style={styles.popularName}>
@@ -113,13 +117,14 @@ const HistoryStatsCard = ({ type = 'shopping' }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -127,7 +132,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     textAlign: 'center',
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     fontSize: 14,
     paddingVertical: 20,
   },
@@ -140,7 +145,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 12,
-    backgroundColor: '#CCFBF1',
+    backgroundColor: colors.primaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -148,7 +153,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -162,17 +167,17 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#14B8A6',
+    color: colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 16,
   },
   popularSection: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.warningMuted,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
   popularBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.warningMuted,
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -189,19 +194,20 @@ const styles = StyleSheet.create({
   popularBadgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#92400E',
+    color: colors.warning,
     marginLeft: 4,
   },
   popularName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   popularCount: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
 });
+}
 
 export default HistoryStatsCard; 

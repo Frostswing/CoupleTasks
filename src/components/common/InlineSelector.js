@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 /**
  * Inline selector component - displays all options as selectable buttons
@@ -12,6 +14,9 @@ export default function InlineSelector({
   label,
   multiColumn = false 
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -40,7 +45,7 @@ export default function InlineSelector({
                   {option.label}
                 </Text>
                 {isSelected && (
-                  <Icon name="check-circle" size={20} color="#14B8A6" />
+                  <Icon name="check-circle" size={20} color={colors.primary} />
                 )}
               </View>
             </TouchableOpacity>
@@ -51,14 +56,15 @@ export default function InlineSelector({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     width: '100%',
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: colors.text,
     marginBottom: 8,
   },
   optionsContainer: {
@@ -68,9 +74,9 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     width: '100%',
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: "#E5E7EB",
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     minHeight: 48,
@@ -82,8 +88,8 @@ const styles = StyleSheet.create({
     width: '46%',
   },
   optionButtonSelected: {
-    borderColor: "#14B8A6",
-    backgroundColor: "#E6FFFA",
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryMuted,
   },
   optionContent: {
     flexDirection: "row",
@@ -92,13 +98,14 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 15,
-    color: "#1F2937",
+    color: colors.text,
     fontWeight: "500",
     flex: 1,
     marginRight: 8,
   },
   optionTextSelected: {
-    color: "#14B8A6",
+    color: colors.primary,
     fontWeight: "600",
   },
 });
+}

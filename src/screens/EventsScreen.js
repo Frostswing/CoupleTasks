@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { Event } from "../entities/Event";
 import { User } from "../entities/User";
 import EventCard from "../components/Events/EventCard";
@@ -18,14 +17,30 @@ import EventForm from "../components/Events/EventForm";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
 import eventNotificationService from "../services/eventNotificationService";
 import eventCleanupService from "../services/eventCleanupService";
+import { COLORS } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import ChipFilter from "../components/premium/ChipFilter";
+import EmptyState from "../components/premium/EmptyState";
+import i18n from "../localization/i18n";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
 
 export default function EventsScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isPartnered } = usePartnerMode();
   const [events, setEvents] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [filter, setFilter] = useState("all"); // all, upcoming, pending, past
+
+  useEffect(() => {
+    if (!isPartnered && filter === "pending") {
+      setFilter("all");
+    }
+  }, [isPartnered, filter]);
 
   useEffect(() => {
     loadCurrentUser();
@@ -239,108 +254,53 @@ export default function EventsScreen({ navigation }) {
     e.status === 'pending' && e.created_by !== currentUser?.uid && e.event_type === 'invitation'
   ).length;
 
-  return (
-    <View style={styles.container}>
-      {/* Header with Filter and Add Button */}
-      <View style={styles.header}>
-        <View style={styles.filterContainer}>
-          <TouchableOpacity
-            onPress={() => setFilter("all")}
-            style={styles.filterButtonWrapper}
-          >
-            {filter === "all" ? (
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.filterButton, styles.filterButtonActive]}
-              >
-                <Text style={styles.filterTextActive}>All</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.filterButton}>
-                <Text style={styles.filterText}>All</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilter("upcoming")}
-            style={styles.filterButtonWrapper}
-          >
-            {filter === "upcoming" ? (
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.filterButton, styles.filterButtonActive]}
-              >
-                <Text style={styles.filterTextActive}>Upcoming</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.filterButton}>
-                <Text style={styles.filterText}>Upcoming</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilter("pending")}
-            style={styles.filterButtonWrapper}
-          >
-            {filter === "pending" ? (
-              <LinearGradient
-                colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.filterButton, styles.filterButtonActive]}
-              >
-                <View style={styles.filterButtonWithBadge}>
-                  <Text style={styles.filterTextActive}>Pending</Text>
-                  {pendingCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{pendingCount}</Text>
-                    </View>
-                  )}
-                </View>
-              </LinearGradient>
-            ) : (
-              <View style={styles.filterButton}>
-                <View style={styles.filterButtonWithBadge}>
-                  <Text style={styles.filterText}>Pending</Text>
-                  {pendingCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{pendingCount}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          onPress={() => {
-            setEditingEvent(null);
-            setShowAddModal(true);
-          }}
-          style={styles.addButtonContainer}
-        >
-          <LinearGradient
-            colors={["#14B8A6", "#06B6D4", "#3B82F6"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.addButton}
-          >
-            <Icon name="add" size={24} color="#FFFFFF" />
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+  const filterOptions = useMemo(() => {
+    const opts = [
+      { value: "all", label: "All" },
+      { value: "upcoming", label: "Upcoming" },
+    ];
+    if (isPartnered) {
+      opts.push({
+        value: "pending",
+        label: pendingCount > 0 ? `Pending (${pendingCount})` : "Pending",
+      });
+    }
+    return opts;
+  }, [isPartnered, pendingCount]);
 
-      {/* Events List */}
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      >
+  const upcomingCount = getFilteredEvents().filter((e) => !isPast(parseISO(e.event_date))).length;
+
+  return (
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.events")}
+      subtitle={
+        isPartnered ? i18n.t("events.subtitleCouple") : i18n.t("events.subtitleSolo")
+      }
+      referenceBody
+      heroAccent="events"
+      heroStats={[
+        { label: "Upcoming", value: String(upcomingCount) },
+        ...(isPartnered ? [{ label: "Pending", value: String(pendingCount) }] : []),
+      ]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
+      fab={{
+        icon: "add",
+        onPress: () => {
+          setEditingEvent(null);
+          setShowAddModal(true);
+        },
+        accessibilityLabel: "Add event",
+      }}
+    >
+        <ChipFilter options={filterOptions} value={filter} onChange={setFilter} style={{ marginHorizontal: -8 }} />
         {groupedEvents.today.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Today</Text>
@@ -432,17 +392,22 @@ export default function EventsScreen({ navigation }) {
         )}
 
         {getFilteredEvents().length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Icon name="event-busy" size={64} color="#D1D5DB" />
-            <Text style={styles.emptyText}>No events found</Text>
-            <Text style={styles.emptySubtext}>
-              {filter === "pending" 
-                ? "No pending invitations" 
-                : "Create your first event to get started"}
-            </Text>
-          </View>
+          <EmptyState
+            icon="event-busy"
+            title="No events found"
+            message={
+              filter === "pending"
+                ? "No pending invitations"
+                : "Create your first event to get started"
+            }
+            actionLabel="Add event"
+            onAction={() => {
+              setEditingEvent(null);
+              setShowAddModal(true);
+            }}
+          />
         )}
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Add/Edit Event Modal */}
       <Modal
@@ -462,14 +427,14 @@ export default function EventsScreen({ navigation }) {
                 setEditingEvent(null);
               }}
             >
-              <Icon name="close" size={24} color="#1F2937" />
+              <Icon name="close" size={24} color={colors.text} />
             </TouchableOpacity>
             {editingEvent && (
               <TouchableOpacity
                 onPress={() => handleDeleteEvent(editingEvent)}
                 style={styles.deleteButton}
               >
-                <Icon name="delete" size={24} color="#DC2626" />
+                <Icon name="delete" size={24} color={colors.error} />
               </TouchableOpacity>
             )}
           </View>
@@ -484,128 +449,120 @@ export default function EventsScreen({ navigation }) {
           />
         </View>
       </Modal>
-    </View>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  filterContainer: {
-    flexDirection: "row",
-    gap: 8,
-    flex: 1,
-  },
-  filterButtonWrapper: {
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-  },
-  filterButtonActive: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  filterButtonWithBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
-  },
-  filterTextActive: {
-    color: "#FFFFFF",
-  },
-  badge: {
-    backgroundColor: "#F59E0B",
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 6,
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  addButtonContainer: {
-    marginLeft: 12,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 12,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#6B7280",
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: "#9CA3AF",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  deleteButton: {
-    padding: 4,
-  },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    filterContainer: {
+      flexDirection: "row",
+      gap: 8,
+      flex: 1,
+    },
+    filterButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.borderLight,
+    },
+    filterButtonActiveSolid: {
+      backgroundColor: colors.primary,
+    },
+    filterButtonWithBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    filterText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.textSecondary,
+    },
+    filterTextActive: {
+      color: COLORS.textInverse,
+    },
+    badge: {
+      backgroundColor: colors.warning,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 6,
+    },
+    badgeText: {
+      color: COLORS.textInverse,
+      fontSize: 10,
+      fontWeight: "bold",
+    },
+    addButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginLeft: 12,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scrollView: {
+      flex: 1,
+    },
+    section: {
+      padding: 16,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 12,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 40,
+    },
+    emptyText: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginTop: 16,
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.textTertiary,
+      marginTop: 8,
+      textAlign: "center",
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    deleteButton: {
+      padding: 4,
+    },
+  });
+}
 

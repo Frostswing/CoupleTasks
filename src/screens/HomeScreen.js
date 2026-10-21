@@ -1,438 +1,357 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import i18n from "../localization/i18n";
-import { COLORS, SPACING, RADIUS, SHADOWS, TYPOGRAPHY } from "../constants/theme";
+import { SPACING, RADIUS, TYPOGRAPHY, COLORS } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { usePartnerMode } from "../context/HouseholdPartnerContext";
+import CoupleHomeHero from "../components/home/CoupleHomeHero";
+import GradientQuickActionCard from "../components/home/GradientQuickActionCard";
+import PastelStatCard from "../components/home/PastelStatCard";
+import { Task } from "../entities/Task";
+import { ShoppingListItem } from "../entities/ShoppingListItem";
+import { User } from "../entities/User";
+import taskSchedulingService from "../services/taskSchedulingService";
+import { getCurrentUser } from "../services/userService";
+import { useTwoColumnGrid } from "../hooks/useTwoColumnGrid";
+import { displayFirstName } from "../utils/displayName";
 
 export default function HomeScreen({ navigation }) {
-  // Quick action cards configuration - ordered by priority (most used at top)
-  const quickActions = [
-    {
-      id: "events",
-      title: i18n.t("navigation.drawer.events"),
-      description: "Manage partner events and availability",
-      icon: "event",
-      color: COLORS.accent,
-      backgroundColor: COLORS.accentBg,
-      screen: "Events",
-      size: "large",
-      gradient: COLORS.gradientAccent,
-    },
-    {
-      id: "dailyTasks",
-      title: i18n.t("navigation.drawer.dailyTasks"),
-      description: "See what's due today and this week",
-      icon: "today",
-      color: COLORS.primaryLight,
-      backgroundColor: COLORS.primaryBg,
-      screen: "DailyTasks",
-      size: "small",
-    },
-    {
-      id: "addShoppingItem",
-      title: i18n.t("home.addShoppingItem"),
-      description: i18n.t("home.addShoppingItemDescription"),
-      icon: "add-shopping-cart",
-      color: COLORS.info,
-      backgroundColor: COLORS.infoBg,
-      screen: "ShoppingList",
-      params: { openAddDialog: true },
-      size: "small",
-    },
-    {
-      id: "taskPlanning",
-      title: i18n.t("navigation.drawer.taskPlanning"),
-      description: "Plan your tasks on calendar",
-      icon: "event",
-      color: COLORS.primary,
-      backgroundColor: COLORS.primaryBg,
-      screen: "TaskPlanning",
-      size: "small",
-    },
-    {
-      id: "addTask",
-      title: i18n.t("navigation.drawer.addTask"),
-      description: "Create a new task quickly",
-      icon: "add-circle",
-      color: COLORS.primaryLight,
-      backgroundColor: COLORS.primaryBg,
-      screen: "AddTask",
-      size: "small",
-    },
-    {
-      id: "shoppingList",
-      title: i18n.t("navigation.drawer.shoppingList"),
-      description: "Manage your shopping items",
-      icon: "shopping-cart",
-      color: COLORS.info,
-      backgroundColor: COLORS.infoBg,
-      screen: "ShoppingList",
-      size: "small",
-    },
-    {
-      id: "shoppingMode",
-      title: i18n.t("navigation.drawer.shoppingMode"),
-      description: "Guided shopping flow",
-      icon: "shopping-bag",
-      color: COLORS.secondary,
-      backgroundColor: COLORS.secondaryBg,
-      screen: "ShoppingMode",
-      size: "small",
-    },
-    {
-      id: "inventory",
-      title: i18n.t("navigation.drawer.inventory"),
-      description: "Track household items",
-      icon: "inventory-2",
-      color: COLORS.success,
-      backgroundColor: COLORS.successBg,
-      screen: "Inventory",
-      size: "large",
-    },
-    {
-      id: "history",
-      title: i18n.t("navigation.drawer.history"),
-      description: "View completion stats",
-      icon: "history",
-      color: COLORS.warning,
-      backgroundColor: COLORS.warningBg,
-      screen: "History",
-      size: "small",
-    },
-    {
-      id: "management",
-      title: i18n.t("navigation.drawer.management"),
-      description: "Comprehensive statistics and analytics dashboard",
-      icon: "analytics",
-      color: COLORS.primaryLight,
-      backgroundColor: COLORS.primaryBg,
-      screen: "Management",
-      size: "large",
-      gradient: COLORS.gradientPrimary,
-    },
-  ];
+  const { colors, isDark } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const {
+    loading: partnerLoading,
+    isPartnered,
+    profile,
+    userFirstName,
+    partnerFirstName,
+    partnerEmail,
+    partnerProfile,
+  } = usePartnerMode();
+
+  const [loading, setLoading] = useState(true);
+  const [taskFocus, setTaskFocus] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [completedThisWeek, setCompletedThisWeek] = useState(0);
+  const grid = useTwoColumnGrid(SPACING.l, SPACING.s);
+  const authEmail = getCurrentUser()?.email || "";
+  const resolvedEmail = profile?.email || authEmail;
+  const greetingName = userFirstName || displayFirstName(profile, authEmail);
+
+  const loadDashboard = useCallback(async () => {
+    try {
+      const user = await User.me();
+      const userEmails = [user.email];
+      if (user.partner_email) userEmails.push(user.partner_email);
+
+      const allTasks = await Task.filter({ is_archived: { "$ne": true } });
+      const tasks = allTasks.filter((t) => {
+        if (userEmails.includes(t.assigned_to)) return true;
+        if (isPartnered && t.assigned_to === "together") return true;
+        if (!t.assigned_to) return true;
+        return userEmails.includes(t.created_by);
+      });
+      const grouped = taskSchedulingService.groupTasksByUrgency(tasks);
+      setTaskFocus(
+        grouped.overdue.length +
+          grouped.today.length +
+          grouped.thisWeek.length +
+          grouped.comingSoon.length
+      );
+      const completed = tasks.filter((t) => t.status === "completed").length;
+      setCompletedCount(completed);
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      setCompletedThisWeek(
+        tasks.filter((t) => {
+          if (t.status !== "completed" || !t.completed_at) return false;
+          return new Date(t.completed_at).getTime() >= weekAgo;
+        }).length
+      );
+
+      const shopping = await ShoppingListItem.list("-created_date");
+      const pending = shopping.filter(
+        (item) =>
+          !item.is_archived &&
+          !item.is_purchased &&
+          (userEmails.includes(item.created_by) || userEmails.includes(item.added_by))
+      );
+      setShoppingPending(pending.length);
+    } catch (e) {
+      console.error("Home dashboard load", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [isPartnered]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  const quickActions = useMemo(() => {
+    const coupled = [
+      {
+        id: "grocery",
+        featureKey: "grocery",
+        icon: "shopping-cart",
+        title: i18n.t("home.actions.grocery"),
+        subtitle: i18n.t("home.actions.grocerySub"),
+        screen: "ShoppingList",
+        partnerOnly: false,
+      },
+      {
+        id: "dateNight",
+        featureKey: "dateNight",
+        icon: "event",
+        title: i18n.t("home.actions.dateNight"),
+        subtitle: i18n.t("home.actions.dateNightSub"),
+        screen: "Events",
+        partnerOnly: true,
+      },
+      {
+        id: "tasks",
+        featureKey: "tasks",
+        icon: "check-circle",
+        title: i18n.t("home.actions.completeTasks"),
+        subtitle: i18n.t("home.actions.completeTasksSub"),
+        screen: "DailyTasks",
+        partnerOnly: false,
+      },
+      {
+        id: "kudos",
+        featureKey: "kudos",
+        icon: "star",
+        title: i18n.t("home.actions.kudos"),
+        subtitle: i18n.t("home.actions.kudosSub"),
+        screen: "FourthTab",
+        partnerOnly: true,
+      },
+      {
+        id: "budget",
+        featureKey: "budget",
+        icon: "savings",
+        title: i18n.t("home.actions.budget"),
+        subtitle: i18n.t("home.actions.budgetSub"),
+        screen: "Management",
+        partnerOnly: true,
+      },
+      {
+        id: "chat",
+        featureKey: "chat",
+        icon: "chat",
+        title: i18n.t("home.actions.chat"),
+        subtitle: i18n.t("home.actions.chatSub"),
+        screen: "Sharing",
+        partnerOnly: true,
+      },
+    ];
+    const soloFill = [
+      {
+        id: "planning",
+        featureKey: "planning",
+        icon: "event-note",
+        title: i18n.t("navigation.drawer.taskPlanning"),
+        subtitle: i18n.t("home.actions.planningSub"),
+        screen: "TaskPlanning",
+        partnerOnly: false,
+      },
+      {
+        id: "inventory",
+        featureKey: "inventory",
+        icon: "inventory-2",
+        title: i18n.t("navigation.drawer.inventory"),
+        subtitle: i18n.t("home.actions.inventorySub"),
+        screen: "Inventory",
+        partnerOnly: false,
+      },
+      {
+        id: "shoppingMode",
+        featureKey: "shoppingMode",
+        icon: "shopping-bag",
+        title: i18n.t("navigation.drawer.shoppingMode"),
+        subtitle: i18n.t("home.actions.shoppingModeSub"),
+        screen: "ShoppingMode",
+        partnerOnly: false,
+      },
+      {
+        id: "eventsSolo",
+        featureKey: "events",
+        icon: "calendar-today",
+        title: i18n.t("navigation.drawer.events"),
+        subtitle: i18n.t("home.actions.eventsSub"),
+        screen: "Events",
+        partnerOnly: false,
+      },
+    ];
+    let list = coupled.filter((a) => !a.partnerOnly || isPartnered);
+    if (!isPartnered) {
+      const ids = new Set(list.map((a) => a.id));
+      for (const item of soloFill) {
+        if (list.length >= 6) break;
+        if (!ids.has(item.id)) list.push(item);
+      }
+    }
+    return list.slice(0, 6);
+  }, [isPartnered]);
 
   const handleNavigate = (screen, params) => {
     try {
-      if (params) {
+      if (["Home", "DailyTasks", "Settings", "FourthTab"].includes(screen)) {
         navigation.navigate(screen, params);
-      } else {
-        navigation.navigate(screen);
+        return;
       }
+      navigation.getParent()?.navigate(screen, params);
     } catch (error) {
-      console.error(`Error navigating to ${screen}:`, error);
+      console.error(`Navigation error: ${screen}`, error);
     }
   };
 
-  const renderCard = (action) => {
-    const isLarge = action.size === "large";
-    const isInventory = action.id === "inventory";
-    return (
-      <TouchableOpacity
-        key={action.id}
-        style={[
-          styles.card,
-          isLarge ? styles.cardLarge : styles.cardSmall,
-        ]}
-        onPress={() => handleNavigate(action.screen, action.params)}
-        activeOpacity={0.7}
-      >
-        {isLarge && !isInventory ? (
-          // Large card layout: centered icon and content with gradient
-          <LinearGradient
-            colors={action.gradient || COLORS.gradientPrimary}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.cardGradient}
-          >
-            <View style={styles.cardLargeContainer}>
-              <View
-                style={[
-                  styles.cardIconContainer,
-                  styles.cardIconContainerLarge,
-                  { backgroundColor: "rgba(255, 255, 255, 0.3)" },
-                ]}
-              >
-                <Icon name={action.icon} size={48} color="#FFFFFF" />
-              </View>
-              <View style={styles.cardContentLarge}>
-                <Text style={styles.cardTitleLargeWhite} numberOfLines={2}>
-                  {action.title}
-                </Text>
-                <Text style={styles.cardDescriptionLargeWhite} numberOfLines={2}>
-                  {action.description}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color="#FFFFFF" />
-            </View>
-          </LinearGradient>
-        ) : isLarge && isInventory ? (
-          // Large card layout without gradient for inventory
-          <>
-            <View style={styles.cardLargeContainer}>
-              <View
-                style={[
-                  styles.cardIconContainer,
-                  { backgroundColor: action.backgroundColor },
-                ]}
-              >
-                <Icon name={action.icon} size={48} color={action.color} />
-              </View>
-              <View style={styles.cardContentLarge}>
-                <Text style={styles.cardTitleLarge} numberOfLines={2}>
-                  {action.title}
-                </Text>
-                <Text style={styles.cardDescriptionLarge} numberOfLines={2}>
-                  {action.description}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color={action.color} />
-            </View>
-          </>
-        ) : (
-          // Small card layout: original layout
-          <>
-            <View
-              style={[
-                styles.cardIconContainer,
-                { backgroundColor: action.backgroundColor },
-              ]}
-            >
-              <Icon name={action.icon} size={40} color={action.color} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle} numberOfLines={2}>
-                {action.title}
-              </Text>
-              <Text style={styles.cardDescription} numberOfLines={2}>
-                {action.description}
-              </Text>
-            </View>
-            <View style={styles.cardArrow}>
-              <Icon name="arrow-forward" size={20} color={action.color} />
-            </View>
-          </>
-        )}
-      </TouchableOpacity>
-    );
+  const openDrawer = () => {
+    try {
+      navigation.getParent()?.getParent()?.openDrawer?.();
+    } catch {
+      /* optional */
+    }
   };
 
+  const tipText = isPartnered ? i18n.t("home.tipCouple") : i18n.t("home.tipSolo");
+
+  if (loading || partnerLoading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.textSecondary }}>{i18n.t("common.loading")}</Text>
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Welcome Section */}
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <CoupleHomeHero
+        isPartnered={isPartnered}
+        userFirstName={greetingName}
+        partnerFirstName={partnerFirstName}
+        userEmail={resolvedEmail}
+        userFullName={profile?.full_name}
+        partnerFullName={partnerProfile?.full_name}
+        partnerEmail={partnerEmail}
+        completedCount={completedCount}
+        onOpenMenu={openDrawer}
+        onNotifications={() => handleNavigate("Settings")}
+        onInvitePartner={() => handleNavigate("Settings")}
+      />
+
+      <View style={[styles.sheet, { backgroundColor: colors.background }]}>
+        <View style={styles.sectionHead}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{i18n.t("home.quickActions")}</Text>
+          <TouchableOpacity onPress={openDrawer}>
+            <Text style={[styles.seeAll, { color: colors.primary }]}>{i18n.t("home.seeAll")}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[grid.containerStyle, styles.gridBlock]}>
+          {quickActions.map((action) => (
+            <GradientQuickActionCard
+              key={action.id}
+              width={grid.cardWidth}
+              featureKey={action.featureKey}
+              icon={action.icon}
+              title={action.title}
+              subtitle={action.subtitle}
+              onPress={() => handleNavigate(action.screen)}
+            />
+          ))}
+        </View>
+
+        <View style={[grid.containerStyle, styles.gridBlock]}>
+          <PastelStatCard
+            width={grid.cardWidth}
+            pastel="pink"
+            icon="event"
+            iconColor={isDark ? COLORS.pastelPink : COLORS.accentPink}
+            title={i18n.t("home.statTasksTitle", { count: taskFocus })}
+            subtitle={i18n.t("home.statTasksSub")}
+            onPress={() => handleNavigate("DailyTasks")}
+          />
+          <PastelStatCard
+            width={grid.cardWidth}
+            pastel="teal"
+            icon="emoji-events"
+            iconColor={colors.primary}
+            title={i18n.t("home.statWeekTitle")}
+            subtitle={i18n.t("home.statWeekSub", { count: completedThisWeek })}
+            onPress={() => handleNavigate("Management")}
+          />
+        </View>
+
         <LinearGradient
-          colors={COLORS.gradientPrimary}
+          colors={isDark ? [COLORS.pastelPurpleDark, COLORS.dark.surface] : [COLORS.pastelPurple, COLORS.pastelPink]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.welcomeSection}
+          style={styles.tipCard}
         >
-          <Text style={styles.welcomeEmoji}>💜</Text>
-          <Text style={styles.welcomeText}>
-            {i18n.t("home.welcome")}
-          </Text>
-          <Text style={styles.subtitleText}>
-            {i18n.t("home.subtitle")}
-          </Text>
+          <Icon name="star" size={28} color={colors.primary} />
+          <View style={styles.tipBody}>
+            <Text style={[styles.tipTitle, { color: colors.text }]}>{i18n.t("home.tipTitle")}</Text>
+            <Text style={[styles.tipText, { color: colors.textSecondary }]}>{tipText}</Text>
+          </View>
+          {isPartnered ? <Icon name="favorite" size={24} color={colors.primary} /> : null}
         </LinearGradient>
-
-        {/* Quick Access Cards */}
-        <View style={styles.cardsContainer}>
-          {/* First Row - Events (Large, Full Width) */}
-          <View style={styles.row}>
-            {renderCard(quickActions[0])}
-          </View>
-
-          {/* Second Row - Daily Tasks + Add Shopping Item */}
-          <View style={styles.row}>
-            {renderCard(quickActions[1])}
-            {renderCard(quickActions[2])}
-          </View>
-
-          {/* Third Row - Task Planning + Add Task */}
-          <View style={styles.row}>
-            {renderCard(quickActions[3])}
-            {renderCard(quickActions[4])}
-          </View>
-
-          {/* Fourth Row - Shopping List + Shopping Mode */}
-          <View style={styles.row}>
-            {renderCard(quickActions[5])}
-            {renderCard(quickActions[6])}
-          </View>
-
-          {/* Fifth Row - Inventory (Large, Full Width) */}
-          <View style={styles.row}>
-            {renderCard(quickActions[7])}
-          </View>
-
-          {/* Sixth Row - History */}
-          <View style={styles.row}>
-            {renderCard(quickActions[8])}
-          </View>
-
-          {/* Seventh Row - Management (Large, Full Width) */}
-          <View style={styles.row}>
-            {renderCard(quickActions[9])}
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  welcomeSection: {
-    alignItems: "center",
-    marginTop: 24,
-    marginBottom: 32,
-    marginHorizontal: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    borderRadius: 20,
-  },
-  cardGradient: {
-    borderRadius: RADIUS.l,
-    padding: SPACING.m,
-    ...SHADOWS.medium,
-    position: "relative",
-  },
-  welcomeEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  welcomeText: {
-    ...TYPOGRAPHY.h1,
-    color: COLORS.surface,
-    marginBottom: SPACING.s,
-    textAlign: "center",
-  },
-  subtitleText: {
-    ...TYPOGRAPHY.body,
-    color: "rgba(255, 255, 255, 0.9)",
-    textAlign: "center",
-    paddingHorizontal: SPACING.m,
-  },
-  cardsContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.l,
-    padding: SPACING.m,
-    ...SHADOWS.small,
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    position: "relative",
-  },
-  cardLarge: {
-    flex: 1,
-    minHeight: 100,
-    alignItems: "center",
-  },
-  cardSmall: {
-    flex: 1,
-    minHeight: 130,
-  },
-  cardIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  cardContent: {
-    flex: 1,
-    width: "100%",
-    paddingRight: 32,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 6,
-    flexWrap: "wrap",
-  },
-  cardDescription: {
-    fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 18,
-    flexWrap: "wrap",
-  },
-  cardArrow: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    opacity: 0.6,
-  },
-  cardLargeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    paddingRight: 32,
-  },
-  cardIconContainerLarge: {
-    marginRight: 16,
-    marginBottom: 0,
-  },
-  cardContentLarge: {
-    flex: 1,
-  },
-  cardTitleLarge: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  cardTitleLargeWhite: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 4,
-  },
-  cardDescriptionLarge: {
-    fontSize: 14,
-    color: "#6B7280",
-    lineHeight: 20,
-  },
-  cardDescriptionLargeWhite: {
-    fontSize: 14,
-    color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: 20,
-  },
-});
-
+const createStyles = (colors) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+    },
+    loading: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sheet: {
+      flex: 1,
+      borderTopLeftRadius: RADIUS.xl,
+      borderTopRightRadius: RADIUS.xl,
+      marginTop: -SPACING.l,
+      paddingHorizontal: SPACING.l,
+      paddingTop: SPACING.l,
+      paddingBottom: SPACING.xxxl + 72,
+    },
+    sectionHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: SPACING.m,
+    },
+    sectionTitle: {
+      ...TYPOGRAPHY.h2,
+      fontSize: 18,
+    },
+    seeAll: {
+      ...TYPOGRAPHY.label,
+      fontWeight: "700",
+    },
+    gridBlock: {
+      marginBottom: SPACING.l,
+    },
+    tipCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SPACING.m,
+      borderRadius: RADIUS.l,
+      padding: SPACING.l,
+    },
+    tipBody: {
+      flex: 1,
+    },
+    tipTitle: {
+      ...TYPOGRAPHY.h3,
+      marginBottom: 4,
+    },
+    tipText: {
+      ...TYPOGRAPHY.bodySmall,
+    },
+  });

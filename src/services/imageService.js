@@ -1,8 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getCurrentUser } from './userService';
-import { User } from '../entities/User';
+import { getCurrentUser, getUserProfile } from './userService';
 
 /**
  * Request permissions for image picker
@@ -70,8 +69,9 @@ export const uploadImage = async (imageUri, folder = 'shopping-items') => {
     }
 
     // Get user profile to check for partner
-    const userProfile = await User.me();
-    const partnerUserId = userProfile.sharing_with || null;
+    const profileResult = await getUserProfile(user.uid);
+    const profile = profileResult.success ? profileResult.profile : {};
+    const partnerUserId = profile.sharing_with || profile.sharingWith || null;
 
     // Fetch the image blob
     const response = await fetch(imageUri);

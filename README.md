@@ -1,4 +1,4 @@
-# CoupleTasks
+# Couple of Tasks
 
 Meant for all the couples out there fighting for doing chores
 
@@ -22,6 +22,10 @@ A React Native mobile application built with Expo to help couples manage househo
 - npm or yarn
 - Expo CLI
 - Android Studio (for Android development) or Xcode (for iOS development)
+
+### Firebase configuration
+
+Firebase credentials are **not** in the repo. Copy `src/firebase/config.example.js` to `src/firebase/config.js` and set values from your Firebase console, or define the `EXPO_PUBLIC_FIREBASE_*` variables listed in `.env.example`.
 
 ### Installation
 

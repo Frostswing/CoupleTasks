@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useMemo} from "react";
 import {
   View,
   Text,
@@ -12,14 +12,22 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { InventoryItem } from "../entities/InventoryItem";
+import {COLORS, SPACING, screenBackgroundStyle, SHADOWS} from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../components/premium/PremiumScreenShell";
+import i18n from "../localization/i18n";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
-import { User } from "../entities/User";
+import { getCurrentUser, getUserProfile } from "../services/userService";
 
 const { width } = Dimensions.get('window');
 
 export default function InventoryScreen({ navigation }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -40,12 +48,17 @@ export default function InventoryScreen({ navigation }) {
 
   const loadData = async () => {
     try {
-      const [user, inventoryItems] = await Promise.all([
-        User.me(),
-        InventoryItem.list('-updated_date')
-      ]);
-      
+      const authUser = getCurrentUser();
+      const inventoryItems = await InventoryItem.list('-updated_date');
+      let user = null;
+      if (authUser) {
+        const result = await getUserProfile(authUser.uid);
+        user = result.success
+          ? { uid: authUser.uid, email: authUser.email, ...result.profile }
+          : { uid: authUser.uid, email: authUser.email, full_name: authUser.displayName || "User" };
+      }
       setCurrentUser(user);
+      if (!user) return;
       
       // Filter items for current user and partner
       const userEmails = [user.email];
@@ -176,7 +189,7 @@ export default function InventoryScreen({ navigation }) {
               style={styles.amountButton}
               onPress={() => handleUpdateAmount(item.id, Math.max(0, item.current_amount - 1))}
             >
-              <Icon name="remove" size={20} color="#6B7280" />
+              <Icon name="remove" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
             
             <Text style={styles.amountText}>
@@ -187,7 +200,7 @@ export default function InventoryScreen({ navigation }) {
               style={styles.amountButton}
               onPress={() => handleUpdateAmount(item.id, item.current_amount + 1)}
             >
-              <Icon name="add" size={20} color="#6B7280" />
+              <Icon name="add" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -198,7 +211,7 @@ export default function InventoryScreen({ navigation }) {
               style={styles.addToListButton}
               onPress={() => handleAddToShoppingList(item)}
             >
-              <Icon name="add-shopping-cart" size={20} color="#FFFFFF" />
+              <Icon name="add-shopping-cart" size={20} color={COLORS.textInverse} />
             </TouchableOpacity>
           )}
           
@@ -206,7 +219,7 @@ export default function InventoryScreen({ navigation }) {
             style={styles.deleteButton}
             onPress={() => handleDeleteItem(item.id)}
           >
-            <Icon name="delete" size={20} color="#EF4444" />
+            <Icon name="delete" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -215,49 +228,42 @@ export default function InventoryScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#10B981" />
-        <Text style={styles.loadingText}>Loading your inventory...</Text>
-      </SafeAreaView>
+      <PremiumScreenShell loading loadingLabel="Loading your inventory..." title={i18n.t("navigation.inventory")} />
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Home Inventory</Text>
-            <Text style={styles.subtitle}>Track what you have at home</Text>
-          </View>
-          
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddDialog(true)}
-          >
-            <Icon name="add" size={24} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>Add Item</Text>
-          </TouchableOpacity>
-        </View>
-
+    <>
+    <PremiumScreenShell
+      title={i18n.t("navigation.inventory")}
+      subtitle="Track what you have at home"
+      heroStats={[
+        { label: "Items", value: String(filteredItems.length) },
+        { label: "Low", value: String(lowStockItems.length) },
+      ]}
+      fab={{
+        icon: "add",
+        onPress: () => setShowAddDialog(true),
+        accessibilityLabel: "Add inventory item",
+      }}
+    >
         {/* Search */}
         <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <Icon name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search inventory..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
           />
         </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
-              <Icon name="inventory" size={20} color="#2563EB" />
+            <View style={[styles.statIcon, { backgroundColor: colors.primaryMuted }]}>
+              <Icon name="inventory" size={20} color={colors.primary} />
             </View>
             <View style={styles.statContent}>
               <Text style={styles.statLabel}>Total Items</Text>
@@ -266,8 +272,8 @@ export default function InventoryScreen({ navigation }) {
           </View>
           
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
-              <Icon name="warning" size={20} color="#DC2626" />
+            <View style={[styles.statIcon, { backgroundColor: colors.errorMuted }]}>
+              <Icon name="warning" size={20} color={colors.error} />
             </View>
             <View style={styles.statContent}>
               <Text style={styles.statLabel}>Low Stock</Text>
@@ -282,7 +288,7 @@ export default function InventoryScreen({ navigation }) {
           {lowStockItems.length > 0 && (
             <View style={styles.itemsSection}>
               <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, { color: '#DC2626' }]}>Low Stock</Text>
+                <Text style={[styles.sectionTitle, { color: colors.error }]}>Low Stock</Text>
                 <View style={styles.sectionBadge}>
                   <Text style={styles.sectionBadgeText}>{lowStockItems.length} items</Text>
                 </View>
@@ -307,7 +313,7 @@ export default function InventoryScreen({ navigation }) {
           {filteredItems.length === 0 && (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
-                <Icon name="inventory" size={40} color="#10B981" />
+                <Icon name="inventory" size={40} color={colors.success} />
               </View>
               <Text style={styles.emptyTitle}>No items in inventory</Text>
               <Text style={styles.emptySubtitle}>Add items to track what you have at home</Text>
@@ -315,13 +321,13 @@ export default function InventoryScreen({ navigation }) {
                 style={styles.emptyButton}
                 onPress={() => setShowAddDialog(true)}
               >
-                <Icon name="add" size={20} color="#FFFFFF" />
+                <Icon name="add" size={20} color={COLORS.textInverse} />
                 <Text style={styles.emptyButtonText}>Add First Item</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
-      </ScrollView>
+    </PremiumScreenShell>
 
       {/* Add Item Modal */}
       <Modal
@@ -330,11 +336,11 @@ export default function InventoryScreen({ navigation }) {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowAddDialog(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
+        <SafeAreaView style={[styles.modalContainer, screenBackgroundStyle(colors)]}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Add Inventory Item</Text>
             <TouchableOpacity onPress={() => setShowAddDialog(false)}>
-              <Icon name="close" size={24} color="#6B7280" />
+              <Icon name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
@@ -346,7 +352,7 @@ export default function InventoryScreen({ navigation }) {
                 placeholder="What item do you want to track?"
                 value={newItemName}
                 onChangeText={setNewItemName}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
               />
             </View>
 
@@ -362,7 +368,7 @@ export default function InventoryScreen({ navigation }) {
                 placeholder="0"
                 value={newItemCurrentAmount}
                 onChangeText={setNewItemCurrentAmount}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 keyboardType="numeric"
               />
             </View>
@@ -374,7 +380,7 @@ export default function InventoryScreen({ navigation }) {
                 placeholder="1"
                 value={newItemMinimumAmount}
                 onChangeText={setNewItemMinimumAmount}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 keyboardType="numeric"
               />
             </View>
@@ -393,25 +399,26 @@ export default function InventoryScreen({ navigation }) {
           </ScrollView>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -430,21 +437,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -454,26 +461,19 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 16,
     paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   searchIcon: {
     marginRight: 12,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 16,
-    color: '#1F2937',
+    color: colors.text,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -492,19 +492,12 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   statIcon: {
     width: 40,
@@ -519,13 +512,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   itemsContainer: {
     paddingHorizontal: 20,
@@ -542,36 +535,29 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginRight: 8,
   },
   sectionBadge: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.errorMuted,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   sectionBadgeText: {
     fontSize: 12,
-    color: '#DC2626',
+    color: colors.error,
     fontWeight: '500',
   },
   itemCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   lowStockCard: {
     borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
+    borderLeftColor: colors.error,
   },
   itemContent: {
     flexDirection: 'row',
@@ -585,12 +571,12 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   itemCategory: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   amountContainer: {
@@ -602,14 +588,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   amountText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     minWidth: 80,
     textAlign: 'center',
   },
@@ -619,7 +605,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addToListButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -636,7 +622,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 80,
     height: 80,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.successMuted,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -645,12 +631,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: 32,
@@ -658,19 +644,19 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -679,12 +665,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   modalContent: {
     flex: 1,
@@ -696,36 +682,37 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#1F2937',
+    backgroundColor: colors.surface,
+    color: colors.text,
   },
   inputValue: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.borderLight,
     borderRadius: 12,
   },
   addItemButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 16,
   },
   addItemButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },
-}); 
+});
+}

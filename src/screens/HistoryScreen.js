@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,9 @@ import {
   Modal,
   Alert,
   Share,
+  ActivityIndicator,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { 
   getRecentHistory, 
   getPopularItems, 
@@ -18,8 +19,14 @@ import {
   cleanupOldHistory 
 } from '../services/historyService';
 import { getCategoryById, getUnitById } from '../constants/categories';
-
+import { COLORS, PRIORITY_COLORS, SHADOWS, screenBackgroundStyle } from '../constants/theme';
+import { useAppTheme } from '../context/ThemeContext';
+import { ThemedScreenShell } from '../components/common/ThemedScreenShell';
+import PremiumScreenShell from '../components/premium/PremiumScreenShell';
+import i18n from '../localization/i18n';
 const HistoryScreen = () => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState('shopping');
   const [shoppingHistory, setShoppingHistory] = useState([]);
   const [taskHistory, setTaskHistory] = useState([]);
@@ -167,20 +174,16 @@ const HistoryScreen = () => {
   }, []);
 
   const renderTaskItem = useCallback(({ item }) => {
-    const priorityColors = {
-      low: '#10B981',
-      medium: '#F59E0B',
-      high: '#EF4444'
-    };
+    const priorityStyle = PRIORITY_COLORS[item.priority] || PRIORITY_COLORS.medium;
 
     return (
       <View style={styles.historyItem}>
         <View style={styles.itemHeader}>
-          <View style={[styles.priorityIcon, { backgroundColor: priorityColors[item.priority] + '20' }]}>
+          <View style={[styles.priorityIcon, { backgroundColor: priorityStyle.bg }]}>
             <Icon 
               name={item.priority === 'high' ? 'priority-high' : 'check-circle'} 
               size={16} 
-              color={priorityColors[item.priority]} 
+              color={priorityStyle.text} 
             />
           </View>
           <View style={styles.itemInfo}>
@@ -207,7 +210,7 @@ const HistoryScreen = () => {
           </Text>
         </View>
         <View style={styles.popularItemBadge}>
-          <Icon name="trending-up" size={12} color="#14B8A6" />
+          <Icon name="trending-up" size={12} color={colors.primary} />
         </View>
       </View>
     );
@@ -224,27 +227,25 @@ const HistoryScreen = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>טוען היסטוריה...</Text>
-      </View>
+      <PremiumScreenShell loading loadingLabel="טוען היסטוריה..." title={i18n.t("navigation.drawer.history")} />
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>היסטוריה חכמה</Text>
-        <Text style={styles.headerSubtitle}>עקוב אחר הפעילות והשפר את ההצעות</Text>
-      </View>
-
+    <>
+    <PremiumScreenShell
+      scroll={false}
+      title={i18n.t("navigation.drawer.history")}
+      subtitle="עקוב אחר הפעילות והשפר את ההצעות"
+      contentStyle={{ flex: 1, paddingHorizontal: 0 }}
+    >
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'shopping' && styles.activeTab]}
           onPress={() => setActiveTab('shopping')}
         >
-          <Icon name="shopping-cart" size={20} color={activeTab === 'shopping' ? '#14B8A6' : '#6B7280'} />
+          <Icon name="shopping-cart" size={20} color={activeTab === 'shopping' ? colors.primary : colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'shopping' && styles.activeTabText]}>
             קניות
           </Text>
@@ -254,7 +255,7 @@ const HistoryScreen = () => {
           style={[styles.tab, activeTab === 'tasks' && styles.activeTab]}
           onPress={() => setActiveTab('tasks')}
         >
-          <Icon name="task-alt" size={20} color={activeTab === 'tasks' ? '#14B8A6' : '#6B7280'} />
+          <Icon name="task-alt" size={20} color={activeTab === 'tasks' ? colors.primary : colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'tasks' && styles.activeTabText]}>
             מטלות
           </Text>
@@ -307,7 +308,7 @@ const HistoryScreen = () => {
             style={styles.actionButton}
             onPress={() => setShowExportModal(true)}
           >
-            <Icon name="download" size={20} color="#14B8A6" />
+            <Icon name="download" size={20} color={colors.primary} />
             <Text style={styles.actionButtonText}>ייצא היסטוריה</Text>
           </TouchableOpacity>
           
@@ -315,11 +316,12 @@ const HistoryScreen = () => {
             style={[styles.actionButton, styles.dangerButton]}
             onPress={handleCleanupHistory}
           >
-            <Icon name="delete-sweep" size={20} color="#EF4444" />
+            <Icon name="delete-sweep" size={20} color={colors.error} />
             <Text style={[styles.actionButtonText, styles.dangerButtonText]}>נקה היסטוריה ישנה</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+    </PremiumScreenShell>
 
       {/* Export Modal */}
       <Modal
@@ -333,7 +335,7 @@ const HistoryScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>ייצא היסטוריה</Text>
               <TouchableOpacity onPress={() => setShowExportModal(false)}>
-                <Icon name="close" size={24} color="#6B7280" />
+                <Icon name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             
@@ -346,21 +348,22 @@ const HistoryScreen = () => {
                 style={styles.exportButton}
                 onPress={handleExportHistory}
               >
-                <Icon name="share" size={20} color="#FFFFFF" />
+                <Icon name="share" size={20} color={COLORS.textInverse} />
                 <Text style={styles.exportButtonText}>שתף היסטוריה</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -369,26 +372,26 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     padding: 20,
     paddingTop: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
@@ -400,19 +403,19 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginHorizontal: 4,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   activeTab: {
-    backgroundColor: '#CCFBF1',
+    backgroundColor: colors.primaryMuted,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginLeft: 8,
   },
   activeTabText: {
-    color: '#14B8A6',
+    color: colors.primary,
   },
   content: {
     flex: 1,
@@ -427,27 +430,23 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   popularList: {
     paddingVertical: 8,
   },
   popularItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 12,
     marginRight: 12,
     minWidth: 120,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...SHADOWS.xs,
   },
   popularItemContent: {
     flex: 1,
@@ -455,19 +454,19 @@ const styles = StyleSheet.create({
   popularItemName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   popularItemFrequency: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   popularItemBadge: {
     alignSelf: 'flex-end',
     marginTop: 8,
   },
   historyList: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 4,
   },
@@ -478,7 +477,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   itemHeader: {
     flexDirection: 'row',
@@ -507,16 +506,16 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 2,
   },
   itemDetails: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   itemDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   actionsSection: {
     marginBottom: 40,
@@ -525,36 +524,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...SHADOWS.xs,
   },
   dangerButton: {
     borderWidth: 1,
-    borderColor: '#FEE2E2',
+    borderColor: colors.errorMuted,
   },
   actionButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#14B8A6',
+    color: colors.primary,
     marginLeft: 8,
   },
   dangerButtonText: {
-    color: '#EF4444',
+    color: colors.error,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 8,
@@ -566,19 +561,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLight,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
   },
   modalBody: {
     padding: 20,
   },
   modalDescription: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     lineHeight: 24,
     marginBottom: 24,
   },
@@ -586,16 +581,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
   },
   exportButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     marginLeft: 8,
   },
 });
+}
 
-export default HistoryScreen; 
+export default HistoryScreen;

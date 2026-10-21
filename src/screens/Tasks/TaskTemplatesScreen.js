@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useMemo} from "react";
 import {
   View,
   Text,
@@ -11,8 +11,13 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { TaskTemplate } from "../../entities/TaskTemplate";
+import { COLORS, SPACING, screenBackgroundStyle } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { ThemedScreenShell } from "../../components/common/ThemedScreenShell";
+import PremiumScreenShell from "../../components/premium/PremiumScreenShell";
+import i18n from "../../localization/i18n";
 import { User } from "../../entities/User";
 import TaskTemplateCard from "../../components/Tasks/TaskTemplateCard";
 import TaskTemplateForm from "../../components/Tasks/TaskTemplateForm";
@@ -20,6 +25,9 @@ import { handleError, showSuccess } from "../../services/errorHandlingService";
 import taskGenerationService from "../../services/taskGenerationService";
 
 export default function TaskTemplatesScreen({ navigation, route }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [templates, setTemplates] = useState([]);
   const [filteredTemplates, setFilteredTemplates] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -212,33 +220,20 @@ export default function TaskTemplatesScreen({ navigation, route }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color="#14B8A6" />
-          <Text style={styles.loadingText}>Loading templates...</Text>
-        </View>
-      </SafeAreaView>
+      <PremiumScreenShell loading loadingLabel="Loading templates..." title={i18n.t("navigation.drawer.taskTemplates")} />
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Task Templates</Text>
-          <Text style={styles.subtitle}>
-            {filteredTemplates.length} {filteredTemplates.length === 1 ? 'template' : 'templates'}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleCreateTemplate}
-        >
-          <Icon name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
+    <PremiumScreenShell
+      title={i18n.t("navigation.drawer.taskTemplates")}
+      subtitle={`${filteredTemplates.length} ${filteredTemplates.length === 1 ? "template" : "templates"}`}
+      fab={{
+        icon: "add",
+        onPress: handleCreateTemplate,
+        accessibilityLabel: "Create template",
+      }}
+    >
       {/* Filters */}
       <View style={styles.filters}>
         {[
@@ -272,8 +267,8 @@ export default function TaskTemplatesScreen({ navigation, route }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={["#14B8A6"]}
-            tintColor="#14B8A6"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -281,7 +276,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
         {filteredTemplates.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Icon name="description" size={48} color="#14B8A6" />
+              <Icon name="description" size={48} color={colors.primary} />
             </View>
             <Text style={styles.emptyTitle}>
               {filter === 'all' ? 'No templates yet' : `No ${filter} templates`}
@@ -296,7 +291,7 @@ export default function TaskTemplatesScreen({ navigation, route }) {
                 style={styles.emptyButton}
                 onPress={handleCreateTemplate}
               >
-                <Icon name="add" size={20} color="#FFFFFF" />
+                <Icon name="add" size={20} color={COLORS.textInverse} />
                 <Text style={styles.emptyButtonText}>Create Template</Text>
               </TouchableOpacity>
             )}
@@ -340,18 +335,19 @@ export default function TaskTemplatesScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </PremiumScreenShell>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -361,7 +357,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -370,26 +366,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   addButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -402,27 +398,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
     gap: 8,
   },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   filterButtonActive: {
-    backgroundColor: '#E6FFFA',
+    backgroundColor: colors.primaryMuted,
   },
   filterText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   filterTextActive: {
-    color: '#14B8A6',
+    color: colors.primary,
   },
   scrollView: {
     flex: 1,
@@ -438,7 +434,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     width: 96,
     height: 96,
-    backgroundColor: '#E6FFFA',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -447,38 +443,38 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14B8A6',
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
   },
   modalContent: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     marginTop: 60,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
 });
-
+}

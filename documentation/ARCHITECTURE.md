@@ -1,4 +1,4 @@
-# CoupleTasks - System Architecture
+# Couple of Tasks - System Architecture
 
 ## Overview
 CoupleTasks is a React Native mobile application built with Expo, designed to help couples manage household tasks, shopping lists, and inventory together in real-time.
@@ -14,7 +14,7 @@ CoupleTasks is a React Native mobile application built with Expo, designed to he
 - **Navigation:** React Navigation 7 (Drawer Navigator with nested Stack Navigator)
 - **State Management:** React Hooks (useState, useEffect, useCallback, useReducer)
 - **UI Components:** Native React Native components
-- **Icons:** react-native-vector-icons (Material Icons)
+- **Icons:** `@expo/vector-icons` (Material Icons in-app); launcher assets in `assets/` (see `npm run generate-icons`)
 - **Internationalization:** i18n-js with English and Hebrew support
 
 ### Backend
@@ -521,12 +521,14 @@ Couples can maintain a comprehensive household task table in Excel, import it in
 - Notifications cancelled when tasks are completed
 
 ### 2. **Shopping List**
-**Components:** ShoppingItemCard, AddShoppingItemDialog  
+**Components:** ShoppingItemCard, AddShoppingItemDialog, StoreDepartmentPicker, ShoppingDepartmentOrderModal  
 **Screens:** ShoppingListScreen, ShoppingModeScreen  
 **Entity:** ShoppingListItem  
+**Docs:** [SHOPPING_STORE_LAYOUT.md](./SHOPPING_STORE_LAYOUT.md) — aisle grouping & custom store order  
 **Features:**
 - Add items with quantity and units
-- Category-based organization
+- **Store aisle grouping:** `store_department` with auto-detect (HE/EN keywords), manual override, list grouped in household walking order (`preferences/shopping_department_order`, shared in partner space)
+- Category-based organization (legacy product category, separate from store department)
 - Shopping mode with guided flow
 - Purchase tracking
 - Auto-add to inventory on purchase
@@ -914,13 +916,13 @@ useEffect(() => {
 ## 🎨 UI/UX Architecture
 
 ### Design System
-- **Color Palette:**
-  - Primary: Purple (#8B5CF6)
-  - Secondary: Blue (#2563EB)
-  - Success: Green (#16A34A)
-  - Danger: Red (#DC2626)
-  - Warning: Orange (#F59E0B)
-  - Background: Light Gray (#F8FAFC)
+See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) for full tokens and icon workflow.
+
+- **Color Palette (2026 refresh):**
+  - Primary accent: Blue (#2563EB)
+  - Background: #FAFAFA, Surface: #FFFFFF
+  - Text: #18181B / secondary #52525B
+  - Success / Warning / Error: semantic greens, ambers, reds (used sparingly)
 
 - **Typography:**
   - System fonts (default)
@@ -1336,6 +1338,7 @@ const styles = StyleSheet.create({
 - [HOME_SCREEN_REDESIGN.md](./HOME_SCREEN_REDESIGN.md) - Home screen redesign documentation (November 2024)
 - [TASK_TABLE_FEATURE.md](./TASK_TABLE_FEATURE.md) - Task Table bulk import and sync feature (November 2024)
 - [README.md](../README.md) - Project overview
+- [FOLLOW_UPS.md](./FOLLOW_UPS.md) - Post-PR#2 improvements and blockers
 
 ---
 
@@ -1359,8 +1362,8 @@ const styles = StyleSheet.create({
 
 ---
 
-**Last Updated:** December 2024  
-**Version:** 2.0.0  
+**Last Updated:** October 2026  
+**Version:** 2.1.0  
 **Maintained By:** Development Team
 
 ---

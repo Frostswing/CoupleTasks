@@ -1,33 +1,51 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   Modal,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { ShoppingListItem } from "../entities/ShoppingListItem";
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
+import PremiumScreenShell, { PremiumHeroProgress } from "../components/premium/PremiumScreenShell";
+import PremiumCard from "../components/premium/PremiumCard";
+import EmptyState from "../components/premium/EmptyState";
+import GradientButton from "../components/premium/GradientButton";
+import PressableScale from "../components/premium/PressableScale";
+import ShoppingDepartmentSection from "../components/shopping/ShoppingDepartmentSection";
+import ShoppingListItemRow from "../components/shopping/ShoppingListItemRow";
+import i18n from "../localization/i18n";
 import { InventoryItem } from "../entities/InventoryItem";
 import { handleError, showSuccess } from "../services/errorHandlingService";
+import { groupItemsByStoreDepartment } from "../constants/storeDepartments";
+import { getShoppingDepartmentOrder } from "../services/shoppingDepartmentOrderService";
 
 const { width } = Dimensions.get('window');
 
 export default function ShoppingModeScreen({ navigation, route }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const { itemIds } = route.params || {};
   const [items, setItems] = useState([]);
-  const [categoryOrder, setCategoryOrder] = useState([]);
+  const [departmentOrder, setDepartmentOrder] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFinishing, setIsFinishing] = useState(false);
   const [error, setError] = useState(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [collapsedDepartments, setCollapsedDepartments] = useState({});
+  const [purchasedCollapsed, setPurchasedCollapsed] = useState(false);
+
+  const toggleDepartmentCollapsed = useCallback((departmentId) => {
+    setCollapsedDepartments((prev) => ({ ...prev, [departmentId]: !prev[departmentId] }));
+  }, []);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -87,20 +105,8 @@ export default function ShoppingModeScreen({ navigation, route }) {
   }, [itemIds]);
 
   useEffect(() => {
-    if (items.length > 0) {
-      // Simple category ordering (could be enhanced with AI later)
-      const categories = [...new Set(items.map(item => item.category))];
-      const optimalOrder = [
-        'fruits', 'vegetables', 'dairy', 'meat', 'grains', 
-        'snacks', 'beverages', 'household', 'personal_care', 'other'
-      ];
-      
-      const orderedCategories = optimalOrder.filter(cat => categories.includes(cat));
-      const remainingCategories = categories.filter(cat => !optimalOrder.includes(cat));
-      
-      setCategoryOrder([...orderedCategories, ...remainingCategories]);
-    }
-  }, [items]);
+    getShoppingDepartmentOrder().then(setDepartmentOrder);
+  }, []);
 
   const handleTogglePurchased = (itemToToggle) => {
     setItems(prevItems =>
@@ -243,178 +249,133 @@ export default function ShoppingModeScreen({ navigation, route }) {
     }
   };
 
-  const { toBuy, bought } = useMemo(() => {
-    const toBuy = {};
-    const bought = [];
-    items.forEach(item => {
-      if (item.is_purchased) {
-        bought.push(item);
-      } else {
-        if (!toBuy[item.category]) {
-          toBuy[item.category] = [];
-        }
-        toBuy[item.category].push(item);
-      }
-    });
-    return { toBuy, bought };
-  }, [items]);
-
-  const orderedCategories = categoryOrder.filter(cat => toBuy[cat]?.length > 0);
+  const { toBuyGroups, bought } = useMemo(() => {
+    const pending = items.filter((item) => !item.is_purchased);
+    const purchased = items.filter((item) => item.is_purchased);
+    const groups = groupItemsByStoreDepartment(pending, departmentOrder);
+    return { toBuyGroups: groups, bought: purchased };
+  }, [items, departmentOrder]);
   const hasBoughtItems = bought.length > 0;
-
-  const ShoppingItemCard = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.itemCard, item.is_purchased && styles.purchasedCard]}
-      onPress={() => handleTogglePurchased(item)}
-    >
-      <View style={styles.itemContent}>
-        <Icon
-          name={item.is_purchased ? 'check-circle' : 'radio-button-unchecked'}
-          size={24}
-          color={item.is_purchased ? '#16A34A' : '#9CA3AF'}
-        />
-        <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, item.is_purchased && styles.purchasedText]}>
-            {item.name}
-          </Text>
-          <Text style={styles.itemQuantity}>
-            {item.quantity} {item.unit || 'pcs'}
-          </Text>
-          {item.auto_added && (
-            <Text style={styles.autoAddedText}>Auto-added from inventory</Text>
-          )}
-          {/* Display notes */}
-          {item.notes && (
-            <Text style={styles.itemNotes} numberOfLines={2}>
-              {item.notes}
-            </Text>
-          )}
-          {/* Display image thumbnail */}
-          {item.image_url && (
-            <View style={styles.imageThumbnailContainer}>
-              <Image
-                source={{ uri: item.image_url }}
-                style={styles.imageThumbnail}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-                transition={200}
-              />
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const tripProgress = items.length > 0 ? bought.length / items.length : 0;
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#16A34A" />
-        <Text style={styles.loadingText}>Loading Shopping Mode...</Text>
-      </SafeAreaView>
+      <PremiumScreenShell loading loadingLabel="Loading Shopping Mode..." title={i18n.t("navigation.drawer.shoppingMode")} />
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Icon name="shopping-cart" size={60} color="#9CA3AF" />
-          <Text style={styles.errorTitle}>No Items to Shop For</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.addItemsButton}
-            onPress={() => navigation.navigate('ShoppingList')}
-          >
-            <Icon name="add-shopping-cart" size={20} color="#FFFFFF" />
-            <Text style={styles.addItemsButtonText}>Add Items to Shopping List</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <PremiumScreenShell
+        title={i18n.t("navigation.drawer.shoppingMode")}
+        subtitle={i18n.t("shopping.groupedByAisle")}
+      >
+        <EmptyState
+          icon="shopping-cart"
+          title="No items to shop for"
+          message={error}
+          actionLabel="Go to shopping list"
+          onAction={() => navigation.navigate("ShoppingList")}
+        />
+      </PremiumScreenShell>
     );
   }
 
+  const heroSlot = (
+    <>
+      <PremiumHeroProgress
+        progress={tripProgress}
+        label={`${bought.length} of ${items.length} in cart`}
+      />
+      <PressableScale onPress={() => setShowCancelDialog(true)} style={styles.cancelChip}>
+        <Icon name="close" size={18} color={COLORS.heroText} />
+        <Text style={styles.cancelChipText}>Cancel trip</Text>
+      </PressableScale>
+    </>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Icon name="shopping-bag" size={24} color="#16A34A" />
-          <Text style={styles.title}>Shopping Mode</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => setShowCancelDialog(true)}
-        >
-          <Icon name="close" size={20} color="#EF4444" />
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
+    <>
+    <PremiumScreenShell
+      noHorizontalPadding
+      title={i18n.t("navigation.drawer.shoppingMode")}
+      subtitle={i18n.t("shopping.groupedByAisle")}
+      referenceBody
+      heroAccent="shoppingMode"
+      heroStats={[
+        { label: "To buy", value: String(items.length - bought.length) },
+        { label: "In cart", value: String(bought.length) },
+      ]}
+      heroSlot={heroSlot}
+      contentStyle={styles.shellContent}
+    >
+      <View style={styles.innerPad}>
+        {toBuyGroups.length > 0 ? (
+          toBuyGroups.map((group) => (
+            <ShoppingDepartmentSection
+              key={group.departmentId}
+              departmentId={group.departmentId}
+              items={group.items}
+              colors={colors}
+              collapsed={!!collapsedDepartments[group.departmentId]}
+              onToggleCollapsed={() => toggleDepartmentCollapsed(group.departmentId)}
+              onTogglePurchased={handleTogglePurchased}
+              onEdit={(item) => handleTogglePurchased(item)}
+              onDelete={() => {}}
+              disableSwipe
+            />
+          ))
+        ) : (
+          <EmptyState
+            icon="check-circle"
+            title="All items purchased!"
+            message="Great job completing your shopping list."
+          />
+        )}
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Progress */}
-          <View style={styles.progressContainer}>
-            <Text style={styles.progressText}>
-              {bought.length} of {items.length} items purchased
-            </Text>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${items.length > 0 ? (bought.length / items.length) * 100 : 0}%` }
-                ]} 
-              />
-            </View>
-          </View>
-
-          {/* Shopping Categories */}
-          {orderedCategories.length > 0 ? (
-            <View style={styles.categoriesContainer}>
-              {orderedCategories.map(category => (
-                <View key={category} style={styles.categorySection}>
-                  <Text style={styles.categoryTitle}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </Text>
-                  <View style={styles.categoryItems}>
-                    {toBuy[category].map(item => (
-                      <ShoppingItemCard key={item.id} item={item} />
-                    ))}
-                  </View>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.allDoneContainer}>
-              <Icon name="check-circle" size={80} color="#16A34A" />
-              <Text style={styles.allDoneTitle}>All items purchased!</Text>
-              <Text style={styles.allDoneSubtitle}>Great job completing your shopping list.</Text>
-            </View>
-          )}
-
-          {/* Cart Section */}
-          {hasBoughtItems && (
-            <View style={styles.cartSection}>
-              <Text style={styles.cartTitle}>In Your Cart ({bought.length} items)</Text>
-              <View style={styles.cartItems}>
-                {bought.map(item => (
-                  <ShoppingItemCard key={item.id} item={item} />
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Finish Button */}
-          {hasBoughtItems && (
+        {hasBoughtItems && (
+          <View style={styles.cartBlock}>
             <TouchableOpacity
-              style={styles.finishButton}
-              onPress={() => setShowFinishDialog(true)}
+              style={styles.cartHeader}
+              onPress={() => setPurchasedCollapsed((v) => !v)}
             >
-              <Icon name="flag" size={24} color="#FFFFFF" />
-              <Text style={styles.finishButtonText}>Finish Shopping</Text>
+              <Text style={[styles.cartTitle, { color: colors.textSecondary }]}>
+                In your cart ({bought.length})
+              </Text>
+              <Icon
+                name={purchasedCollapsed ? "expand-more" : "expand-less"}
+                size={22}
+                color={colors.textTertiary}
+              />
             </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
+            {!purchasedCollapsed && (
+              <PremiumCard padded={false}>
+                {bought.map((item, index) => (
+                  <ShoppingListItemRow
+                    key={item.id}
+                    item={item}
+                    colors={colors}
+                    onTogglePurchased={handleTogglePurchased}
+                    onEdit={(it) => handleTogglePurchased(it)}
+                    onDelete={() => {}}
+                    isLastInGroup={index === bought.length - 1}
+                    disableSwipe
+                  />
+                ))}
+              </PremiumCard>
+            )}
+          </View>
+        )}
+
+        {hasBoughtItems && (
+          <GradientButton
+            label="Finish shopping"
+            onPress={() => setShowFinishDialog(true)}
+            style={styles.finishCta}
+          />
+        )}
+      </View>
+    </PremiumScreenShell>
 
       {/* Cancel Dialog */}
       <Modal
@@ -474,7 +435,7 @@ export default function ShoppingModeScreen({ navigation, route }) {
                 disabled={isFinishing}
               >
                 {isFinishing ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={COLORS.textInverse} />
                 ) : (
                   <Text style={styles.dialogButtonConfirmText}>Yes, Finish</Text>
                 )}
@@ -483,25 +444,65 @@ export default function ShoppingModeScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
+  shellContent: {
+    paddingBottom: SPACING.xxxl,
+  },
+  innerPad: {
+    paddingHorizontal: SPACING.l,
+  },
+  cancelChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.s,
+    alignSelf: "flex-start",
+    marginTop: SPACING.m,
+    paddingVertical: SPACING.s,
+    paddingHorizontal: SPACING.m,
+    borderRadius: RADIUS.m,
+    backgroundColor: COLORS.overlayOnPrimary,
+  },
+  cancelChipText: {
+    color: COLORS.heroText,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  cartBlock: {
+    marginTop: SPACING.l,
+  },
+  cartHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.s,
+    marginBottom: SPACING.s,
+  },
+  cartTitle: {
+    ...TYPOGRAPHY.overline,
+  },
+  finishCta: {
+    marginTop: SPACING.xl,
+    marginHorizontal: SPACING.s,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -512,14 +513,14 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
@@ -527,11 +528,11 @@ const styles = StyleSheet.create({
   addItemsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -541,7 +542,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   addItemsButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
     marginLeft: 8,
     fontSize: 16,
@@ -552,15 +553,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: colors.surface,
+    ...SHADOWS.sm,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -569,19 +563,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginLeft: 8,
   },
   cancelButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.errorMuted,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
   },
   cancelButtonText: {
-    color: '#EF4444',
+    color: colors.error,
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -592,34 +586,27 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   progressContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 8,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     borderRadius: 4,
   },
   categoriesContainer: {
@@ -631,7 +618,7 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
     paddingHorizontal: 4,
   },
@@ -639,20 +626,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   itemCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   purchasedCard: {
     opacity: 0.7,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.successMuted,
   },
   itemContent: {
     flexDirection: 'row',
@@ -666,26 +646,26 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 4,
   },
   purchasedText: {
     textDecorationLine: 'line-through',
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   itemQuantity: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   autoAddedText: {
     fontSize: 12,
-    color: '#16A34A',
+    color: colors.success,
     fontStyle: 'italic',
     marginTop: 2,
   },
   itemNotes: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -695,7 +675,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
   },
   imageThumbnail: {
     width: '100%',
@@ -703,48 +683,34 @@ const styles = StyleSheet.create({
   },
   allDoneContainer: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 40,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   allDoneTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#16A34A',
+    color: colors.success,
     marginTop: 16,
     marginBottom: 8,
   },
   allDoneSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   cartSection: {
     marginTop: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   cartTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   cartItems: {
@@ -754,12 +720,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 16,
     marginTop: 20,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -769,24 +735,24 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   finishButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dialogContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,
     marginHorizontal: 40,
     maxWidth: 350,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 10,
@@ -798,13 +764,13 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
     textAlign: 'center',
   },
   dialogMessage: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 20,
@@ -815,29 +781,30 @@ const styles = StyleSheet.create({
   },
   dialogButtonCancel: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   dialogButtonCancelText: {
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   dialogButtonConfirm: {
     flex: 1,
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.success,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   dialogButtonConfirmText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '600',
   },
   dialogButtonDisabled: {
     opacity: 0.6,
   },
-}); 
+});
+}

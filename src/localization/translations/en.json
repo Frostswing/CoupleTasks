@@ -1,4 +1,7 @@
 {
+    "app": {
+        "displayName": "Couple of Tasks"
+    },
     "common": {
         "welcome": "Welcome",
         "loading": "Loading...",
@@ -35,6 +38,7 @@
         "languageChanged": "Language changed successfully"
     },
     "auth": {
+        "subtitle": "Your tasks, shopping, and calendar in one place",
         "signIn": "Sign In",
         "signUp": "Sign Up",
         "signOut": "Sign Out",
@@ -65,7 +69,20 @@
         "enterEmailForReset": "Please enter your email address first",
         "passwordResetEmailSent": "Password reset email sent! Please check your inbox."
     },
+    "kudos": {
+        "title": "Kudos",
+        "subtitle": "Celebrate {{name}} today",
+        "heroLine": "Send a little appreciation",
+        "body": "A quick thank-you goes a long way. Mention something your partner did this week—or plan a date night from Events."
+    },
     "navigation": {
+        "tabs": {
+            "home": "Home",
+            "tasks": "Tasks",
+            "events": "Events",
+            "kudos": "Kudos",
+            "profile": "Profile"
+        },
         "tasks": "Tasks",
         "addTask": "Add Task",
         "taskTable": "Task Table",
@@ -100,8 +117,47 @@
     },
     "home": {
         "title": "Home",
-        "welcome": "Welcome to CoupleTasks",
-        "subtitle": "Manage your tasks and shopping together",
+        "welcome": "Welcome",
+        "subtitle": "Manage your tasks and shopping",
+        "subtitleCouple": "Manage your tasks and shopping together",
+        "greetingMorning": "Good morning",
+        "greetingAfternoon": "Good afternoon",
+        "greetingEvening": "Good evening",
+        "greetingSolo": "{{name}}!",
+        "greetingCouple": "{{name}} & {{partner}}!",
+        "statCompletedSolo": "{{count}} tasks completed",
+        "statCompletedTogether": "{{count}} tasks completed together",
+        "invitePartnerTitle": "Invite your partner",
+        "invitePartnerSubtitle": "Link accounts to share lists and tasks",
+        "notifications": "Notifications",
+        "fallbackName": "there",
+        "tipSolo": "Small steps today make tomorrow easier.",
+        "tipCouple": "Small tasks together make a big difference!",
+        "quickActions": "Quick Actions",
+        "seeAll": "See all",
+        "tipTitle": "Tip of the day",
+        "statTasksTitle": "{{count}} Tasks",
+        "statTasksSub": "To do",
+        "statWeekTitle": "This Week",
+        "statWeekSub": "{{count}} tasks completed",
+        "actions": {
+            "grocery": "Add Grocery",
+            "grocerySub": "What do we need?",
+            "dateNight": "Plan Date Night",
+            "dateNightSub": "Let's do something fun!",
+            "completeTasks": "Complete Tasks",
+            "completeTasksSub": "Mark what's done",
+            "kudos": "Give Kudos",
+            "kudosSub": "Appreciate each other",
+            "budget": "Budget Together",
+            "budgetSub": "Track shared expenses",
+            "chat": "Chat & Share",
+            "chatSub": "Talk about anything",
+            "planningSub": "Plan ahead",
+            "inventorySub": "What's at home",
+            "shoppingModeSub": "Shop by aisle",
+            "eventsSub": "Your schedule"
+        },
         "tasksDescription": "View and manage your tasks",
         "shoppingDescription": "Manage your shopping list",
         "addShoppingItem": "Add Shopping Item",
@@ -110,14 +166,38 @@
     "dashboard": {
         "welcomeBack": "Welcome back,",
         "subtitle": "Let's see what you and your partner need to tackle today",
+        "subtitleSolo": "Your task overview",
         "totalTasks": "Total Tasks",
         "completed": "Completed",
         "myTasks": "My Tasks",
         "overdue": "Overdue",
         "noTasksFound": "No tasks found",
-        "createFirstTask": "Start by creating your first shared task together!",
+        "createFirstTaskCouple": "Start by creating your first shared task together!",
+        "createFirstTaskSolo": "Start by creating your first task!",
         "adjustFilters": "Try adjusting your filters to see more tasks.",
         "addFirstTask": "Add Your First Task"
+    },
+    "addTask": {
+        "subtitleSolo": "Create a new personal task",
+        "subtitleCouple": "Create a new task for you and your partner"
+    },
+    "events": {
+        "subtitleSolo": "Your calendar",
+        "subtitleCouple": "Partner calendar & invitations"
+    },
+    "settings": {
+        "subtitleSolo": "Manage your profile and household",
+        "subtitleCouple": "Manage your profile and partner connection",
+        "inviteTitle": "Invite your partner",
+        "inviteDescription": "Enter your partner's email to sync tasks. They must already have an account.",
+        "partnerEmailLabel": "Partner's email",
+        "inviteHintTitle": "Two-way link",
+        "inviteHintBody": "Your partner should add your email in their settings too for full sync.",
+        "savePartnerLink": "Save partner connection",
+        "saving": "Saving...",
+        "listSharingLink": "Or share shopping lists instead",
+        "partnerLinkedTitle": "Partner connected",
+        "partnerLinkedDescription": "You're linked and can share tasks and lists."
     },
     "tasks": {
         "title": "Task Title",
@@ -186,7 +266,34 @@
         "addToList": "Add to List",
         "adding": "Adding...",
         "pleaseEnterItemName": "Please enter an item name",
-        "errorAddingItem": "An error occurred while adding the item"
+        "errorAddingItem": "An error occurred while adding the item",
+        "storeDepartment": "Store aisle",
+        "groupedByAisle": "Grouped by store aisle",
+        "storeLayoutTitle": "Store layout",
+        "storeLayoutSubtitle": "Reorder aisles to match how you walk through your supermarket. Shared with your partner.",
+        "quickAddPlaceholder": "Add an item…",
+        "searchPlaceholder": "Search items…",
+        "shopMode": "Shop",
+        "autoAdded": "From inventory",
+        "deleteItemTitle": "Delete item?",
+        "deleteItemMessage": "This removes the item from your list.",
+        "purchasedSection": "Purchased",
+        "toBuySection": "To buy",
+        "emptyTitle": "Your list is empty",
+        "emptySubtitle": "Add something above or use details for photos and links.",
+        "moreDetails": "More details",
+        "storeDepartments": {
+            "produce": "Produce",
+            "bakery": "Bakery",
+            "dairy": "Dairy & eggs",
+            "meat_fish": "Meat & fish",
+            "frozen": "Frozen",
+            "dry_goods": "Dry goods",
+            "drinks": "Drinks",
+            "cleaning": "Cleaning",
+            "personal_care": "Personal care",
+            "other": "Other"
+        }
     },
     "app": {
         "loadingApp": "Loading the app...",
