@@ -16,6 +16,7 @@ import taskGenerationService from "../../services/taskGenerationService";
 import { COLORS, SHADOWS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
 import { usePartnerMode } from "../../context/HouseholdPartnerContext";
+import { sameEmail } from "../../utils/email";
 
 const categories = [
   { label: 'Household', value: 'household' },
@@ -445,7 +446,7 @@ export default function TaskTemplateForm({ template, onSubmit, onCancel, title =
           onPress={() => setShowAssignedToPicker(true)}
         >
           <Text style={styles.pickerButtonText}>
-            {users.find(u => u.email === formData.assigned_to)?.full_name || 'Select Person'}
+            {users.find((u) => sameEmail(u.email, formData.assigned_to))?.full_name || 'Select Person'}
           </Text>
           <Icon name="arrow-drop-down" size={24} color={colors.textSecondary} />
         </TouchableOpacity>

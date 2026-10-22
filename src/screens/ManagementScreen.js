@@ -20,6 +20,7 @@ import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import PremiumScreenShell from "../components/premium/PremiumScreenShell";
 import { usePartnerMode } from "../context/HouseholdPartnerContext";
 import { User } from "../entities/User";
+import { anyEmailMatchesUser, sameEmail, userEmailSet } from "../utils/email";
 import { 
   differenceInDays, 
   format, 
@@ -157,16 +158,19 @@ export default function ManagementScreen({ navigation }) {
           return true; // Include tasks assigned to both
         }
 
-        // Check if task belongs to selected user
-        return assignedTo === targetEmail || 
-               completedBy === targetEmail || 
-               createdBy === targetEmail;
+        return (
+          sameEmail(assignedTo, targetEmail) ||
+          sameEmail(completedBy, targetEmail) ||
+          sameEmail(createdBy, targetEmail)
+        );
       });
     } else {
       // Filter "together" tasks and tasks for both users
-      const userEmails = [currentUser.email];
-      if (partner?.email) userEmails.push(partner.email);
-      if (currentUser.partner_email) userEmails.push(currentUser.partner_email);
+      const emailSet = userEmailSet(
+        currentUser.email,
+        partner?.email,
+        currentUser.partner_email
+      );
 
       userTasks = tasks.filter(task => {
         const assignedTo = task.assigned_to || '';
@@ -174,9 +178,7 @@ export default function ManagementScreen({ navigation }) {
         const createdBy = task.created_by || '';
 
         if (assignedTo === 'together') return true;
-        return userEmails.includes(assignedTo) || 
-               userEmails.includes(completedBy) || 
-               userEmails.includes(createdBy);
+        return anyEmailMatchesUser([assignedTo, completedBy, createdBy], emailSet);
       });
     }
 

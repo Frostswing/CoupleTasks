@@ -16,6 +16,7 @@ import taskSchedulingService from "../services/taskSchedulingService";
 import { getCurrentUser } from "../services/userService";
 import { useTwoColumnGrid } from "../hooks/useTwoColumnGrid";
 import { displayFirstName } from "../utils/displayName";
+import { buildHouseholdEmailSet, taskBelongsToHousehold, shoppingItemBelongsToHousehold } from "../utils/taskFilters";
 
 export default function HomeScreen({ navigation }) {
   const { colors, isDark } = useAppTheme();
@@ -34,24 +35,21 @@ export default function HomeScreen({ navigation }) {
   const [taskFocus, setTaskFocus] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const [completedThisWeek, setCompletedThisWeek] = useState(0);
-  const grid = useTwoColumnGrid(SPACING.l, SPACING.s);
+  const grid = useTwoColumnGrid(SPACING.l, SPACING.m);
   const authEmail = getCurrentUser()?.email || "";
   const resolvedEmail = profile?.email || authEmail;
-  const greetingName = userFirstName || displayFirstName(profile, authEmail);
+  const greetingName =
+    userFirstName || displayFirstName(profile, authEmail, getCurrentUser()?.displayName);
 
   const loadDashboard = useCallback(async () => {
     try {
       const user = await User.me();
-      const userEmails = [user.email];
-      if (user.partner_email) userEmails.push(user.partner_email);
+      const emailSet = buildHouseholdEmailSet(user.email, user.partner_email);
 
       const allTasks = await Task.filter({ is_archived: { "$ne": true } });
-      const tasks = allTasks.filter((t) => {
-        if (userEmails.includes(t.assigned_to)) return true;
-        if (isPartnered && t.assigned_to === "together") return true;
-        if (!t.assigned_to) return true;
-        return userEmails.includes(t.created_by);
-      });
+      const tasks = allTasks.filter((t) =>
+        taskBelongsToHousehold(t, emailSet, { isPartnered })
+      );
       const grouped = taskSchedulingService.groupTasksByUrgency(tasks);
       setTaskFocus(
         grouped.overdue.length +
@@ -74,7 +72,7 @@ export default function HomeScreen({ navigation }) {
         (item) =>
           !item.is_archived &&
           !item.is_purchased &&
-          (userEmails.includes(item.created_by) || userEmails.includes(item.added_by))
+          shoppingItemBelongsToHousehold(item, emailSet, { userUids: [user.uid] })
       );
       setShoppingPending(pending.length);
     } catch (e) {
@@ -349,7 +347,7 @@ const createStyles = (colors) =>
       fontWeight: "700",
     },
     gridBlock: {
-      marginBottom: SPACING.l,
+      marginBottom: SPACING.xl,
     },
     tipCard: {
       flexDirection: "row",

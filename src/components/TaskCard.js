@@ -14,6 +14,7 @@ import {
   SHADOWS,
 } from '../constants/theme';
 import { useAppTheme } from '../context/ThemeContext';
+import { isAssignedToMe as taskIsAssignedToMe } from '../utils/taskFilters';
 
 const { width } = Dimensions.get('window');
 
@@ -69,7 +70,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onSubtaskToggle, currentUser }
   };
 
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
-  const isAssignedToMe = task.assigned_to === currentUser?.email;
+  const isAssignedToMe = taskIsAssignedToMe(task, currentUser?.email);
 
   return (
     <View style={[styles.card, isOverdue && styles.overdueCard]}>

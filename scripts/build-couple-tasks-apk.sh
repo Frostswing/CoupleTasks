@@ -32,6 +32,13 @@ echo "[1/4] expo prebuild (android, clean)..."
 npx expo prebuild --platform android --clean
 
 echo "[2/4] patch Android release settings..."
+ANDROID_SDK="${ANDROID_HOME:-${HOME}/Android/Sdk}"
+if [[ ! -d "$ANDROID_SDK" ]]; then
+  echo "Android SDK not found at ANDROID_HOME=$ANDROID_HOME or ${HOME}/Android/Sdk"
+  exit 1
+fi
+export ANDROID_HOME="$ANDROID_SDK"
+printf 'sdk.dir=%s\n' "$ANDROID_SDK" > "${ROOT}/android/local.properties"
 node scripts/patch-android-apk-build.mjs
 cp "$GSERVICES" "${ROOT}/android/app/google-services.json"
 echo "Using android/app/google-services.json (from project root copy)"

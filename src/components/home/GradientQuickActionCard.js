@@ -1,14 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, I18nManager } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY, SHADOWS, getFeatureGradient } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
 import PressableScale from "../premium/PressableScale";
 
-const MIN_CARD_HEIGHT = 120;
-const ARROW_SIZE = 32;
-const TEXT_PAD_RIGHT = ARROW_SIZE + SPACING.m;
+const MIN_CARD_HEIGHT = 152;
+const ARROW_SIZE = 28;
 
 export default function GradientQuickActionCard({
   width,
@@ -20,6 +19,8 @@ export default function GradientQuickActionCard({
 }) {
   const { isDark } = useAppTheme();
   const gradient = getFeatureGradient(featureKey, isDark);
+  const isRTL = I18nManager.isRTL;
+  const arrowIcon = isRTL ? "arrow-back" : "arrow-forward";
 
   return (
     <PressableScale onPress={onPress} style={width ? { width } : styles.wrapFallback}>
@@ -29,19 +30,24 @@ export default function GradientQuickActionCard({
         end={{ x: 1, y: 1 }}
         style={[styles.card, width ? { width: "100%" } : null]}
       >
-        <View style={styles.iconBubble}>
-          <Icon name={icon} size={28} color={COLORS.heroText} />
+        <View style={[styles.topRow, isRTL && styles.topRowRtl]}>
+          <View style={styles.iconBubble}>
+            <Icon name={icon} size={26} color={COLORS.heroText} />
+          </View>
         </View>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        <TouchableOpacity
-          style={styles.arrowBtn}
-          onPress={onPress}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-        >
-          <Icon name="arrow-forward" size={18} color={gradient[0]} />
-        </TouchableOpacity>
+
+        <Text style={[styles.title, isRTL && styles.rtlText]} numberOfLines={2}>
+          {title}
+        </Text>
+        <Text style={[styles.subtitle, isRTL && styles.rtlText]} numberOfLines={2}>
+          {subtitle}
+        </Text>
+
+        <View style={[styles.footerRow, isRTL && styles.footerRowRtl]}>
+          <View style={styles.arrowBtn}>
+            <Icon name={arrowIcon} size={16} color={gradient[0]} />
+          </View>
+        </View>
       </LinearGradient>
     </PressableScale>
   );
@@ -53,43 +59,59 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: RADIUS.xl,
-    padding: SPACING.m,
-    paddingBottom: SPACING.l,
+    paddingHorizontal: SPACING.l,
+    paddingTop: SPACING.l,
+    paddingBottom: SPACING.m,
     minHeight: MIN_CARD_HEIGHT,
-    justifyContent: "flex-start",
     ...SHADOWS.md,
   },
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginBottom: SPACING.m,
+  },
+  topRowRtl: {
+    justifyContent: "flex-end",
+  },
   iconBubble: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: RADIUS.m,
     backgroundColor: COLORS.overlayOnPrimary,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: SPACING.s,
-    alignSelf: "flex-start",
+    ...SHADOWS.sm,
   },
   title: {
     ...TYPOGRAPHY.h3,
     color: COLORS.heroText,
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 21,
     fontWeight: "700",
-    marginBottom: 4,
-    paddingRight: TEXT_PAD_RIGHT,
+    marginBottom: SPACING.xs,
+    width: "100%",
   },
   subtitle: {
     ...TYPOGRAPHY.caption,
     color: COLORS.heroTextMuted,
     fontSize: 12,
-    lineHeight: 16,
-    paddingRight: TEXT_PAD_RIGHT,
-    flexShrink: 1,
+    lineHeight: 17,
+    width: "100%",
+    minHeight: 34,
+  },
+  rtlText: {
+    textAlign: "right",
+    writingDirection: "rtl",
+  },
+  footerRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: SPACING.m,
+  },
+  footerRowRtl: {
+    justifyContent: "flex-start",
   },
   arrowBtn: {
-    position: "absolute",
-    right: SPACING.m,
-    bottom: SPACING.m,
     width: ARROW_SIZE,
     height: ARROW_SIZE,
     borderRadius: ARROW_SIZE / 2,

@@ -13,6 +13,7 @@ import {
   shouldObfuscateResetSuccess,
   mapFirebaseResetSendError,
 } from "../utils/passwordReset";
+import { normalizeEmail, sameEmail } from "../utils/email";
 import {
   ref,
   set,
@@ -111,20 +112,22 @@ export const registerUser = async (email, password, name) => {
     // וודא שהאימות מוכן
     await waitForAuth();
 
+    const normalizedEmail = normalizeEmail(email);
+
     // לוג של מצב Firebase לפני הרישום
     console.log("Firebase status before registration:", checkFirebaseStatus());
 
     // יצירת משתמש בשירות האימות של פיירבייס
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      email,
+      normalizedEmail,
       password
     );
     const user = userCredential.user;
 
     // יצירת פרופיל משתמש עם אתחול מלא
     const profileResult = await initializeUserFirstLogin(user.uid, {
-      email: email,
+      email: normalizedEmail,
       full_name: name,
       name: name // legacy support
     });
@@ -160,7 +163,7 @@ export const loginUser = async (email, password) => {
 
     const userCredential = await signInWithEmailAndPassword(
       auth,
-      email,
+      normalizeEmail(email),
       password
     );
     
@@ -306,7 +309,7 @@ export const findUserByEmail = async (email) => {
     let foundUserId = null;
 
     Object.entries(users).forEach(([userId, userData]) => {
-      if (userData.profile && userData.profile.email === email) {
+      if (userData.profile && sameEmail(userData.profile.email, email)) {
         foundUser = userData.profile;
         foundUserId = userId;
       }

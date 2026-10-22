@@ -10,6 +10,7 @@ import { ref, get } from "firebase/database";
 import { auth, database } from "../firebase/config";
 import { initializeDatabase, createUserProfile, initializeUserFirstLogin } from "../firebase/database-init";
 import { waitForAuth } from "./authReady";
+import { normalizeEmail } from "../utils/email";
 import { GOOGLE_SIGN_IN_ERROR, mapGoogleSignInError } from "../utils/googleAuthErrors";
 
 export { GOOGLE_SIGN_IN_ERROR };
@@ -17,7 +18,7 @@ export { GOOGLE_SIGN_IN_ERROR };
 async function ensureUserProfileAfterGoogle(user, isNewUser) {
   if (isNewUser) {
     const profileResult = await initializeUserFirstLogin(user.uid, {
-      email: user.email,
+      email: normalizeEmail(user.email),
       full_name: user.displayName || user.email?.split("@")[0] || "User",
       name: user.displayName || "User",
     });
@@ -29,7 +30,7 @@ async function ensureUserProfileAfterGoogle(user, isNewUser) {
     const profileSnapshot = await get(profileRef);
     if (!profileSnapshot.exists()) {
       await createUserProfile(user.uid, {
-        email: user.email,
+        email: normalizeEmail(user.email),
         full_name: user.displayName || "User",
       });
     }

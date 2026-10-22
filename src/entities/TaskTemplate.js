@@ -9,6 +9,7 @@ import {
   onValue
 } from 'firebase/database';
 import { getCurrentUser, getDataSource } from '../services/userService';
+import { normalizeStoredEmail } from '../utils/email';
 
 export class TaskTemplate {
   constructor(data) {
@@ -51,7 +52,8 @@ export class TaskTemplate {
 
       const templateWithDefaults = {
         ...templateData,
-        created_by: user.email,
+        assigned_to: normalizeStoredEmail(templateData.assigned_to ?? ""),
+        created_by: normalizeStoredEmail(user.email),
         created_date: new Date().toISOString(),
         updated_date: new Date().toISOString(),
         is_active: templateData.is_active !== undefined ? templateData.is_active : true,

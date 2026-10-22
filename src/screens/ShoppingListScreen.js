@@ -38,6 +38,8 @@ import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, screenBackgroundStyle } f
 import { useAppTheme } from "../context/ThemeContext";
 import PremiumScreenShell, { PremiumHeroProgress } from "../components/premium/PremiumScreenShell";
 import PremiumCard from "../components/premium/PremiumCard";
+import { buildHouseholdEmailSet, shoppingItemBelongsToHousehold } from "../utils/taskFilters";
+import { normalizeStoredEmail } from "../utils/email";
 
 const { width } = Dimensions.get('window');
 
@@ -98,12 +100,11 @@ export default function ShoppingListScreen({ navigation, route }) {
 
       setCurrentUser(user);
 
-      // Filter items for current user and partner
-      const userEmails = [user.email];
-      if (user.partner_email) userEmails.push(user.partner_email);
-      const filteredItems = shoppingItems.filter(item =>
-        !item.is_archived &&
-        (userEmails.includes(item.created_by) || userEmails.includes(item.added_by))
+      const emailSet = buildHouseholdEmailSet(user.email, user.partner_email);
+      const filteredItems = shoppingItems.filter(
+        (item) =>
+          !item.is_archived &&
+          shoppingItemBelongsToHousehold(item, emailSet, { userUids: [user.uid] })
       );
 
       filteredItems.forEach(item => {
@@ -143,7 +144,7 @@ export default function ShoppingListScreen({ navigation, route }) {
             quantity: item.minimum_amount - item.current_amount,
             unit: item.unit,
             auto_added: true,
-            added_by: user.email
+            added_by: normalizeStoredEmail(user.email)
           });
         }
       }
@@ -314,7 +315,7 @@ export default function ShoppingListScreen({ navigation, route }) {
         category,
         store_department: autoDetectStoreDepartment(name),
         unit: getDefaultUnitForCategory(category),
-        added_by: currentUser.email,
+        added_by: normalizeStoredEmail(currentUser.email),
       });
       setQuickAddName("");
       loadData(false);
@@ -352,7 +353,7 @@ export default function ShoppingListScreen({ navigation, route }) {
         image_url: newItemImageUrl || "",
         link: newItemLink.trim() || "",
         notes: newItemNotes.trim() || "",
-        added_by: currentUser.email
+        added_by: normalizeStoredEmail(currentUser.email)
       });
       
       console.log('Created item:', createdItem);

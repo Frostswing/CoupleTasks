@@ -21,6 +21,7 @@ import PremiumScreenShell from "../components/premium/PremiumScreenShell";
 import i18n from "../localization/i18n";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { getCurrentUser, getUserProfile } from "../services/userService";
+import { userEmailSet, emailMatchesUser } from "../utils/email";
 
 const { width } = Dimensions.get('window');
 
@@ -60,11 +61,10 @@ export default function InventoryScreen({ navigation }) {
       setCurrentUser(user);
       if (!user) return;
       
-      // Filter items for current user and partner
-      const userEmails = [user.email];
-      if (user.partner_email) userEmails.push(user.partner_email);
-      const filteredItems = inventoryItems.filter(item => 
-        userEmails.includes(item.created_by)
+      const emailSet = userEmailSet(user.email, user.partner_email);
+      const filteredItems = inventoryItems.filter(
+        (item) =>
+          item.created_by === user.uid || emailMatchesUser(item.created_by, emailSet)
       );
       
       setItems(filteredItems);

@@ -4,6 +4,7 @@ import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
 import { CATEGORY_COLORS, COLORS, SHADOWS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
+import { isAssignedToMe as taskIsAssignedToMe } from "../../utils/taskFilters";
 
 export default function DailyTaskCard({
   task,
@@ -15,7 +16,7 @@ export default function DailyTaskCard({
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const isAssignedToMe = task.assigned_to === currentUser?.email;
+  const isAssignedToMe = taskIsAssignedToMe(task, currentUser?.email);
   const categoryStyle = CATEGORY_COLORS[task.category] || CATEGORY_COLORS.other;
 
   const getDueDateText = () => {
