@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import i18n from "../localization/i18n";
@@ -240,6 +240,13 @@ export default function HomeScreen({ navigation }) {
         onInvitePartner={() => handleNavigate("Settings")}
       />
 
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+      >
       <View style={[styles.sheet, { backgroundColor: colors.background }]}>
         <View style={styles.sectionHead}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{i18n.t("home.quickActions")}</Text>
@@ -297,6 +304,7 @@ export default function HomeScreen({ navigation }) {
           {isPartnered ? <Icon name="favorite" size={24} color={colors.primary} /> : null}
         </LinearGradient>
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -306,19 +314,25 @@ const createStyles = (colors) =>
     root: {
       flex: 1,
     },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: SPACING.xxxl + 72,
+    },
     loading: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
     },
     sheet: {
-      flex: 1,
       borderTopLeftRadius: RADIUS.xl,
       borderTopRightRadius: RADIUS.xl,
       marginTop: -SPACING.l,
       paddingHorizontal: SPACING.l,
       paddingTop: SPACING.l,
-      paddingBottom: SPACING.xxxl + 72,
+      paddingBottom: SPACING.l,
     },
     sectionHead: {
       flexDirection: "row",

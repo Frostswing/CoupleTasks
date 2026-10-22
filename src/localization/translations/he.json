@@ -1,7 +1,4 @@
 {
-    "app": {
-        "displayName": "Couple of Tasks"
-    },
     "common": {
         "welcome": "ברוכים הבאים",
         "loading": "טוען...",
@@ -29,7 +26,8 @@
         "DATABASE_ERROR": "אירעה שגיאת מסד נתונים",
         "permissionDenied": "אין הרשאה",
         "networkError": "שגיאת רשת. אנא בדקו את החיבור לאינטרנט.",
-        "serviceUnavailable": "השירות אינו זמין כרגע"
+        "serviceUnavailable": "השירות אינו זמין כרגע",
+        "error": "שגיאה"
     },
     "language": {
         "selectLanguage": "בחר שפה",
@@ -42,6 +40,8 @@
         "signIn": "התחברות",
         "signUp": "הרשמה",
         "signOut": "התנתקות",
+        "signOutConfirm": "האם אתה בטוח שברצונך להתנתק?",
+        "orDivider": "או",
         "signInWithGoogle": "התחבר עם Google",
         "email": "דוא\"ל",
         "password": "סיסמה",
@@ -321,6 +321,7 @@
         }
     },
     "app": {
+        "displayName": "Couple of Tasks",
         "loadingApp": "טוען את האפליקציה...",
         "initializingFirebase": "מאתחל את Firebase...",
         "firebaseStatus": "מצב Firebase:"

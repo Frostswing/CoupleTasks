@@ -298,6 +298,18 @@ const AuthScreen = ({ navigation }) => {
               secureTextEntry
               autoCapitalize="none"
             />
+            {isLogin ? (
+              <TouchableOpacity
+                style={themed.forgotPassword}
+                onPress={handleForgotPassword}
+                disabled={loading || googleLoading}
+                accessibilityRole="button"
+              >
+                <Text style={[themed.forgotPasswordText, { color: colors.primary }]}>
+                  {i18n.t("auth.forgotPassword")}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             {!isLogin && (
               <PremiumTextField
                 label={i18n.t("auth.confirmPassword")}
@@ -316,7 +328,9 @@ const AuthScreen = ({ navigation }) => {
             />
             <View style={themed.divider}>
               <View style={[themed.dividerLine, { backgroundColor: colors.border }]} />
-              <Text style={[themed.dividerText, { color: colors.textTertiary }]}>or</Text>
+              <Text style={[themed.dividerText, { color: colors.textTertiary }]}>
+                {i18n.t("auth.orDivider")}
+              </Text>
               <View style={[themed.dividerLine, { backgroundColor: colors.border }]} />
             </View>
             {googleLink ? (
@@ -348,13 +362,6 @@ const AuthScreen = ({ navigation }) => {
                 {isLogin ? i18n.t("auth.createAccount") : i18n.t("auth.loginToAccount")}
               </Text>
             </TouchableOpacity>
-            {isLogin && (
-              <TouchableOpacity style={themed.forgotPassword} onPress={handleForgotPassword} disabled={loading}>
-                <Text style={[themed.forgotPasswordText, { color: colors.primary }]}>
-                  {i18n.t("auth.forgotPassword")}
-                </Text>
-              </TouchableOpacity>
-            )}
           </PremiumCard>
         )}
       </PremiumScreenShell>
@@ -400,8 +407,8 @@ function createThemedStyles(colors) {
     toggleButton: { alignItems: "center", marginTop: SPACING.xl },
     toggleHint: { ...TYPOGRAPHY.bodySmall, marginBottom: SPACING.xs },
     toggleAction: { ...TYPOGRAPHY.body, fontWeight: "600" },
-    forgotPassword: { alignItems: "center", marginTop: SPACING.l },
-    forgotPasswordText: { ...TYPOGRAPHY.bodySmall },
+    forgotPassword: { alignSelf: "flex-end", marginTop: -SPACING.s, marginBottom: SPACING.m },
+    forgotPasswordText: { ...TYPOGRAPHY.bodySmall, fontWeight: "600" },
     linkBanner: {
       borderWidth: StyleSheet.hairlineWidth,
       borderRadius: RADIUS.m,

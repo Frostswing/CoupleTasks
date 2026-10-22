@@ -1,7 +1,4 @@
 {
-    "app": {
-        "displayName": "Couple of Tasks"
-    },
     "common": {
         "welcome": "Welcome",
         "loading": "Loading...",
@@ -29,7 +26,8 @@
         "DATABASE_ERROR": "Database error occurred",
         "permissionDenied": "Permission denied",
         "networkError": "Network error. Please check your connection.",
-        "serviceUnavailable": "Service is temporarily unavailable"
+        "serviceUnavailable": "Service is temporarily unavailable",
+        "error": "Error"
     },
     "language": {
         "selectLanguage": "Select Language",
@@ -42,6 +40,8 @@
         "signIn": "Sign In",
         "signUp": "Sign Up",
         "signOut": "Sign Out",
+        "signOutConfirm": "Are you sure you want to sign out?",
+        "orDivider": "or",
         "signInWithGoogle": "Sign in with Google",
         "email": "Email",
         "password": "Password",
@@ -321,6 +321,7 @@
         }
     },
     "app": {
+        "displayName": "Couple of Tasks",
         "loadingApp": "Loading the app...",
         "initializingFirebase": "Initializing Firebase...",
         "firebaseStatus": "Firebase Status:"

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -122,9 +123,10 @@ export default function PremiumScreenShell({
     <SafeAreaView style={[styles.fill, screenBackgroundStyle(colors)]} edges={edges}>
       <ScrollView
         style={styles.fill}
-        contentContainerStyle={[styles.scrollEnd, contentStyle]}
+        contentContainerStyle={[styles.scrollContent, styles.scrollEnd, contentStyle]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={Platform.OS === "android"}
         refreshControl={refreshControl}
       >
         {heroBlock}
@@ -158,6 +160,9 @@ export function PremiumHeroProgress({ progress, label }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+  },
   scrollEnd: {
     paddingBottom: SPACING.xxxl + 88,
   },
