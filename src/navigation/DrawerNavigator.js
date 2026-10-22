@@ -11,7 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { getCurrentUser, signOut } from "../services/userService";
+import { getCurrentUser, logoutUser } from "../services/userService";
 import SyncIndicator from "../components/common/SyncIndicator";
 import i18n from "../localization/i18n";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from "../constants/theme";
@@ -127,7 +127,7 @@ const CustomDrawerContent = (props) => {
   const handleSignOut = () => {
     Alert.alert(
       i18n.t("auth.signOut"),
-      "Are you sure you want to sign out?",
+      i18n.t("auth.signOutConfirm"),
       [
         { text: i18n.t("common.cancel"), style: "cancel" },
         {
@@ -135,9 +135,14 @@ const CustomDrawerContent = (props) => {
           style: "destructive",
           onPress: async () => {
             try {
-              await signOut();
+              const result = await logoutUser();
+              if (!result.success) {
+                throw result.error || new Error(i18n.t("common.unknownError"));
+              }
             } catch (error) {
-              Alert.alert(i18n.t("errors.error"), error.message);
+              const message =
+                error?.message || error?.userMessage || i18n.t("common.unknownError");
+              Alert.alert(i18n.t("errors.error"), message);
             }
           },
         },

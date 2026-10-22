@@ -1,6 +1,6 @@
 {
   "name": "coupletasks",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
@@ -8,7 +8,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "generate-icons": "node scripts/generate-icons.js",
-    "test": "node scripts/test-store-departments.mjs && node scripts/check-theme-hex.mjs && node scripts/test-two-column-grid.mjs && node scripts/test-forgot-password.mjs && node scripts/test-google-auth-errors.mjs",
+    "test": "node scripts/test-store-departments.mjs && node scripts/check-theme-hex.mjs && node scripts/test-two-column-grid.mjs && node scripts/test-forgot-password.mjs && node scripts/test-google-auth-errors.mjs && node scripts/test-locale-parity.mjs && node scripts/test-i18n-normalize.mjs && node scripts/test-drawer-signout-native.mjs",
     "capture-ui-previews": "node scripts/capture-screen-previews.mjs",
     "build:android": "expo prebuild --platform android --clean && npx expo run:android --variant release",
     "build:apk": "bash scripts/build-couple-tasks-apk.sh",
