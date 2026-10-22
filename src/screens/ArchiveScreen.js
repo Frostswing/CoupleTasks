@@ -21,6 +21,8 @@ import i18n from "../localization/i18n";
 import { ShoppingListItem } from "../entities/ShoppingListItem";
 import { User } from "../entities/User";
 import { format, differenceInDays } from "date-fns";
+import { buildHouseholdEmailSet, shoppingItemBelongsToHousehold } from "../utils/taskFilters";
+import { emailMatchesUser } from "../utils/email";
 
 const { width } = Dimensions.get('window');
 
@@ -39,18 +41,19 @@ export default function ArchiveScreen({ navigation }) {
     setIsLoading(true);
     try {
       const user = await User.me();
-      const userEmails = [user.email];
-      if (user.partner_email) userEmails.push(user.partner_email);
+      const emailSet = buildHouseholdEmailSet(user.email, user.partner_email);
 
       // Load archived tasks
       const allArchivedTasks = await Task.filter({ is_archived: true }, '-archived_date');
-      const relevantTasks = allArchivedTasks.filter(t => userEmails.includes(t.created_by));
+      const relevantTasks = allArchivedTasks.filter((t) =>
+        emailMatchesUser(t.created_by, emailSet)
+      );
       setArchivedTasks(relevantTasks);
 
       // Load all archived shopping items
       const allArchivedItems = await ShoppingListItem.filter({ is_archived: true }, '-purchased_date');
-      const allRelevantItems = allArchivedItems.filter(item => 
-        userEmails.includes(item.created_by) || userEmails.includes(item.added_by)
+      const allRelevantItems = allArchivedItems.filter((item) =>
+        shoppingItemBelongsToHousehold(item, emailSet, { userUids: [user.uid] })
       );
 
       // Load archived products (individual items, not grouped by lists)

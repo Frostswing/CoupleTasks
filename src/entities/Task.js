@@ -13,6 +13,7 @@ import {
   orderByKey
 } from 'firebase/database';
 import { getCurrentUser, getDataSource } from '../services/userService';
+import { normalizeStoredEmail } from '../utils/email';
 import { saveTaskToHistory } from '../services/historyService';
 
 export class Task {
@@ -67,7 +68,8 @@ export class Task {
 
       const taskWithDefaults = {
         ...taskData,
-        created_by: user.email, // Use email instead of uid to match filtering logic in screens
+        assigned_to: normalizeStoredEmail(taskData.assigned_to ?? ""),
+        created_by: normalizeStoredEmail(user.email), // Use email instead of uid to match filtering logic in screens
         created_date: new Date().toISOString(),
         updated_date: new Date().toISOString(),
         status: taskData.status || 'pending',
@@ -131,8 +133,17 @@ export class Task {
         finalUpdates.completion_date = new Date().toISOString();
         // Set completed_by if not already set
         if (!finalUpdates.completed_by) {
-          finalUpdates.completed_by = user.email;
+          finalUpdates.completed_by = normalizeStoredEmail(user.email);
         }
+      }
+      if ("assigned_to" in finalUpdates) {
+        finalUpdates.assigned_to = normalizeStoredEmail(finalUpdates.assigned_to);
+      }
+      if ("completed_by" in finalUpdates) {
+        finalUpdates.completed_by = normalizeStoredEmail(finalUpdates.completed_by);
+      }
+      if ("created_by" in finalUpdates) {
+        finalUpdates.created_by = normalizeStoredEmail(finalUpdates.created_by);
       }
 
       const taskRef = ref(database, `${dataSource.path}/tasks/${id}`);

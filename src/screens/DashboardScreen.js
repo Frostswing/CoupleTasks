@@ -26,6 +26,7 @@ import { handleError, showSuccess } from "../services/errorHandlingService";
 import { add, addDays, addMonths, addWeeks } from 'date-fns';
 import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from "../services/taskCache";
 import { usePartnerMode } from "../context/HouseholdPartnerContext";
+import { buildHouseholdEmailSet, isAssignedToMe, taskBelongsToHousehold } from "../utils/taskFilters";
 
 const { width } = Dimensions.get('window');
 
@@ -70,32 +71,17 @@ export default function DashboardScreen({ navigation }) {
 
     let isMounted = true;
     
-    // Capture user emails to avoid dependency on currentUser object
-    const userEmails = [currentUser.email];
-    if (currentUser.partner_email) {
-      userEmails.push(currentUser.partner_email);
-    }
+    const emailSet = buildHouseholdEmailSet(
+      currentUser.email,
+      currentUser.partner_email
+    );
 
-    // Filter function for tasks
-    const filterTasks = (taskList) => {
-      return taskList.filter(t => {
-        if (t.is_archived) return false;
-        
-        // Show if assigned to current user
-        if (userEmails.includes(t.assigned_to)) return true;
-        
-        // Show if assigned to "together" (both partners)
-        if (t.assigned_to === 'together') return true;
-        
-        // Show if unassigned (empty string or null)
-        if (!t.assigned_to || t.assigned_to === '') return true;
-        
-        // Backward compatibility: show tasks created by user
-        if (userEmails.includes(t.created_by)) return true;
-        
-        return false;
-      });
-    };
+    const filterTasks = (taskList) =>
+      taskList.filter(
+        (t) =>
+          !t.is_archived &&
+          taskBelongsToHousehold(t, emailSet, { isPartnered })
+      );
 
     // Load cached tasks first for instant display, then check for updates
     const loadCachedTasksAndSync = async () => {
@@ -215,26 +201,10 @@ export default function DashboardScreen({ navigation }) {
       }
       
       const allTasks = await Task.filter({ is_archived: { '$ne': true } }, '-updated_date');
-      const userEmails = [user.email];
-      if (user.partner_email) {
-        userEmails.push(user.partner_email);
-      }
-      // Filter tasks: show tasks assigned to current user, "together", or unassigned
-      const filtered = allTasks.filter(t => {
-        // Show if assigned to current user
-        if (userEmails.includes(t.assigned_to)) return true;
-        
-        // Show if assigned to "together" (both partners)
-        if (t.assigned_to === 'together') return true;
-        
-        // Show if unassigned (empty string or null)
-        if (!t.assigned_to || t.assigned_to === '') return true;
-        
-        // Backward compatibility: show tasks created by user
-        if (userEmails.includes(t.created_by)) return true;
-        
-        return false;
-      });
+      const emailSet = buildHouseholdEmailSet(user.email, user.partner_email);
+      const filtered = allTasks.filter(
+        (t) => !t.is_archived && taskBelongsToHousehold(t, emailSet, { isPartnered })
+      );
       setTasks(filtered);
       
       // Update cache with fresh data
@@ -271,7 +241,7 @@ export default function DashboardScreen({ navigation }) {
     }
 
     if (filters.assigned_to === 'me' && currentUser) {
-      filtered = filtered.filter(task => task.assigned_to === currentUser.email);
+      filtered = filtered.filter((task) => isAssignedToMe(task, currentUser.email));
     }
 
     setFilteredTasks(filtered);
@@ -412,7 +382,7 @@ export default function DashboardScreen({ navigation }) {
   const getStats = () => {
     const total = tasks.length;
     const completed = tasks.filter(t => t.status === 'completed').length;
-    const myTasks = tasks.filter(t => t.assigned_to === currentUser?.email).length;
+    const myTasks = tasks.filter((t) => isAssignedToMe(t, currentUser?.email)).length;
     const overdue = tasks.filter(t => 
       t.due_date && 
       new Date(t.due_date) < new Date() && 

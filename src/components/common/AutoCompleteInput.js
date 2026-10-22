@@ -15,6 +15,7 @@ import { getCurrentUser, getUserProfile } from '../../services/userService';
 import { ShoppingListItem } from '../../entities/ShoppingListItem';
 import { COLORS, SHADOWS } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
+import { buildHouseholdEmailSet, shoppingItemBelongsToHousehold } from '../../utils/taskFilters';
 
 const AutoCompleteInput = ({ 
   value, 
@@ -77,12 +78,11 @@ const AutoCompleteInput = ({
       const profileResult = await getUserProfile(authUser.uid);
       const profile = profileResult.success ? profileResult.profile : {};
 
-      const userEmails = [authUser.email];
-      if (profile.partner_email) userEmails.push(profile.partner_email);
+      const emailSet = buildHouseholdEmailSet(authUser.email, profile.partner_email);
 
       const allArchivedItems = await ShoppingListItem.filter({ is_archived: true }, '-purchased_date');
-      const relevantProducts = allArchivedItems.filter(item => 
-        userEmails.includes(item.created_by) || userEmails.includes(item.added_by)
+      const relevantProducts = allArchivedItems.filter((item) =>
+        shoppingItemBelongsToHousehold(item, emailSet, { userUids: [authUser.uid] })
       );
       
       // Use a Map to avoid duplicates (group by product name, case-insensitive)

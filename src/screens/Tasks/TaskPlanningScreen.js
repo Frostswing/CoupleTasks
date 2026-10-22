@@ -26,6 +26,8 @@ import taskGenerationService from "../../services/taskGenerationService";
 import { handleError, showSuccess } from "../../services/errorHandlingService";
 import { format, parseISO } from "date-fns";
 import { usePartnerMode } from "../../context/HouseholdPartnerContext";
+import { buildHouseholdEmailSet, taskBelongsToHousehold } from "../../utils/taskFilters";
+import { sameEmail } from "../../utils/email";
 
 export default function TaskPlanningScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -69,11 +71,11 @@ export default function TaskPlanningScreen({ navigation }) {
     setIsLoading(true);
     let isMounted = true;
     
-    const userEmails = [currentUser.email];
+    const emailSet = buildHouseholdEmailSet(
+      currentUser.email,
+      currentUser.partner_email
+    );
     const userUids = [currentUser.uid];
-    if (currentUser.partner_email) {
-      userEmails.push(currentUser.partner_email);
-    }
 
     const loadingTimeout = setTimeout(() => {
       if (isMounted) {
@@ -89,23 +91,11 @@ export default function TaskPlanningScreen({ navigation }) {
         
         // Filter tasks: show tasks assigned to current user, "together", or unassigned (empty/none)
         // Also include tasks created by user (for backward compatibility)
-        const filtered = taskList.filter(t => {
-          if (t.is_archived) return false;
-          
-          // Show if assigned to current user
-          if (userEmails.includes(t.assigned_to)) return true;
-          
-          // Show if assigned to "together" (both partners)
-          if (t.assigned_to === 'together') return true;
-          
-          // Show if unassigned (empty string or null)
-          if (!t.assigned_to || t.assigned_to === '') return true;
-          
-          // Backward compatibility: show tasks created by user
-          if (userEmails.includes(t.created_by) || userUids.includes(t.created_by)) return true;
-          
-          return false;
-        });
+        const filtered = taskList.filter(
+          (t) =>
+            !t.is_archived &&
+            taskBelongsToHousehold(t, emailSet, { isPartnered, userUids })
+        );
         
         setTasks(filtered);
         setIsLoading(false);
@@ -438,7 +428,7 @@ export default function TaskPlanningScreen({ navigation }) {
                         )}
                         {isPartnered &&
                           task.assigned_to &&
-                          task.assigned_to !== currentUser?.email &&
+                          !sameEmail(task.assigned_to, currentUser?.email) &&
                           task.assigned_to !== "together" && (
                           <View style={styles.assignedText}>
                             <Icon name="person" size={14} color={colors.textSecondary} />

@@ -1,6 +1,7 @@
 import { database } from './config';
 import { ref, set, get, update } from 'firebase/database';
 import { DEFAULT_DATA, DB_PATHS } from './database-schema';
+import { normalizeEmail } from "../utils/email";
 
 const CURRENT_DB_VERSION = '1.0.0';
 
@@ -55,7 +56,7 @@ const initializeAppMetadata = async () => {
 export const createUserProfile = async (userId, userData) => {
   try {
     const profileData = {
-      email: userData.email,
+      email: normalizeEmail(userData.email),
       full_name: userData.full_name || userData.name || 'User',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -80,6 +81,8 @@ export const createUserProfile = async (userId, userData) => {
 // Initialize shared space
 export const createSharedSpace = async (userId1, userId2, user1Email, user2Email) => {
   try {
+    const email1 = normalizeEmail(user1Email);
+    const email2 = normalizeEmail(user2Email);
     // Create shared space ID (alphabetically sorted user IDs)
     const sortedIds = [userId1, userId2].sort();
     const sharedSpaceId = `${sortedIds[0]}_${sortedIds[1]}`;
@@ -100,12 +103,12 @@ export const createSharedSpace = async (userId1, userId2, user1Email, user2Email
     const updates = {};
     updates[`${DB_PATHS.userProfile(userId1)}/shared_space_id`] = sharedSpaceId;
     updates[`${DB_PATHS.userProfile(userId1)}/sharing_with`] = userId2;
-    updates[`${DB_PATHS.userProfile(userId1)}/partner_email`] = user2Email;
+    updates[`${DB_PATHS.userProfile(userId1)}/partner_email`] = email2;
     updates[`${DB_PATHS.userProfile(userId1)}/updated_at`] = new Date().toISOString();
     
     updates[`${DB_PATHS.userProfile(userId2)}/shared_space_id`] = sharedSpaceId;
     updates[`${DB_PATHS.userProfile(userId2)}/sharing_with`] = userId1;
-    updates[`${DB_PATHS.userProfile(userId2)}/partner_email`] = user1Email;
+    updates[`${DB_PATHS.userProfile(userId2)}/partner_email`] = email1;
     updates[`${DB_PATHS.userProfile(userId2)}/updated_at`] = new Date().toISOString();
     
     await update(ref(database), updates);

@@ -1,7 +1,7 @@
 import { twoColumnCardWidth } from "../src/utils/displayName.js";
 
 const pad = 16;
-const gap = 8;
+const gap = 12;
 const w390 = twoColumnCardWidth(390, pad, gap);
 const w360 = twoColumnCardWidth(360, pad, gap);
 if (w390 < 160) throw new Error(`390px card too narrow: ${w390}`);

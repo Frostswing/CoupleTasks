@@ -29,6 +29,7 @@ import { addDays, format } from "date-fns";
 import { COLORS, screenBackgroundStyle } from "../../constants/theme";
 import { useAppTheme } from "../../context/ThemeContext";
 import { getCachedTasks, cacheTasks, clearTaskCache, getLastSyncTimestamp } from "../../services/taskCache";
+import { buildHouseholdEmailSet, taskBelongsToHousehold } from "../../utils/taskFilters";
 
 export default function DailyTasksScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -75,32 +76,18 @@ export default function DailyTasksScreen({ navigation }) {
 
     let isMounted = true;
     
-    const userEmails = [currentUser.email];
+    const emailSet = buildHouseholdEmailSet(
+      currentUser.email,
+      currentUser.partner_email
+    );
     const userUids = [currentUser.uid];
-    if (currentUser.partner_email) {
-      userEmails.push(currentUser.partner_email);
-    }
 
-    // Filter function for tasks
-    const filterTasks = (taskList) => {
-      return taskList.filter(t => {
-        if (t.is_archived) return false;
-        
-        // Show if assigned to current user
-        if (userEmails.includes(t.assigned_to)) return true;
-        
-        // Show if assigned to "together" (both partners)
-        if (t.assigned_to === 'together') return true;
-        
-        // Show if unassigned (empty string or null)
-        if (!t.assigned_to || t.assigned_to === '') return true;
-        
-        // Backward compatibility: show tasks created by user
-        if (userEmails.includes(t.created_by) || userUids.includes(t.created_by)) return true;
-        
-        return false;
-      });
-    };
+    const filterTasks = (taskList) =>
+      taskList.filter(
+        (t) =>
+          !t.is_archived &&
+          taskBelongsToHousehold(t, emailSet, { userUids })
+      );
 
     // Track if we've loaded initial data from Firebase
     let hasLoadedInitialData = false;
@@ -205,11 +192,10 @@ export default function DailyTasksScreen({ navigation }) {
       taskGenerationService.generateTasksForUpcomingMonth();
       
       const allTasks = await Task.filter({ is_archived: { '$ne': true } });
-      const userEmails = [user.email];
-      if (user.partner_email) {
-        userEmails.push(user.partner_email);
-      }
-      const filtered = allTasks.filter(t => userEmails.includes(t.created_by));
+      const emailSet = buildHouseholdEmailSet(user.email, user.partner_email);
+      const filtered = allTasks.filter((t) =>
+        taskBelongsToHousehold(t, emailSet, { userUids: [user.uid] })
+      );
       setTasks(filtered);
       
       // Update cache with fresh data

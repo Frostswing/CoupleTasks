@@ -59,11 +59,13 @@ export function useHouseholdPartner() {
 
   const isPartnered = Boolean(partnerEmail || isSharingActive);
 
-  const authEmail = getCurrentUser()?.email || profile?.email || "";
-  const userFirstName = displayFirstName(profile, authEmail);
+  const authUser = getCurrentUser();
+  const authEmail = authUser?.email || profile?.email || "";
+  const userFirstName = displayFirstName(profile, authEmail, authUser?.displayName);
   const partnerFirstName = displayFirstName(
     partnerProfile || sharing?.sharingWith?.profile,
-    partnerEmail
+    partnerEmail,
+    null
   );
 
   return {

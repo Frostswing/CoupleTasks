@@ -18,6 +18,7 @@ import { ThemedScreenShell } from "../components/common/ThemedScreenShell";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import i18n from "../localization/i18n";
+import { normalizeEmail, sameEmail } from "../utils/email";
 
 const SharingScreen = () => {
   const { colors } = useAppTheme();
@@ -73,7 +74,8 @@ const SharingScreen = () => {
       return;
     }
 
-    if (user.email === sharingEmail) {
+    const normalizedShareEmail = normalizeEmail(sharingEmail);
+    if (sameEmail(user.email, normalizedShareEmail)) {
       Alert.alert("שגיאה", "לא ניתן לשתף רשימות עם עצמך");
       return;
     }
@@ -81,7 +83,7 @@ const SharingScreen = () => {
     setLoading(true);
 
     try {
-      const result = await findUserByEmail(sharingEmail);
+      const result = await findUserByEmail(normalizedShareEmail);
 
       if (!result.success) {
         Alert.alert("שגיאה", "המשתמש לא נמצא. וודא שהמשתמש נרשם למערכת.");

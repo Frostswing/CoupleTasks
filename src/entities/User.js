@@ -12,6 +12,7 @@ import { getCurrentUser } from '../services/userService';
 import { DB_PATHS } from '../firebase/database-schema';
 import { validateData, sanitizeData, addTimestamps, handleDatabaseError } from '../firebase/database-utils';
 import { createSharedSpace, migrateToSharedSpace, removeSharing } from '../firebase/database-init';
+import { normalizeEmail, sameEmail } from '../utils/email';
 
 export class User {
   constructor(data) {
@@ -27,6 +28,17 @@ export class User {
     this.avatar_url = data.avatar_url || null;
     this.created_at = data.created_at || data.createdAt || null;
     this.updated_at = data.updated_at || data.updatedAt || null;
+  }
+
+  static _normalizeProfileEmailFields(updates) {
+    const normalized = { ...updates };
+    if ("email" in normalized) {
+      normalized.email = normalizeEmail(normalized.email);
+    }
+    if ("partner_email" in normalized && normalized.partner_email) {
+      normalized.partner_email = normalizeEmail(normalized.partner_email);
+    }
+    return normalized;
   }
 
   // Get current user profile
@@ -66,7 +78,10 @@ export class User {
       }
 
       const sanitizedUpdates = sanitizeData(updates);
-      const timestampedUpdates = addTimestamps(sanitizedUpdates, true);
+      const timestampedUpdates = addTimestamps(
+        User._normalizeProfileEmailFields(sanitizedUpdates),
+        true
+      );
 
       await update(ref(database, DB_PATHS.userProfile(currentUser.uid)), timestampedUpdates);
       
@@ -92,7 +107,7 @@ export class User {
       let foundUserId = null;
 
       Object.entries(users).forEach(([userId, userData]) => {
-        if (userData.profile && userData.profile.email === email.toLowerCase()) {
+        if (userData.profile && sameEmail(userData.profile.email, email)) {
           foundUser = userData.profile;
           foundUserId = userId;
         }
@@ -129,7 +144,8 @@ export class User {
 
       // Check if already linked
       const currentUserProfile = await User.me();
-      if (currentUserProfile.partner_email === partnerEmail) {
+      const normalizedPartnerEmail = normalizeEmail(partnerEmail);
+      if (sameEmail(currentUserProfile.partner_email, normalizedPartnerEmail)) {
         throw new Error('Already linked with this partner');
       }
 
@@ -138,7 +154,7 @@ export class User {
         currentUser.uid, 
         partner.uid, 
         currentUser.email, 
-        partnerEmail
+        normalizedPartnerEmail
       );
 
       if (!result.success) {
@@ -311,7 +327,10 @@ export class User {
       }
 
       const sanitizedUpdates = sanitizeData(updates);
-      const timestampedUpdates = addTimestamps(sanitizedUpdates, true);
+      const timestampedUpdates = addTimestamps(
+        User._normalizeProfileEmailFields(sanitizedUpdates),
+        true
+      );
 
       await update(ref(database, DB_PATHS.userProfile(this.uid)), timestampedUpdates);
       

@@ -16,6 +16,7 @@ import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "../constants/theme";
 import { useAppTheme } from "../context/ThemeContext";
 import i18n from "../localization/i18n";
 import { usePartnerMode } from "../context/HouseholdPartnerContext";
+import { normalizeEmail, sameEmail } from "../utils/email";
 
 export default function SettingsScreen({ navigation }) {
   const { colors } = useAppTheme();
@@ -55,14 +56,15 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleSave = async () => {
-    if (!partnerEmailDraft || partnerEmailDraft === currentUser.email) {
+    const normalizedPartner = normalizeEmail(partnerEmailDraft);
+    if (!normalizedPartner || sameEmail(normalizedPartner, currentUser.email)) {
       Alert.alert("Error", "Please enter a valid partner email.");
       return;
     }
 
     setIsSaving(true);
     try {
-      await User.updateMyUserData({ partner_email: partnerEmailDraft });
+      await User.updateMyUserData({ partner_email: normalizedPartner });
       Alert.alert("Success", "Partner linked successfully!");
       await loadUserData();
       refreshPartnerMode();

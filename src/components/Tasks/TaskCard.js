@@ -9,10 +9,11 @@ import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { format } from "date-fns";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, CATEGORY_COLORS, PRIORITY_COLORS, STATUS_COLORS } from "../../constants/theme";
 import { usePartnerMode } from "../../context/HouseholdPartnerContext";
+import { isAssignedToMe as taskIsAssignedToMe } from "../../utils/taskFilters";
 
 export default function TaskCard({ task, onStatusChange, onEdit, onSubtaskToggle, currentUser }) {
   const { isPartnered } = usePartnerMode();
-  const isAssignedToMe = task.assigned_to === currentUser?.email;
+  const isAssignedToMe = taskIsAssignedToMe(task, currentUser?.email);
   const allSubtasksCompleted = task.subtasks?.every((st) => st.is_completed) ?? true;
 
   const categoryStyle = CATEGORY_COLORS[task.category] || CATEGORY_COLORS.other;

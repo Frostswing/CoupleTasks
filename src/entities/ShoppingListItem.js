@@ -17,6 +17,7 @@ import { getCurrentUser, getDataSource } from '../services/userService';
 import { autoDetectCategory, getDefaultUnitForCategory } from '../constants/categories';
 import { autoDetectStoreDepartment, resolveStoreDepartment } from '../constants/storeDepartments';
 import { saveShoppingItemToHistory } from '../services/historyService';
+import { normalizeStoredEmail } from '../utils/email';
 
 export class ShoppingListItem {
   constructor(data) {
@@ -106,6 +107,7 @@ export class ShoppingListItem {
 
       const itemWithDefaults = {
         ...itemData,
+        added_by: normalizeStoredEmail(itemData.added_by ?? user.email),
         created_by: user.uid,
         created_date: new Date().toISOString(),
         updated_date: new Date().toISOString(),
