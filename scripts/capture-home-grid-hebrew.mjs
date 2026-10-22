@@ -47,16 +47,20 @@ async function signIn(page) {
     .isVisible({ timeout: 3000 })
     .catch(() => false);
   if (onHome) return;
-  const email = page.locator('input[placeholder*="mail"], input[placeholder*="Email"], input[placeholder*="דוא"]').first();
+  const email = page
+    .locator(
+      'input[placeholder*="mail"], input[placeholder*="Email"], input[placeholder*="אימייל"], input[placeholder*="דוא"]'
+    )
+    .first();
   if (await email.isVisible({ timeout: 10000 }).catch(() => false)) {
     await email.fill(EMAIL);
     await page.locator('input[placeholder*="assword"], input[placeholder*="סיסמה"]').first().fill(PASSWORD);
-    await page
+    const signIn = page
       .locator("div")
-      .filter({ hasText: /^Sign In$|^התחבר$/ })
-      .last()
-      .click({ timeout: 10000 });
-    await page.waitForTimeout(6000);
+      .filter({ hasText: /^Sign In$|^התחברות$|^התחבר$/ })
+      .last();
+    await signIn.click({ timeout: 15000 });
+    await page.waitForTimeout(8000);
   }
 }
 
